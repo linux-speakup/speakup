@@ -1,0 +1,11 @@
+
+menu "Speakup console speech" 
+config SPEAKUP
+	bool "Speakup console speech"
+
+	---help---
+
+		The base code for speakup, a kernel-based screen reader.
+
+endmenu
+

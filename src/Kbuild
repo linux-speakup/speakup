@@ -1,0 +1,7 @@
+obj-m := speakup.o speakup_keyhelp.o spk_synth_soft.o
+
+speakup-y := \
+	main.o \
+	synth.o
+
+

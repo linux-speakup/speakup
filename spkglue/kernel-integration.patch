@@ -1,0 +1,301 @@
+Index: linux-speakup/drivers/Kconfig
+===================================================================
+--- linux-speakup.orig/drivers/Kconfig
++++ linux-speakup/drivers/Kconfig
+@@ -62,6 +62,8 @@ source "drivers/media/Kconfig"
+ 
+ source "drivers/video/Kconfig"
+ 
++source "drivers/char/speakup/Kconfig"
++
+ source "sound/Kconfig"
+ 
+ source "drivers/usb/Kconfig"
+Index: linux-speakup/drivers/Makefile
+===================================================================
+--- linux-speakup.orig/drivers/Makefile
++++ linux-speakup/drivers/Makefile
+@@ -28,6 +28,10 @@ obj-$(CONFIG_FB_INTEL)          += video
+ obj-y				+= serial/
+ obj-$(CONFIG_PARPORT)		+= parport/
+ obj-y				+= base/ block/ misc/ mfd/ net/ media/
++# load input early so speakup can be disabled
++obj-$(CONFIG_SERIO)		+= input/serio/
++obj-$(CONFIG_GAMEPORT)		+= input/gameport/
++obj-$(CONFIG_INPUT)		+= input/
+ obj-$(CONFIG_NUBUS)		+= nubus/
+ obj-$(CONFIG_ATM)		+= atm/
+ obj-$(CONFIG_PPC_PMAC)		+= macintosh/
+@@ -51,9 +55,6 @@ obj-$(CONFIG_TC)		+= tc/
+ obj-$(CONFIG_USB)		+= usb/
+ obj-$(CONFIG_PCI)		+= usb/
+ obj-$(CONFIG_USB_GADGET)	+= usb/gadget/
+-obj-$(CONFIG_SERIO)		+= input/serio/
+-obj-$(CONFIG_GAMEPORT)		+= input/gameport/
+-obj-$(CONFIG_INPUT)		+= input/
+ obj-$(CONFIG_I2O)		+= message/
+ obj-$(CONFIG_RTC_LIB)		+= rtc/
+ obj-$(CONFIG_I2C)		+= i2c/
+Index: linux-speakup/drivers/char/Makefile
+===================================================================
+--- linux-speakup.orig/drivers/char/Makefile
++++ linux-speakup/drivers/char/Makefile
+@@ -91,6 +91,7 @@ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.
+ obj-$(CONFIG_TANBAC_TB0219)	+= tb0219.o
+ obj-$(CONFIG_TELCLOCK)		+= tlclk.o
+ 
++obj-$(CONFIG_SPEAKUP)		+= speakup/
+ obj-$(CONFIG_WATCHDOG)		+= watchdog/
+ obj-$(CONFIG_MWAVE)		+= mwave/
+ obj-$(CONFIG_AGP)		+= agp/
+Index: linux-speakup/drivers/char/consolemap.c
+===================================================================
+--- linux-speakup.orig/drivers/char/consolemap.c
++++ linux-speakup/drivers/char/consolemap.c
+@@ -667,3 +667,4 @@ console_map_init(void)
+ }
+ 
+ EXPORT_SYMBOL(con_copy_unimap);
++EXPORT_SYMBOL_GPL(inverse_translate);
+Index: linux-speakup/drivers/char/keyboard.c
+===================================================================
+--- linux-speakup.orig/drivers/char/keyboard.c
++++ linux-speakup/drivers/char/keyboard.c
+@@ -39,6 +39,7 @@
+ #include <linux/vt_kern.h>
+ #include <linux/sysrq.h>
+ #include <linux/input.h>
++#include <linux/spkglue.h>
+ #include <linux/reboot.h>
+ 
+ static void kbd_disconnect(struct input_handle *handle);
+@@ -65,6 +66,10 @@ extern void ctrl_alt_del(void);
+ 
+ #define KBD_DEFLOCK 0
+ 
++/* Key types processed even in raw modes */
++
++#define TYPES_ALLOWED_IN_RAW_MODE ((1 << KT_SPEC) | (1 << KT_SHIFT) | (1 << KT_SPKUP))
++
+ void compute_shiftstate(void);
+ 
+ /*
+@@ -80,7 +85,8 @@ void compute_shiftstate(void);
+ typedef void (k_handler_fn)(struct vc_data *vc, unsigned char value,
+ 			    char up_flag);
+ static k_handler_fn K_HANDLERS;
+-static k_handler_fn *k_handler[16] = { K_HANDLERS };
++k_handler_fn *k_handler[16] = { K_HANDLERS };
++EXPORT_SYMBOL_GPL(k_handler);
+ 
+ #define FN_HANDLERS\
+ 	fn_null,	fn_enter,	fn_show_ptregs,	fn_show_mem,\
+@@ -101,13 +107,14 @@ static fn_handler_fn *fn_handler[] = { F
+ const int max_vals[] = {
+ 	255, ARRAY_SIZE(func_table) - 1, ARRAY_SIZE(fn_handler) - 1, NR_PAD - 1,
+ 	NR_DEAD - 1, 255, 3, NR_SHIFT - 1, 255, NR_ASCII - 1, NR_LOCK - 1,
+-	255, NR_LOCK - 1, 255, NR_BRL - 1
++	255, NR_LOCK - 1, 255, NR_BRL - 1, 255
+ };
+ 
+ const int NR_TYPES = ARRAY_SIZE(max_vals);
+ 
+ struct kbd_struct kbd_table[MAX_NR_CONSOLES];
+-static struct kbd_struct *kbd = kbd_table;
++struct kbd_struct *kbd = kbd_table;
++EXPORT_SYMBOL_GPL(kbd);
+ 
+ struct vt_spawn_console vt_spawn_con = {
+ 	.lock = SPIN_LOCK_UNLOCKED,
+@@ -265,6 +272,7 @@ void kd_mksound(unsigned int hz, unsigne
+ 	} else
+ 		kd_nosound(0);
+ }
++EXPORT_SYMBOL_GPL(kd_mksound);
+ 
+ /*
+  * Setting the keyboard rate.
+@@ -1233,6 +1241,8 @@ static void kbd_keycode(unsigned int key
+ 	key_map = key_maps[shift_final];
+ 
+ 	if (!key_map) {
++		if (spkglue_key(vc, shift_final, keycode, K(KT_SHIFT,0), !down))
++			return;
+ 		compute_shiftstate();
+ 		kbd->slockstate = 0;
+ 		return;
+@@ -1255,6 +1265,8 @@ static void kbd_keycode(unsigned int key
+ 	}
+ 
+ 	type -= 0xf0;
++	if (spkglue_key(vc, shift_final, keycode, keysym, !down))
++		return;
+ 
+ 	if (raw_mode && type != KT_SPEC && type != KT_SHIFT)
+ 		return;
+@@ -1274,6 +1286,9 @@ static void kbd_keycode(unsigned int key
+ 		kbd->slockstate = 0;
+ }
+ 
++struct input_dev *fakekeydev = NULL;
++EXPORT_SYMBOL_GPL(fakekeydev);
++
+ static void kbd_event(struct input_handle *handle, unsigned int event_type,
+ 		      unsigned int event_code, int value)
+ {
+@@ -1311,6 +1326,7 @@ static struct input_handle *kbd_connect(
+ 		return NULL;
+ 
+ 	handle->dev = dev;
++	fakekeydev = dev;
+ 	handle->handler = handler;
+ 	handle->name = "kbd";
+ 
+Index: linux-speakup/drivers/char/vt.c
+===================================================================
+--- linux-speakup.orig/drivers/char/vt.c
++++ linux-speakup/drivers/char/vt.c
+@@ -98,6 +98,7 @@
+ #include <linux/pm.h>
+ #include <linux/font.h>
+ #include <linux/bitops.h>
++#include <linux/spkglue.h>
+ 
+ #include <asm/io.h>
+ #include <asm/system.h>
+@@ -739,6 +740,7 @@ int vc_allocate(unsigned int currcons)	/
+ 	    }
+ 	    vc->vc_kmalloced = 1;
+ 	    vc_init(vc, vc->vc_rows, vc->vc_cols, 1);
++	    spkglue_allocate(vc);
+ 	}
+ 	return 0;
+ }
+@@ -1003,6 +1005,7 @@ static void lf(struct vc_data *vc)
+ 		vc->vc_pos += vc->vc_size_row;
+ 	}
+ 	vc->vc_need_wrap = 0;
++	spkglue_con_write(vc, "\n", 1);
+ }
+ 
+ static void ri(struct vc_data *vc)
+@@ -1031,6 +1034,7 @@ static inline void bs(struct vc_data *vc
+ 		vc->vc_pos -= 2;
+ 		vc->vc_x--;
+ 		vc->vc_need_wrap = 0;
++		spkglue_bs(vc);
+ 	}
+ }
+ 
+@@ -1568,6 +1572,7 @@ static void do_con_trol(struct tty_struc
+ 				break;
+ 		}
+ 		vc->vc_pos += (vc->vc_x << 1);
++		spkglue_con_write(vc, " ", 1);
+ 		return;
+ 	case 10: case 11: case 12:
+ 		lf(vc);
+@@ -2107,6 +2112,7 @@ display_glyph:
+ 			}
+ 			if (vc->vc_decim)
+ 				insert_char(vc, 1);
++			spkglue_con_write(vc, (char *) &c, 1);
+ 			scr_writew(himask ?
+ 				     ((vc->vc_attr << 8) & ~himask) + ((tc & 0x100) ? himask : 0) + (tc & 0xff) :
+ 				     (vc->vc_attr << 8) + tc,
+@@ -2141,6 +2147,7 @@ display_glyph:
+ 	release_console_sem();
+ 
+ out:
++	spkglue_con_update(vc);
+ 	return n;
+ #undef FLUSH
+ }
+@@ -2166,6 +2173,7 @@ static void console_callback(void *ignor
+ 			/* we only changed when the console had already
+ 			   been allocated - a new console is not created
+ 			   in an interrupt routine */
++			spkglue_con_update(vc_cons[want_console].d);
+ 		}
+ 		want_console = -1;
+ 	}
+@@ -2184,6 +2192,7 @@ static void console_callback(void *ignor
+ 		do_blank_screen(0);
+ 		blank_timer_expired = 0;
+ 	}
++	spkglue_con_update(vc_cons[fg_console].d);
+ 
+ 	release_console_sem();
+ }
+@@ -2229,6 +2238,7 @@ static void vt_console_print(struct cons
+ 		/* printk("vt_console_print: tty %d not allocated ??\n", currcons+1); */
+ 		goto quit;
+ 	}
++	spkglue_con_update(vc_cons[fg_console].d);
+ 
+ 	if (vc->vc_mode != KD_TEXT)
+ 		goto quit;
+@@ -2241,6 +2251,7 @@ static void vt_console_print(struct cons
+ 
+ 	/* Contrived structure to try to emulate original need_wrap behaviour
+ 	 * Problems caused when we have need_wrap set on '\n' character */
++	spkglue_con_write(vc, b, count);
+ 	while (count--) {
+ 		c = *b++;
+ 		if (c == 10 || c == 13 || c == 8 || vc->vc_need_wrap) {
+@@ -2285,6 +2296,7 @@ static void vt_console_print(struct cons
+ 		}
+ 	}
+ 	set_cursor(vc);
++	spkglue_con_update(vc);
+ 
+ quit:
+ 	clear_bit(0, &printing);
+@@ -2650,6 +2662,7 @@ static int __init con_init(void)
+ 	master_display_fg = vc = vc_cons[currcons].d;
+ 	set_origin(vc);
+ 	save_screen(vc);
++	/*spkglue_init(vc); FIXME */
+ 	gotoxy(vc, vc->vc_x, vc->vc_y);
+ 	csi_J(vc, 0);
+ 	update_screen(vc);
+@@ -3763,6 +3776,7 @@ u16 screen_glyph(struct vc_data *vc, int
+ 		c |= 0x100;
+ 	return c;
+ }
++EXPORT_SYMBOL_GPL(screen_glyph);
+ 
+ /* used by vcs - note the word offset */
+ unsigned short *screen_pos(struct vc_data *vc, int w_offset, int viewed)
+Index: linux-speakup/include/linux/keyboard.h
+===================================================================
+--- linux-speakup.orig/include/linux/keyboard.h
++++ linux-speakup/include/linux/keyboard.h
+@@ -45,6 +45,7 @@ extern unsigned short plain_map[NR_KEYS]
+ #define KT_LOCK		10
+ #define KT_SLOCK	12
+ #define KT_BRL		14
++#define KT_SPKUP       	15
+ 
+ #define K(t,v)		(((t)<<8)|(v))
+ #define KTYP(x)		((x) >> 8)
+@@ -427,6 +428,7 @@ extern unsigned short plain_map[NR_KEYS]
+ #define K_CTRLR_SLOCK	K(KT_SLOCK,KG_CTRLR)
+ 
+ #define NR_LOCK		8
++#define NR_SPKUP	0x45
+ 
+ #define K_BRL_BLANK     K(KT_BRL, 0)
+ #define K_BRL_DOT1      K(KT_BRL, 1)
+Index: linux-speakup/include/linux/miscdevice.h
+===================================================================
+--- linux-speakup.orig/include/linux/miscdevice.h
++++ linux-speakup/include/linux/miscdevice.h
+@@ -12,6 +12,7 @@
+ #define APOLLO_MOUSE_MINOR 7
+ #define PC110PAD_MINOR 9
+ /*#define ADB_MOUSE_MINOR 10	FIXME OBSOLETE */
++#define SYNTH_MINOR   25
+ #define WATCHDOG_MINOR		130	/* Watchdog timer     */
+ #define TEMP_MINOR		131	/* Temperature Sensor */
+ #define RTC_MINOR 135
