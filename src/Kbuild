@@ -8,5 +8,13 @@ obj-$(CONFIG_SPEAKUP_SYNTH_ACNTPC) += spk_synth_acntpc.o
 obj-$(CONFIG_SPEAKUP_SYNTH_APOLLO) += spk_synth_apollo.o
 obj-$(CONFIG_SPEAKUP_SYNTH_AUDPTR) += spk_synth_audptr.o
 obj-$(CONFIG_SPEAKUP_SYNTH_BNS) += spk_synth_bns.o
+obj-$(CONFIG_SPEAKUP_SYNTH_DECTLK) += spk_synth_dectlk.o
+obj-$(CONFIG_SPEAKUP_SYNTH_DECEXT) += spk_synth_decext.o
+obj-$(CONFIG_SPEAKUP_SYNTH_DECPC) += spk_synth_decpc.o
+obj-$(CONFIG_SPEAKUP_SYNTH_DTLK) += spk_synth_dtlk.o
+obj-$(CONFIG_SPEAKUP_SYNTH_KEYPC) += spk_synth_keypc.o
+obj-$(CONFIG_SPEAKUP_SYNTH_LTLK) += spk_synth_ltlk.o
 obj-$(CONFIG_SPEAKUP_SYNTH_SOFT) += spk_synth_soft.o
+obj-$(CONFIG_SPEAKUP_SYNTH_SPKOUT) += spk_synth_spkout.o
+obj-$(CONFIG_SPEAKUP_SYNTH_TXPRT) += spk_synth_txprt.o
 

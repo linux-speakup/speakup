@@ -93,9 +93,85 @@ config SPEAKUP_SYNTH_BNS
 		or m to build it as a module.  See the configuration
 		help on the Speakup choice above for more info.
 
+config SPEAKUP_SYNTH_DECTLK
+	depends on SPEAKUP_CORE
+	tristate "DECtalk Express synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the DecTalk Express
+		synthesizer.  You can say y to build it into the kernel,
+		or m to build it as a module.  See the configuration
+		help on the Speakup choice above for more info.
+
+config SPEAKUP_SYNTH_DECEXT
+	depends on SPEAKUP_CORE
+	tristate "DECtalk External (old) synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the DecTalk External
+		(old) synthesizer.  You can say y to build it into the
+		kernel, or m to build it as a module.  See the
+		configuration help on the Speakup choice above for more
+		info.
+
+config SPEAKUP_SYNTH_DECPC
+	depends on SPEAKUP_CORE
+	tristate "DECtalk PC (big ISA card) synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the DecTalk PC (full
+		length ISA) synthesizer.  You can say  m to build it as
+		a module.  See the configuration help on the Speakup
+		choice above for more info.
+		
+		In order to use the DecTalk PC driver, you must download
+		the dec_pc.tgz file from linux-speakup.org.  It is in
+		the pub/linux/goodies directory.  The dec_pc.tgz file
+		contains the software which must be pre-loaded on to the
+		DecTalk PC board in order to use it with this driver. 
+		This driver must be built as a module, and can not be
+		loaded until the file system is mounted and the DecTalk
+		PC software has been pre-loaded on to the board.
+		
+		See the README file in the dec_pc.tgz file for more
+		details.
+
+config SPEAKUP_SYNTH_DTLK
+	depends on SPEAKUP_CORE
+	tristate "DoubleTalk PC synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the internal DoubleTalk
+		PC synthesizer.  You can say y to build it into the
+		kernel, or m to build it as a module.  See the
+		configuration help on the Speakup choice above for more
+		info.
+
+config SPEAKUP_SYNTH_KEYPC
+	depends on SPEAKUP_CORE
+	tristate "Keynote Gold PC synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the Keynote Gold
+		PC synthesizer.  You can say y to build it into the
+		kernel, or m to build it as a module.  See the
+		configuration help on the Speakup choice above for more
+		info.
+
+config SPEAKUP_SYNTH_LTLK
+	depends on SPEAKUP_CORE
+	tristate "DoubleTalk LT/LiteTalk synthesizer support"
+---help---
+
+		This is the Speakup driver for the LiteTalk/DoubleTalk
+		LT synthesizer.  You can say y to build it into the
+		kernel, or m to build it as a module.  See the
+		configuration help on the Speakup choice above for more
+		info.
+
 config SPEAKUP_SYNTH_SOFT
 	depends on SPEAKUP_CORE
-	tristate "Software synthesizer"
+	tristate "Userspace software synthesizer support"
 	---help---
 		This is the software synthesizer device node.  It will
 		register a device /dev/sftsyn which midware programs
@@ -105,6 +181,26 @@ config SPEAKUP_SYNTH_SOFT
 		such as festival, flite, tuxtalk and so forth.  You
 		can select 'y' or
 		'm' to have it built-in to the kernel or loaded as a module.
+
+config SPEAKUP_SYNTH_SPKOUT
+	depends on SPEAKUP_CORE
+	tristate "Speak Out synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the Speakout synthesizer.
+		 You can say y to build it into the kernel, or m to
+		build it as a module.  See the configuration help on the
+		Speakup choice above for more info.
+
+config SPEAKUP_SYNTH_TXPRT
+	depends on SPEAKUP_CORE
+	tristate "Transport synthesizer support"
+	---help---
+		
+		This is the Speakup driver for the Transport
+		synthesizer.  You can say y to build it into the kernel,
+		or m to build it as a module.  See the configuration
+		help on the Speakup choice above for more info.
 
 endmenu
 
