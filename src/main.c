@@ -67,7 +67,7 @@ extern struct kbd_struct * kbd;
 extern int fg_console;
 extern short punc_masks[];
 
-static special_func special_handler = NULL;
+special_func special_handler = NULL;
 special_func help_handler = NULL;
 
 short pitch_shift = 0, synth_flags = 0;
