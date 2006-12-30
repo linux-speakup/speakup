@@ -1,0 +1,8 @@
+#!/bin/bash
+# Prints the version of speakup
+
+ver=$(grep "#define SPEAKUP_VERSION" src/main.c)
+ver=${ver%\"*}
+ver=${ver#*\"}
+echo ${ver}
+

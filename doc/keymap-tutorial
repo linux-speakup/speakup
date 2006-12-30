@@ -1,0 +1,140 @@
+		       Speakup Keymap Tutorial
+
+This is meant to be a basic tutorial on how to change the Linux keymap
+file to assign speakup review functions to desired keys.  It is not
+intended to be a replacement for the loadkeys(8) or keymap(5) man
+pages.
+
+The basic lay-out of the keymap file is a series of lines with the
+following fields.  The keyword keycode indicates this is the start of
+a new key assignment.  It is then followed by a number which
+represents the actual key on the keyboard.  That number is followed by
+the equals '=' operator and finally a list of keywords representing
+key names such as keypad5.  Each line can have quite a few key
+functions on it.  They are interpreted by loadkeys in order and
+assigned to key shift states depending on the order they are
+encountered.  So for example, the first value after the equals is the
+keys unshifted state, while the second is the keys shifted state.  If
+you wish to learn the order they are interpreted in read the
+loadkeys(8) and keymap(5) man pages.
+
+You can have subsequent lines which are indented and start with
+another keyword for the various shifted states.  This way you can
+assign some of the states without having to specify them all in order
+up until you get to the one you want to assign.
+
+In speakup, we have assigned the insert key on the number pad to the
+altgr keyword.  This is not required; you could choose any other
+shifted state keyword.  We used altgr because it typically represents
+the right hand alt key.  In Linux each shift key is separate and
+independent, so the left shift and the right shift keys are not
+necessarily the same.  The altgr key is not really used for anything
+important, so we steel it.
+
+Here are the default key assignments for the number eight on the
+keypad:
+
+keycode  72 = KP_8            
+	alt     keycode  72 = Ascii_8         
+
+As you can see, the first line starts with keycode followed by 72
+which is the actual number assigned to the key when the keyboard port
+is read.  The KP_8 after the equal sign, is the symbolic representation
+of the function called when that key is hit.
+
+The second line is the same format except it starts with the keyword
+alt which is indented.  That means that the function at the end of
+that line Ascii_8 is applied to the alt-shifted eight key.
+
+Now here are the speakup assignments for that key:
+
+keycode  72 = 0x0d0a
+	altgr keycode 72 = 0x0d20
+#keycode  72 = KP_8            
+	alt     keycode  72 = Ascii_8         
+
+Notice that the only thing which has changed on the first line is the
+function called when the key is struck.  It is a hexadecimal number
+identifying the function called in a look up table.  It is not a
+symbolic representation yet because that means we need to change the
+loadkeys program to understand our symbolic names.  We will do this in
+the future but for now it is more expedient to just use the table
+indices.  You will find a table at the bottom of this document
+listing the review functions and their corresponding hex lookups.
+
+The 0x0d0a in the first line above is speakup's say line function.
+The second line ends with 0x0d20 which is speakup's read from top of
+screen to reading cursor line.
+
+The third line is the original key assignment commented out with a
+number-sign '#' at the beginning.  I do that so I can easily find the
+keys I want to affect by symbolic name.  Otherwise I would need to
+keep a look up table for all the keycodes.  I recommend you do this as
+well or you'll be very sorry at some point in the future.
+
+The forth line is just the standard key assignment for the left hand
+alt key.
+
+Now let's say we want to design a different keyboard layout.  I'll use
+an example for the JAWS style keypad because I've specifically been
+asked to help with that.  JAWS uses the eight on the keypad to move up
+a line or the speakup function to read previous line.  JAWS also uses
+the keypad_8 key in a shifted mode to read the current line.  I
+apologize if these are not quite right.  It has been a long time since
+I used JAWS.  So we would have the following two lines:
+
+keycode  72 = 0x0d0b
+	altgr keycode 72 = 0x0d0a
+
+The hex value 0x0d0b in the first line is speakup's SAY_PREVIOUS_LINE
+function.  The 0x0d0a in the second line is the same say_line function
+as we had earlier.  So when the number eight is hit on the keypad
+speakup will read the previous line and when the number eight is
+shifted with the insert key on the keypad it will read the current
+line.
+
+As you can tell, it is not really very difficult to reassign the keys
+to different review functions.
+
+Once you have carefully edited the keymap file, called default.map in
+the speakup distribution, you copy it into the /etc/kbd directory.
+Make sure you back up the original default.map from that directory
+first, if there is one.  Then you run loadkeys to load the new map
+into the kernel:
+
+loadkeys /etc/kbd/default.map
+
+If you wish to build your new keyboard lay-out into the kernel, after
+testing it, copy the default.map file into the drivers/char directory,
+with the name defkeymap.map, of your Linux source tree.  Then rm the
+defkeymap.c file and recompile the kernel.  Because there is no
+defkeymap.c `make' will rebuild it on the next compile.
+
+Here is a list of the available speakup review functions at this point
+in time.
+
+SAY_CHAR 0x0d04 /* say this character */
+SAY_PREV_CHAR 0x0d05 /* say character left of this char */
+SAY_NEXT_CHAR 0x0d06 /* say char right of this char */
+SAY_WORD 0x0d07 /* say this word under reading cursor */
+SAY_PREV_WORD 0x0d08
+SAY_NEXT_WORD 0x0d09
+SAY_LINE 0x0d0a /* say this line */
+SAY_PREV_LINE 0x0d0b /* say line above this line */
+SAY_NEXT_LINE 0x0d0c
+TOP_EDGE 0x0d0d /* move to top edge of screen */
+BOTTOM_EDGE 0x0d0e
+LEFT_EDGE 0x0d0f
+RIGHT_EDGE 0x0d10
+SAY_PHONETIC_CHAR 0x0d11 /* say this character phonetically */
+SPELL_WORD 0x0d12 /* spell this word letter by letter */
+SAY_SCREEN 0x0d14
+SAY_POSITION 0x0d1b
+SPEECH_OFF 0x0d1c
+SAY_ATTRIBUTES 0x0d1d
+SPEAKUP_PARKED 0x0d1e
+SAY_FROM_TOP 0x0d20
+SAY_TO_BOTTOM 0x0d21
+SAY_FROM_LEFT 0x0d22
+SAY_TO_RIGHT 0x0d23
+

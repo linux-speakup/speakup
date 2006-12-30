@@ -17,5 +17,8 @@ SPKDIR=$(pwd)
 
 cat ${SPKDIR}/src/Kbuild >> ${KDIR}/drivers/char/speakup/Makefile
 cp ${SPKDIR}/src/*.[ch] ${SPKDIR}/src/Kconfig ${KDIR}/drivers/char/speakup
+mkdir -p ${KDIR}/Documentation/speakup
+cp ${SPKDIR}/doc/* ${KDIR}/Documentation/speakup
 
 echo "speakup installed to ${KDIR}"
+

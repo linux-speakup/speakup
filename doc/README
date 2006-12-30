@@ -1,0 +1,98 @@
+Welcome to the speakup project for the Speakup speech package for Linux.
+
+Speakup is written by Kirk Reiser and Andy Berdan.  It is licensed
+under the GPL.  If you don't already know, the GPL stands for the GNU
+General Public License.  Which basically states that this code is free to
+copy, modify and distribute to anyone interested in playing with it.
+The one thing you may not do is turn any part of it into proprietary
+or commercial code without the permission of the author.  That's me.
+
+If you are interested in being involved with the development of speech
+output for Linux you can subscribe to the Speakup mailing list by
+sending a message to speakup-request@braille.uwo.ca with the line: subscribe.  You can also subscribe by going to the speakup web page and following the links at http://www.linux-speakup.org.
+
+We are at a very early stage in the development of this package.
+Hopefully changes will happen often and many.  The current files in
+this directory are:
+
+DefaultKeyAssignments		# speakup's default review keys
+INSTALLATION			#  for installing speakup from the tar ball.
+README				# this file
+keymap-tutorial			# a tutorial on how to layout the keyboard
+
+Read the INSTALLATION file to learn how to apply the patches and the
+default.map for the keyboard.  You should also read the Changes file.
+It really has any new things I've added since last time.
+
+There is no documentation in any of these files to instruct you what
+to do if something goes wrong with the patching or compilation.  If
+you would like that information you will need to subscribe to the
+mailing list and ask for help, or write me kirk@braille.uwo.ca for
+help.  I suggest the mailing list because I will probably tire quickly
+of answering the same questions over and over.  You could always
+decide to dig-in and take on the task, and write documentation to help
+others.
+
+There also is a speakup reflector for the Speak Freely package, which
+many of us hang out on and discuss all sorts of topics from speakup
+problems to ALSA driver installation and just about anything else
+you'd like to talk about.  The reflector is at lwl.braille.uwo.ca:4074
+with it's lwl page at lwl.braille.uwo.ca/speakup.html.  Come and join
+us, it's fun!
+
+Acknowledgements:
+
+I am really very new at kernel hacking and screen review package
+writing, so I have depended heavily on other folks kindness to help me
+a long.  No doubt I will continue to abuse them freely and others
+before this is a really good speech solution for Linux.  (Oh Well!,
+somebody's got to do it.)
+
+Theodore Ts'o.  He gave me a good discussion of unicode and UTF and
+the like.  He doesn't even remember writing me about it.
+
+Alan Cox.  He has answered many questions about scheduling and wait
+queues and timers along with code fragments and so on.  I just wish I
+understood it all totally.  He has also helped immensely in moving
+this package toward inclusion in the standard kernel tree. (Maybe next
+release!)
+
+Martin Mares.  He pointed me in the right direction to figuring out
+the colour attributes and other useful tidbits.
+
+Paul McDermott.  He really is the catalyst for me to actually get
+this all working.  Besides I like seeing him bounce around and get all
+excited every time I have something new working.
+
+John Covici, He was the first person to actually attempt writing
+another synthesizer driver for speakup.  It was the Speakout driver so
+it was also the first serial driver.
+
+Brian Borowski, he was the first person to actually write a speakup
+function other than Andy and I.
+
+Jim Danley, he has more or less become my main man in helping test
+code, add new features, bounce ideas off and generally become a good
+friend.
+
+Matt Campbell, he basically rewrote the drivers to be able to include
+all synths in the kernel at the same time.  The distribution
+maintainers appreciate him a lot as well.
+
+Gene Collins, he was very helpful debugging the current release prior
+to its public showing.  He has also worked hard educating others on
+the list and writing the ALSA mini howto.
+
+I would also like to really thank the folks that handle the
+distribution packages.  I and many other people would not find access
+to speakup nearly so convenient without their efforts.  They include
+Bill Acker, Tom Moore, Matt Campbell, Joe Norton and Joshua Lambert.
+
+There are probably many more I am forgetting right now.  I guess I'll
+just have to add you all later.
+
+
+Happy Hacking!
+
+  Kirk
+

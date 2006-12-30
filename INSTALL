@@ -1,0 +1,63 @@
+speakup installation instructions
+=================================
+
+Installing speakup requires knowledge of building your own kernel. Hopefully
+your distro includes speakup in your kernel, so that you don't have to install
+it yourself. But if they don't, here are some basic instructions:
+
+speakup is divided into spkglue and speakup. spkglue must be patched into your
+kernel but speakup can optionally be built externally.
+
+
+
+1. SPKGLUE INTERNAL, SPEAKUP EXTERNAL
+=====================================
+
+This method involves making a small modification to your kernel source, and
+then building the bulk of the speakup code as modules outside of the kernel
+source tree.
+
+Unpack your kernel sources to a known directory, e.g. /usr/src/linux
+From the directory where you have unpacked speakup, run:
+
+	# ./install-spkglue /usr/src/linux
+
+You should be presented with a single message informing you that spkglue has
+been installed.
+
+Next, configure, compile and install your kernel.
+
+When that is done, you can compile and install the speakup modules. From the
+directory where you have unpacked speakup, run:
+
+	# cd src
+	# make KERNELDIR=/usr/src/linux
+
+Then, as root, from the same directory, run:
+
+	# make KERNELDIR=/usr/src/linux modules_install
+
+You are now in a position to configure the speakup modules to be loaded during
+boot, and to boot into your new kernel.
+
+
+2. SPKGLUE INTERNAL, SPEAKUP INTERNAL
+=====================================
+
+This method involves patching both spkglue and speakup directly into your
+kernel source. You can then build speakup by selecting it in the kernel
+configuration just like any other driver.
+
+Unpack your kernel sources to a known directory, e.g. /usr/src/linux
+From the directory where you have unpacked speakup, run:
+
+	# ./install /usr/src/linux
+
+You should be presented with a few messages informing you that spkglue and
+speakup have been installed, and that the operation completed successfully.
+
+Next, configure, compile and install your kernel. Remember to select speakup
+and the appropriate synth modules when in the configuration menu!
+
+You can now boot into your new kernel.
+

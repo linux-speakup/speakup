@@ -1,0 +1,108 @@
+This document assumes you have had some experience with kernel
+compilation and installation.  If you have not, I recommend you get
+the kernel source and read the README and various documents in the
+linux/Documentation directory.  In particular the Changes file to make
+sure you have the appropriate utilities needed for installing a 2.2.xx
+or 2.4xx kernel.  It isn't as difficult as you might think.  The
+kernel README is intimidating the first time but once you get the
+steps down, it's really pretty easy.  Getting through the "make
+config" is the tedious bit.
+
+The first thing to do is to place a copy of the tarball in the /usr/src
+directory which is the directory the linux tree is located in as well.
+Next untar speakup by typing:
+
+tar zxf speakup-1.00.tar.gz
+cd speakup-1.00
+./install
+
+Note the dot-slash before the install.  This will copy the speakup
+directory to the kernel tree and apply the various patches and
+components to the appropriate kernel files.  Depending on how
+experienced you are with kernel compiling and hacking will determine
+whether you should bother looking at any failed patches.  If this
+happens, you should probably write to the speakup mailing list for
+help or myself.
+
+If all of the patch hunks apply successfully then just continue with
+the standard steps to compile the kernel with:
+
+make mrproper
+make config
+
+When you get to the section console speech output, answer 'y' to the
+CONFIG_SPEAKUP prompt.  You will be given a submenu with the list of
+synthesizers which are currently supported.  You can include as many
+synths in the kernel as you wish but remember each one takes up kernel
+space.  You can only choose one of the synths as the default or none,
+so just type dtlk or whatever is the correct string for the
+synthesizer you have.  You will also be asked if you wish to build-in
+a speakup key map.  If you do not say 'y' to this option you will need
+to load a speakup map at boot time with whichever mechanism your
+distribution uses for loading key maps.
+
+We have placed the speakup configuration options in make config just
+after the vga console choice.  For the DoubleTalk PC driver included
+by Jim Van Zandt.  I recommend you say no to that option.  I have not
+tried configuring them both in, but I wouldn't be at all surprised if
+it didn't work.
+
+If all goes well up to this point you can continue with the compiling
+process by doing:
+
+make dep >dep.file 2>&1 &
+make bzImage >cc.file 2>&1 &
+make modules >mod.file 2>&1 &
+
+I always redirect output to the files dep.file and cc.file so I can
+look over the compilation record to make sure there are no errors and
+warnings.
+
+Okay, you are ready to install the newly compiled kernel.  Make sure
+you make an linux.old entry in your lilo.conf file so you can recover
+if it blows up.  next as root run "make modules_install" to install
+whatever modules you compiled and move the bzImage from
+/usr/src/linux/arch/i386/boot to wherever your kernel lives.  Also
+move the System.map from /usr/src/linux to where your System.map
+lives.  On our systems we use debian so we create an vmlinuz-speakup
+and System.map-speakup in our /boot directory and set the symbolic
+links vmlinuz and System.map in the root (/) directory to point to the
+images.  Now type lilo to tell lilo to build the new booter file and
+install it.
+
+As of version 0.07, the keymap for speakup is automatically built in
+at compile time.  If you have other keymaps installed at boot time,
+you might want to consider removing them before you reboot the system.
+
+If everything has gone OK up until now, cross your fingers and type:
+
+shutdown -r now
+
+Your system should start talking to you as soon as it starts booting.
+It will talk and talk and ... well, you might want to hit the
+keypad-enter key to tell it to shut up.  You should also read the
+DefaultKeyAssignments file to learn the various review functions
+available.
+
+As of v-0.10 the speakup configuration options are in the
+/proc/speakup subtree.  The individual options should be fairly
+obvious by their names such as rate, volume, punc_level and so forth.
+You can manipulate them by cat'ing or echoing new values to them such
+as:
+
+echo 9 >/proc/speakup/rate
+
+You can see what the current values are by cat'ing those files to the console:
+
+cat /proc/speakup/rate
+
+I have probably managed to overlook a whole whack of things because
+this is the, enter version number here, draft.  Don't worry we'll get
+it right eventually.  If you like the package you really should get on
+the mailing list and start participating in it's development.
+
+  Kirk
+
+email: kirk@braille.uwo.ca
+phone: (519) 679-6845 (home)
+

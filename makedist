@@ -1,0 +1,16 @@
+#!/bin/bash
+# Makes a tarball release
+
+SPKVER=$(./version)
+RELDIR=speakup-${SPKVER}
+REL=${RELDIR}.tar.bz2
+
+mkdir -p ${RELDIR}
+make -C src clean
+cp -R spkglue src install* INSTALL README makepatch version ${RELDIR}
+rm -f ${RELDIR}/makedist ${RELDIR}/*.tar.bz2
+
+tar -cjf ${REL} ${RELDIR}
+echo "Produced ${REL}"
+rm -rf ${RELDIR}
+
