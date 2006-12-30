@@ -1,7 +1,12 @@
-obj-m := speakup.o speakup_keyhelp.o spk_synth_soft.o
-
-speakup-y := \
+obj-$(CONFIG_SPEAKUP) += speakup.o speakup_keyhelp.o
+speakup-objs := \
 	main.o \
 	synth.o
 
+obj-$(CONFIG_SPEAKUP_SYNTH_ACNTSA) += spk_synth_acntsa.o
+obj-$(CONFIG_SPEAKUP_SYNTH_ACNTPC) += spk_synth_acntpc.o
+obj-$(CONFIG_SPEAKUP_SYNTH_APOLLO) += spk_synth_apollo.o
+obj-$(CONFIG_SPEAKUP_SYNTH_AUDPTR) += spk_synth_audptr.o
+obj-$(CONFIG_SPEAKUP_SYNTH_BNS) += spk_synth_bns.o
+obj-$(CONFIG_SPEAKUP_SYNTH_SOFT) += spk_synth_soft.o
 

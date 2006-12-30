@@ -1,9 +1,17 @@
 KERNELDIR = /lib/modules/`uname -r`/build
 
+SYNTHS = \
+	CONFIG_SPEAKUP_SYNTH_ACNTPC=m	\
+	CONFIG_SPEAKUP_SYNTH_ACNTSA=m	\
+	CONFIG_SPEAKUP_SYNTH_APOLLO=m	\
+	CONFIG_SPEAKUP_SYNTH_AUDPTR=m	\
+	CONFIG_SPEAKUP_SYNTH_BNS=m	\
+	CONFIG_SPEAKUP_SYNTH_SOFT=m
+
 all: build
 
 build:
-	make -C $(KERNELDIR) M=`pwd`
+	make -C $(KERNELDIR) M=`pwd` CONFIG_SPEAKUP=m $(SYNTHS)
 
 clean:
 	make -C $(KERNELDIR) M=`pwd` clean

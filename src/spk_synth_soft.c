@@ -201,23 +201,25 @@ struct spk_synth synth_sftsyn = { "sftsyn", "0.3", "software synth",
 	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
 	get_index, {"\x01%di",1,5,1} };
 
-static void __exit mod_synth_exit( void )
+static int __init soft_init(void)
 {
-        if ( synth == &MY_SYNTH ) 
-	  synth_release( );
-	synth_remove( &MY_SYNTH );
-}
-
-static int __init mod_synth_init( void )
-{
-	int status = do_synth_init( &MY_SYNTH );
-	if ( status != 0 ) return status;
-	synth_add( &MY_SYNTH );
+	int status = do_synth_init(&MY_SYNTH);
+	if (status != 0)
+		return status;
+	synth_add(&MY_SYNTH);
 	return 0;
 }
 
-module_init( mod_synth_init );
-module_exit( mod_synth_exit );
+static void __exit soft_exit(void)
+{
+	if (synth == &MY_SYNTH)
+		synth_release();
+	synth_remove(&MY_SYNTH);
+}
+
+module_init(soft_init);
+module_exit(soft_exit);
 MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
-MODULE_DESCRIPTION("Synthesizer driver module for speakup for the  synth->long_name");
-MODULE_LICENSE( "GPL" );
+MODULE_DESCRIPTION("Speakup userspace software synthesizer support");
+MODULE_LICENSE("GPL");
+

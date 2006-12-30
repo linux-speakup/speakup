@@ -48,6 +48,51 @@ config SPEAKUP_CORE
 		If you are not a blind person, or don't have access to
 		one of the listed synthesizers, you should say n.
 
+config SPEAKUP_SYNTH_ACNTSA
+	depends on SPEAKUP_CORE
+	tristate "Accent SA synthesizer support"
+	---help---
+		This is the Speakup driver for the Accent SA
+		synthesizer.  You can say y to build it into the kernel,
+		or m to build it as a module.  See the configuration
+		help on the Speakup choice above for more info.
+
+config SPEAKUP_SYNTH_ACNTPC
+	depends on SPEAKUP_CORE
+	tristate "Accent PC synthesizer support"
+	---help---
+		This is the Speakup driver for the accent pc
+		synthesizer.  You can say y to build it into the kernel,
+		or m to build it as a module.  See the configuration
+		help on the Speakup choice above for more info.
+
+config SPEAKUP_SYNTH_APOLLO
+	depends on SPEAKUP_CORE
+	tristate "Apollo II synthesizer support"
+	---help---
+		This is the Speakup driver for the Apollo II
+		synthesizer.  You can say y to build it into the kernel,
+		or m to build it as a module.  See the configuration
+		help on the Speakup choice above for more info.
+
+config SPEAKUP_SYNTH_AUDPTR
+	depends on SPEAKUP_CORE
+	tristate "Audapter synthesizer support"
+	---help---
+		This is the Speakup driver for the Audapter synthesizer.
+		 You can say y to build it into the kernel, or m to
+		build it as a module.  See the configuration help on the
+		Speakup choice above for more info.
+
+config SPEAKUP_SYNTH_BNS
+	depends on SPEAKUP_CORE
+	tristate "Braille 'n' Speak synthesizer support"
+	---help---
+		This is the Speakup driver for the Braille 'n' Speak
+		synthesizer.  You can say y to build it into the kernel,
+		or m to build it as a module.  See the configuration
+		help on the Speakup choice above for more info.
+
 config SPEAKUP_SYNTH_SOFT
 	depends on SPEAKUP_CORE
 	tristate "Software synthesizer"
