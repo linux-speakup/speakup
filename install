@@ -1,0 +1,16 @@
+#!/bin/bash
+# Applies speakup and spkglue to kernel sources
+# Usage: ./install <KERNELDIR>
+
+die() {
+	echo $*
+	exit 1
+}
+
+KDIR=${1:-/usr/src/linux}
+
+./install-spkglue "${KDIR}" || die "spkglue failed to install"
+./install-speakup "${KDIR}" || die "speakup failed to install"
+
+echo "completed successfully"
+

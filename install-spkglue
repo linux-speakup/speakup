@@ -1,0 +1,27 @@
+#!/bin/bash
+# Installs spkglue to kernel sources
+# Usage: ./install-spkglue <KERNELDIR>
+
+die() {
+	echo $*
+	exit 1
+}
+
+KDIR=${1:-/usr/src/linux}
+SPKDIR=$(pwd)
+
+[[ -d ${KDIR} ]] || die "${KDIR} is not a directory"
+[[ -e ${KDIR}/MAINTAINERS ]] || die "${KDIR} is not a kernel dir"
+
+patch -d ${KDIR} -p1 -s -f --dry-run -i ${SPKDIR}/spkglue/kernel-integration.patch ||
+	die "spkglue/kernel-integration.patch does not apply to ${KDIR}, probably wrong kernel version"
+
+patch -d ${KDIR} -p1 -s -f -i ${SPKDIR}/spkglue/kernel-integration.patch ||
+	die "spkglue/kernel-integration.patch patching failed"
+
+cp ${SPKDIR}/spkglue/spkglue.h ${KDIR}/include/linux
+mkdir -p ${KDIR}/drivers/char/speakup
+cp ${SPKDIR}/spkglue/{spkglue.c,Kconfig,Makefile} ${KDIR}/drivers/char/speakup
+
+echo "spkglue installed to ${KDIR}"
+
