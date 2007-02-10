@@ -62,6 +62,17 @@ MODULE_DESCRIPTION("Speakup console speech");
 MODULE_LICENSE("GPL");
 MODULE_VERSION(SPEAKUP_VERSION);
 
+char *synth_name;
+module_param_named(synth, synth_name, charp, S_IRUGO);
+
+module_param_named(quiet, quiet_boot, bool, S_IRUGO);
+
+static int param_ser;
+module_param_named(ser, param_ser, int, S_IRUGO);
+
+static int param_port;
+module_param_named(port, param_port, int, S_IRUGO);
+
 /* these are globals from the kernel code */
 extern struct kbd_struct * kbd;
 extern int fg_console;
@@ -90,7 +101,6 @@ static const struct st_bits_data punc_info[] = {
 	{ 0, 0 }
 };
 static char mark_cut_flag = 0;
-char synth_name[10] = "" /* FIXME */;
 #define MAX_KEY 160
 u_char *our_keys[MAX_KEY], *shift_table;
 static u_char key_buf[600];
@@ -252,46 +262,6 @@ static u_long last_spk_jiffy = 0;
 
 struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
-static int spk_setup(char *str)
-{
-	int ints[4];
-	str = get_options(str, ARRAY_SIZE (ints), ints);
-	if (ints[0] > 0 && ints[1] >= 0)
-		synth_port_forced = ints[1];
-	return 1;
-}
-
-static int spk_ser_setup(char *str)
-{
-	const int lookup[4] = { 0x3f8, 0x2f8, 0x3e8, 0x2e8 };
-	int ints[4];
-	str = get_options(str, ARRAY_SIZE (ints), ints);
-	if (ints[0] > 0 && ints[1] >= 0)
-		synth_port_forced = lookup[ints[1]];
-	return 1;
-}
-
-static int spk_synth_setup(char *str)
-{
-	size_t len = min_t(size_t, strlen(str), 9);
-	memcpy (synth_name, str, len);
-	synth_name[len] = '\0';
-	return 1;
-}
-
-static int spk_quiet_setup(char *str)
-{
-	if (strchr("1yt", *str) != NULL)
-		quiet_boot = 1;
-	return 1;
-}
-
-// FIXME convert to module params
-__setup("speakup_port=", spk_setup);
-__setup("speakup_ser=", spk_ser_setup);
-__setup("speakup_synth=", spk_synth_setup);
-__setup("speakup_quiet=", spk_quiet_setup);
-
 static unsigned char get_attributes(u16 *pos)
 {
 	return (u_char)(scr_readw(pos) >> 8);
@@ -309,6 +279,9 @@ static void speakup_date(struct vc_data *vc)
 char *strlwr(char *s)
 {
 	char *p;
+	if (s == NULL)
+		return NULL;
+
 	for (p = s; *p; p++)
 		if (*p >= CAP_A && *p <= CAP_Z)
 			*p |= 32;
@@ -1419,6 +1392,12 @@ static void __init speakup_open(struct vc_data *vc,
 {
 	int i;
 	struct st_num_var *n_var;
+	const int ser_lookup[] = { 0x3f8, 0x2f8, 0x3e8, 0x2e8 };
+
+	if (param_ser > 0 && param_ser <= ARRAY_SIZE(ser_lookup))
+		synth_port_forced = ser_lookup[param_ser - 1];
+	if (param_port)
+		synth_port_forced = param_port;
 
 	reset_default_chars();
 	reset_default_chartab();
@@ -1978,6 +1957,8 @@ static int bits_write_proc(struct file *file, const char *buffer, u_long count,
 	return ret;
 }
 
+/* FIXME: needs reimplementing in sysfs */
+#if 0
 // this is the read handler for /proc/speakup/synth
 static int synth_read_proc(char *page, char **start, off_t off, int count,
 			   int *eof, void *data)
@@ -2014,12 +1995,13 @@ static int synth_write_proc(struct file *file, const char *buffer,
 	pr_warn( "failed to init synth %s\n", new_synth_name );
 	return -ENODEV;
 }
+#endif
 
 struct st_proc_var spk_proc_vars[] = {
 	 { VERSION, version_read_proc, 0, 0 },
 	 { SILENT, 0, silent_write_proc, 0 },
 	 { CHARS, chars_read_proc, chars_write_proc, 0 },
-	 { SYNTH, synth_read_proc, synth_write_proc, 0 },
+/*	 { SYNTH, synth_read_proc, synth_write_proc, 0 },*/
 	 { KEYMAP, keys_read_proc, keys_write_proc, 0 },
 	 { PUNC_SOME, bits_read_proc, bits_write_proc, 1 },
 	 { PUNC_MOST, bits_read_proc, bits_write_proc, 2 },

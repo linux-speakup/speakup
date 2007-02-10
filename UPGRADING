@@ -1,0 +1,72 @@
+Upgrading from speakup 2.x
+==========================
+
+speakup 3.x is a restructuring project to get the code more suitable for
+possible future kernel inclusion.
+
+Some functionality has been changed or temporarily dropped. The main points
+are outlined below.
+
+1. Position of load during kernel boot sequence
+
+Speakup has been converted to use the module driver model (which does
+also support building into the kernel). One unfortunate side effect of this
+is that speakup is now initialised later in boot when built into the kernel.
+
+This should not affect most users, as most distro's only load the speakup
+modules late in the userspace boot process anyway.
+
+This situation may possibly improve in the future. As speakup hooks so
+deeply into the kernel core, the code would be significantly simpler if the
+option of modular build was dropped, in which case speakup could be
+initialised as a subsytem earlier in the boot process again. However, modular
+builds are very useful for development, so this will not change any time soon.
+
+2. Parameters
+
+Previously, speakup was partially configured on the kernel command line
+with parameters such as speakup_synth=X. These parameters have now been
+converted into module parameters.
+
+speakup_synth is now the 'synth' module parameter. It still takes a string,
+the name of the synth to use.
+
+speakup_quiet is now the 'quiet' module parameter. It takes 0 or 1 as a
+parameter. The earlier implementation also accepted 'y' and 't' as signifying
+'be quiet', the new parameter does not.
+
+'speakup_ser' is now the 'ser' module parameter. Previous usage was a
+zero-based serial port index. This is now one-based. In other words, previously
+if you used 'speakup_ser=1', you now want to use value 2 (i.e. add 1).
+
+'speakup_port' is now the 'port' module parameter. It still takes a single
+integer value representing port address.
+
+If you have built speakup into your kernel directly, you pass parameters to 
+speakup on the kernel command line (as before), with this syntax:
+	speakup.PARAM = VALUE
+e.g.
+	speakup.synth=dectlk speakup.quiet=1
+
+If you built speakup as modules, these parameters can be passed on the
+modprobe command line:
+	modprobe speakup synth=dectlk quiet=1
+
+Your distro probably allows you to list these permanently in /etc/modules.conf
+or /etc/modules.d or similar.
+
+3. /proc/speakup/synth interface
+
+Temporarily dropped, synth must be specified as a module parameter. This
+will probably reappear later as an attribute in sysfs.
+
+4. "Default synth" kernel configuration option
+
+Dropped, synth must be specified as a module parameter. Alternatively, just
+load a synth module: it will be used by default.
+
+5. Module names
+
+speakup is now speakup.ko. The synth's are named spk_synth_foo.ko, and the
+software synthesizer is spk_synth_soft.ko
+
