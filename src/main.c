@@ -2660,7 +2660,7 @@ speakup_goto (struct vc_data *vc )
 }
 
 static void
-load_help ( void *dummy )
+load_help(struct work_struct *work)
 {
 	request_module( "speakup_keyhelp" );
 	if ( help_handler ) {
@@ -2668,7 +2668,7 @@ load_help ( void *dummy )
 	} else synth_write_string( "help module not found" );
 }
 
-static DECLARE_WORK(ld_help, load_help, NULL);
+static DECLARE_WORK(ld_help, load_help);
 #define schedule_help schedule_work
 
 static void
