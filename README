@@ -14,6 +14,19 @@ probably not supported by this release.
 Homepage: http://www.linux-speakup.org
 Support is provided through a mailing list on the above site.
 
+Usage
+=====
+
+There are different ways that speakup can be configured, but the most common
+is building speakup and the synth drivers as modules. At this point it is just
+a case of using modprobe to load a synth module driver, which will pull in
+the speakup core as a dependency, e.g.:
+
+	modprobe spk_synth_soft
+
+Further user documentation can be found in the doc/ subdirectory, specifically
+doc/spkguide.txt. Some information here may be out of date, corrections are
+accepted. Also see the UPGRADING file.
 
 Implementation
 ==============
