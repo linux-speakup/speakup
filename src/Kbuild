@@ -17,4 +17,5 @@ obj-$(CONFIG_SPEAKUP_SYNTH_LTLK) += spk_synth_ltlk.o
 obj-$(CONFIG_SPEAKUP_SYNTH_SOFT) += spk_synth_soft.o
 obj-$(CONFIG_SPEAKUP_SYNTH_SPKOUT) += spk_synth_spkout.o
 obj-$(CONFIG_SPEAKUP_SYNTH_TXPRT) += spk_synth_txprt.o
+obj-$(CONFIG_SPEAKUP_SYNTH_DUMMY) += spk_synth_dummy.o
 

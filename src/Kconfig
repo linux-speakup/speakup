@@ -202,5 +202,17 @@ config SPEAKUP_SYNTH_TXPRT
 		or m to build it as a module.  See the configuration
 		help on the Speakup choice above for more info.
 
+config SPEAKUP_SYNTH_DUMMY
+	depends on SPEAKUP_CORE
+	tristate "Dummy, dummy"
+	---help---
+		
+		This is a dummy Speakup driver for plugging a mere serial
+		terminal.  This is handy if you want to test speakup but
+		don't have the hardware.  You can say y to build it into
+		the kernel, or m to build it as a module.  See the
+		configuration help on the Speakup choice above for more info.
+	 
+
 endmenu
 

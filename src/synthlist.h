@@ -47,5 +47,8 @@ SYNTH_DECL(spkout)
 #ifdef CONFIG_SPEAKUP_TXPRT
 SYNTH_DECL(txprt)
 #endif
+#ifdef CONFIG_SPEAKUP_DUMMY
+SYNTH_DECL(dummy)
+#endif
 
 #undef SYNTH_DECL
