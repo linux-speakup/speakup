@@ -30,7 +30,6 @@
 #include <linux/vt_kern.h>
 #include <linux/ctype.h>
 #include <linux/selection.h>
-#include <asm/uaccess.h> /* copy_from|to|user( ) and others */
 #include <linux/unistd.h>
 
 #include <linux/keyboard.h>	/* for KT_SHIFT */
@@ -40,7 +39,6 @@
 #include <linux/kmod.h>
 #include <linux/spkglue.h>
 
-#include "spk_priv.h"
 #include <linux/bootmem.h>	/* for alloc_bootmem */
 
 /* speakup_*_selection */
@@ -48,8 +46,11 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/types.h>
-#include <asm/uaccess.h>
 #include <linux/consolemap.h>
+
+#include <asm/uaccess.h> /* copy_from|to|user( ) and others */
+
+#include "spk_priv.h"
 
 #define SPEAKUP_VERSION "3.0.0"
 #define MAX_DELAY ( (500 * HZ ) / 1000 )
@@ -2067,7 +2068,7 @@ kbd_fakekey2(struct vc_data *vc,int v,int command)
 static void
 read_all_doc( struct vc_data *vc)
 {
-	if ( synth == NULL || spk_shut_up || (vc->vc_num != fg_console ) )
+	if ( (vc->vc_num != fg_console ) || synth == NULL || spk_shut_up )
 		return;
 	if (!synth_supports_indexing())
 		return;
@@ -2401,6 +2402,7 @@ cursor_done (u_long data )
 void
 speakup_bs (struct vc_data *vc )
 {
+	if (!speakup_console) return;
 	if (!spk_parked )
 		speakup_date (vc );
 	if ( spk_shut_up || synth == NULL ) return;
@@ -2413,7 +2415,7 @@ speakup_bs (struct vc_data *vc )
 void
 speakup_con_write (struct vc_data *vc, const char *str, int len )
 {
-	if (spk_shut_up || (vc->vc_num != fg_console ) )
+	if ((vc->vc_num != fg_console) || spk_shut_up )
 		return;
 	if (bell_pos && spk_keydown && (vc->vc_x == bell_pos - 1 ) )
 		bleep(3 );

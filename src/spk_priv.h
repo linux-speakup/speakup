@@ -28,7 +28,6 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/errno.h>
-#include <asm/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
 #include <linux/delay.h>
 #include <linux/wait.h>		/* for wait_queue */
 #include <linux/init.h> /* for __init */
@@ -37,6 +36,7 @@
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif
+#include <asm/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
 #include "keyinfo.h"
 
 #define SHIFT_TBL_SIZE 64

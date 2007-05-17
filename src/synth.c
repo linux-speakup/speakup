@@ -8,16 +8,17 @@
 #include <linux/ioport.h>	/* for check_region, request_region */
 #include <linux/interrupt.h>
 #include <linux/delay.h>	/* for loops_per_sec */
-#include <asm/semaphore.h>
 #include <linux/wait.h>		/* for wait_queue */
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
-#include "spk_priv.h"
-#include "serialio.h"
 #include <linux/kmod.h>
 
+#include <asm/semaphore.h>
 #ifdef __powerpc__
 #include <asm-ppc/pc_serial.h> /* for SERIAL_PORT_DFNS */
 #endif
+
+#include "spk_priv.h"
+#include "serialio.h"
 
 static struct serial_state rs_table[] = {
 	SERIAL_PORT_DFNS

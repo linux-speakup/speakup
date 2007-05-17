@@ -22,9 +22,9 @@
  * package and is not a general device driver.  */
 
 #include <linux/unistd.h>
-#include <asm/semaphore.h>
 #include <linux/miscdevice.h>   /* for misc_register, and SYNTH_MINOR */
 #include <linux/poll.h>  // for poll_wait()
+#include <asm/semaphore.h>
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_sftsyn

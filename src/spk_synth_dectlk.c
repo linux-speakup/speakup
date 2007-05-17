@@ -22,10 +22,10 @@
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.
 		*/
-#include "spk_priv.h"
-#include "serialio.h"
 #include <linux/unistd.h>
 #include <linux/proc_fs.h>
+#include "spk_priv.h"
+#include "serialio.h"
 
 #define MY_SYNTH synth_dectlk
 #define SYNTH_CLEAR 0x03
