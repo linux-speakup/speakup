@@ -1,7 +1,7 @@
 #ifndef SSPK_SERIAL
 #define SSPK_SERIAL
 
-#include <linux/serial.h>	/* for rs_table, serial constants & 
+#include <linux/serial.h>	/* for rs_table, serial constants &
 				   serial_uart_config */
 #include <linux/serial_reg.h>	/* for more serial constants */
 #include <linux/serialP.h>	/* for struct serial_state */

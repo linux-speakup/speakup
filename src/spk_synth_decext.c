@@ -28,154 +28,154 @@
 #define MY_SYNTH synth_decext
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-#define synth_full( ) ( inb_p( synth_port_tts ) == 0x13 )
+#define synth_full() (inb_p(synth_port_tts) == 0x13)
 
 static int timeouts = 0;
 static int in_escape = 0;
 
-static int wait_for_xmitr ( void )
+static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ( ( synth_alive ) && ( timeouts >= NUM_DISABLE_TIMEOUTS ) ) {
+	if ((synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
 		synth_alive = 0;
 		timeouts = 0;
 		return 0;
 	}
 	do { /* holding register empty? */
-		check = inb_p( synth_port_tts + UART_LSR );
-		if ( --tmout == 0 ) {
-			pr_warn ( "%s:  timed out\n", synth->long_name );
+		check = inb_p(synth_port_tts + UART_LSR);
+		if (--tmout == 0) {
+			pr_warn("%s: timed out\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & BOTH_EMPTY ) != BOTH_EMPTY );
+	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
 	do { /* CTS */
-		check = inb_p ( synth_port_tts + UART_MSR );
-		if ( --tmout == 0 ) {
+		check = inb_p(synth_port_tts + UART_MSR);
+		if (--tmout == 0) {
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & UART_MSR_CTS ) != UART_MSR_CTS );
+	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
 	timeouts = 0;
 	return 1;
 }
 
 static int spk_serial_out(const char ch)
 {
-	if ( synth_alive && wait_for_xmitr ( ) ) {
-		outb_p ( ch, synth_port_tts );
+	if (synth_alive && wait_for_xmitr()) {
+		outb_p(ch, synth_port_tts);
 		return 1;
 	}
 	return 0;
 }
 
 static u_char
-spk_serial_in ( void )
+spk_serial_in(void)
 {
 	int lsr, tmout = SPK_SERIAL_TIMEOUT, c;
 	do {
-		lsr = inb_p ( synth_port_tts + UART_LSR );
-		if ( --tmout == 0 )
+		lsr = inb_p(synth_port_tts + UART_LSR);
+		if (--tmout == 0)
 			return 0xff;
-	} while ( !( lsr & UART_LSR_DR ) );
-	c = inb_p ( synth_port_tts + UART_RX );
-	return ( u_char ) c;
+	} while (!(lsr & UART_LSR_DR));
+	c = inb_p(synth_port_tts + UART_RX);
+	return (u_char) c;
 }
 
-static void do_catch_up( unsigned long data )
+static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
 static u_char last='\0';
-	synth_stop_timer( );
-	while ( synth_buff_out < synth_buff_in ) {
+	synth_stop_timer();
+	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-		if ( ch == '\n' ) ch = 0x0D;
-		if ( synth_full( ) || !spk_serial_out( ch ) ) {
-			synth_delay( synth_full_time );
+		if (ch == '\n') ch = 0x0D;
+		if (synth_full() || !spk_serial_out(ch)) {
+			synth_delay(synth_full_time);
 			return;
 		}
 		synth_buff_out++;
-		if ( ch == '[' ) in_escape = 1;
-		else if ( ch == ']' ) in_escape = 0;
-		else if ( ch <= SPACE ) {
-			if ( !in_escape && strchr( ",.!?;:", last ) )
-				spk_serial_out( PROCSPEECH );
-			if ( jiffies >= jiff_max ) { 
-				if ( !in_escape )
-					spk_serial_out( PROCSPEECH );
-				synth_delay( synth_delay_time ); 
-				return; 
+		if (ch == '[') in_escape = 1;
+		else if (ch == ']') in_escape = 0;
+		else if (ch <= SPACE) {
+			if (!in_escape && strchr(",.!?;:", last))
+				spk_serial_out(PROCSPEECH);
+			if (jiffies >= jiff_max) {
+				if (!in_escape)
+					spk_serial_out(PROCSPEECH);
+				synth_delay(synth_delay_time);
+				return;
 			}
 		}
 		last = ch;
 	}
-	if ( synth_done( ) || !in_escape )
-	spk_serial_out( PROCSPEECH );
+	if (synth_done() || !in_escape)
+	spk_serial_out(PROCSPEECH);
 }
 
-static const char *synth_immediate ( const char *buf )
+static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
-	while ( ( ch = *buf ) ) {
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-        if ( wait_for_xmitr( ) )
-          outb( ch, synth_port_tts );
-        else return buf;
-	buf++;
+	while ((ch = *buf)) {
+		if (ch == 0x0a) ch = PROCSPEECH;
+		if (wait_for_xmitr())
+			outb(ch, synth_port_tts);
+		else return buf;
+		buf++;
 	}
 	return 0;
 }
 
-static void synth_flush( void )
+static void synth_flush(void)
 {
 	in_escape = 0;
-	synth_immediate( "\033P;10z\033\\" );
+	synth_immediate("\033P;10z\033\\");
 }
 
-static int serprobe( int index )
+static int serprobe(int index)
 {
 		u_char test=0;
-		struct serial_state *ser = spk_serial_init( index );
-		if ( ser == NULL ) return -1;
+		struct serial_state *ser = spk_serial_init(index);
+		if (ser == NULL) return -1;
 		/* ignore any error results, if port was forced */
-	if ( synth_port_forced ) 
+	if (synth_port_forced)
 				return 0;
-	synth_immediate( "\033[;5n\033\\" );
-	if ( ( test = spk_serial_in( ) ) == '\033' )
-		return 0;  
-	spk_serial_release( );
+	synth_immediate("\033[;5n\033\\");
+	if ((test = spk_serial_in()) == '\033')
+		return 0;
+	spk_serial_release();
 	timeouts = synth_alive = synth_port_tts = 0; /* not ignoring */
 	return -1;
 }
 
-static int synth_probe( void )
+static int synth_probe(void)
 {
 	int i=0, failed=0;
-	pr_info( "Probing for %s.\n", synth->long_name );
+	pr_info("Probing for %s.\n", synth->long_name);
 		/* check ttyS0-ttyS3 */
-	for ( i=SPK_LO_TTY; i <= SPK_HI_TTY; i++ ) {
-	  if (( failed = serprobe( i )) == 0 ) break; /* found it */
-        }
-        if ( failed ) {
-		pr_info( "%s:  not found\n", synth->long_name );
+	for (i=SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		if ((failed = serprobe(i)) == 0) break; /* found it */
+	}
+	if (failed) {
+		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
-	pr_info( "%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
-		synth_port_tts, synth_port_tts+7, synth->version );
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
+		synth_port_tts, synth_port_tts+7, synth->version);
 	return 0;
 }
 
-static int synth_is_alive( void )
+static int synth_is_alive(void)
 {
-	if ( synth_alive ) return 1;
-	if ( !synth_alive&& wait_for_xmitr( ) > 0 ) { /* restart */
+	if (synth_alive) return 1;
+	if (!synth_alive&& wait_for_xmitr() > 0) { /* restart */
 		synth_alive = 1;
-		synth_write_string( synth->init );
+		synth_write_string(synth->init);
 		return 2;
 	}
-	pr_warn( "%s: can't restart synth\n", synth->long_name );
+	pr_warn("%s: can't restart synth\n", synth->long_name);
 	return 0;
 }
 

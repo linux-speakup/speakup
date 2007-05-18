@@ -24,143 +24,141 @@
 
 #define MY_SYNTH synth_keypc
 #define SYNTH_IO_EXTENT	0x04
-#define SWAIT udelay( 70 )
-#define synth_writable( ) ( inb_p( synth_port ) & 0x10 )
-#define synth_readable( ) ( inb_p( synth_port ) & 0x10 )
-#define synth_full( ) ( ( inb_p( synth_port ) & 0x80 ) == 0 )
+#define SWAIT udelay(70)
+#define synth_writable() (inb_p(synth_port) & 0x10)
+#define synth_readable() (inb_p(synth_port) & 0x10)
+#define synth_full() ((inb_p(synth_port) & 0x80) == 0)
 #define PROCSPEECH 0x1f
 #define SYNTH_CLEAR 0x03
 
 static int synth_port;
-static unsigned int synth_portlist[] =
-    { 0x2a8, 0 };
+static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
-static int 
-oops( void ) 
+static int
+oops(void)
 {
 	int s1, s2, s3, s4;
-	s1 = inb_p( synth_port );
-	s2 = inb_p( synth_port+1 );
-	s3 = inb_p( synth_port+2 );
-	s4 = inb_p( synth_port+3 );
-	pr_warn( "synth timeout %d %d %d %d\n", s1, s2, s3, s4 );
+	s1 = inb_p(synth_port);
+	s2 = inb_p(synth_port+1);
+	s3 = inb_p(synth_port+2);
+	s4 = inb_p(synth_port+3);
+	pr_warn("synth timeout %d %d %d %d\n", s1, s2, s3, s4);
 	return 0;
 }
 
-static const char *synth_immediate ( const char *buf )
+static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	int timeout;
-	while (  (  ch = *buf ) ) {
-		if ( ch == 0x0a ) ch = PROCSPEECH;
-		if ( synth_full( ) )
+	while ((ch = *buf)) {
+		if (ch == 0x0a) ch = PROCSPEECH;
+		if (synth_full())
 			return buf;
 	timeout = 1000;
-		while ( synth_writable( ) )
-			if ( --timeout <= 0 ) return (char *) oops( );
-		outb_p( ch, synth_port );
+		while (synth_writable())
+			if (--timeout <= 0) return (char *) oops();
+		outb_p(ch, synth_port);
 		SWAIT;
 	buf++;
 	}
 	return 0;
 }
 
-static void do_catch_up( unsigned long data )
+static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
 	int timeout;
-	synth_stop_timer( );
-	while (  synth_buff_out < synth_buff_in ) {
- 		if ( synth_full( ) ) {
-			synth_delay( synth_full_time );
+	synth_stop_timer();
+	while (synth_buff_out < synth_buff_in) {
+ 		if (synth_full()) {
+			synth_delay(synth_full_time);
 			return;
 		}
-	timeout = 1000;
-		while ( synth_writable( ) )
-			if ( --timeout <= 0 ) break;
-		if ( timeout <= 0 ) {
-			oops( );
+		timeout = 1000;
+		while (synth_writable())
+			if (--timeout <= 0) break;
+		if (timeout <= 0) {
+			oops();
 			break;
 		}
 		ch = *synth_buff_out++;
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-		outb_p( ch, synth_port );
+		if (ch == 0x0a) ch = PROCSPEECH;
+		outb_p(ch, synth_port);
 		SWAIT;
-		if ( jiffies >= jiff_max && ch == SPACE ) {
-	timeout = 1000;
-		while ( synth_writable( ) )
-			if ( --timeout <= 0 ) break;
-		if ( timeout <= 0 ) {
-			oops( );
-			break;
+		if (jiffies >= jiff_max && ch == SPACE) {
+			timeout = 1000;
+			while (synth_writable())
+				if (--timeout <= 0) break;
+			if (timeout <= 0) {
+				oops();
+				break;
 			}
-			outb_p( PROCSPEECH, synth_port );
-			synth_delay( synth_delay_time ); 
-			return; 
+			outb_p(PROCSPEECH, synth_port);
+			synth_delay(synth_delay_time);
+			return;
 		}
 	}
 	timeout = 1000;
-		while ( synth_writable( ) )
-			if ( --timeout <= 0 ) break;
-		if ( timeout <= 0 ) oops( );
-			else
-	outb_p( PROCSPEECH, synth_port );
-	synth_done(  );
+	while (synth_writable())
+		if (--timeout <= 0) break;
+	if (timeout <= 0) oops();
+	else outb_p(PROCSPEECH, synth_port);
+	synth_done();
 }
 
-static void synth_flush( void )
+static void synth_flush(void)
 {
-	outb_p( SYNTH_CLEAR, synth_port );
+	outb_p(SYNTH_CLEAR, synth_port);
 }
 
-static int synth_probe( void )
+static int synth_probe(void)
 {
 	unsigned int port_val = 0;
 	int i = 0;
-	pr_info( "Probing for %s.\n", synth->long_name );
-	if ( synth_port_forced ) {
+	pr_info("Probing for %s.\n", synth->long_name);
+	if (synth_port_forced) {
 		synth_port = synth_port_forced;
-		pr_info( "probe forced to %x by kernel command line\n", synth_port );
-		if ( synth_request_region( synth_port-1, SYNTH_IO_EXTENT ) ) {
-			pr_warn( "sorry, port already reserved\n" );
+		pr_info("probe forced to %x by kernel command line\n", synth_port);
+		if (synth_request_region(synth_port-1, SYNTH_IO_EXTENT)) {
+			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
-		port_val = inb( synth_port );
+		port_val = inb(synth_port);
 	} else {
-		for( i=0; synth_portlist[i]; i++ ) {
-			if ( synth_request_region( synth_portlist[i], SYNTH_IO_EXTENT ) ) {
-				pr_warn( "request_region:  failed with 0x%x, %d\n",
-					synth_portlist[i], SYNTH_IO_EXTENT );
+		for (i=0; synth_portlist[i]; i++) {
+			if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
+				pr_warn("request_region: failed with 0x%x, %d\n",
+					synth_portlist[i], SYNTH_IO_EXTENT);
 				continue;
 			}
-			port_val = inb( synth_portlist[i] );
-			if ( port_val == 0x80 ) {
+			port_val = inb(synth_portlist[i]);
+			if (port_val == 0x80) {
 				synth_port = synth_portlist[i];
 				break;
 			}
 		}
 	}
-	if ( port_val != 0x80 ) {
-		pr_info( "%s:  not found\n", synth->long_name );
-		synth_release_region( synth_portlist[i], SYNTH_IO_EXTENT );
+	if (port_val != 0x80) {
+		pr_info("%s: not found\n", synth->long_name);
+		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port = 0;
 		return -ENODEV;
 	}
-	pr_info( "%s:  %03x-%03x, driver version %s,\n", synth->long_name,
-		synth_port,	synth_port+SYNTH_IO_EXTENT-1, 
-		synth->version );
+	pr_info("%s: %03x-%03x, driver version %s,\n", synth->long_name,
+		synth_port,	synth_port+SYNTH_IO_EXTENT-1,
+		synth->version);
 	return 0;
 }
 
-static void keynote_release(  void )
+static void keynote_release(void)
 {
-	if (  synth_port )
-		synth_release_region( synth_port, SYNTH_IO_EXTENT );
+	if (synth_port)
+		synth_release_region(synth_port, SYNTH_IO_EXTENT);
 	synth_port = 0;
 }
 
-static int synth_is_alive( void )
+static int synth_is_alive(void)
 {
 	synth_alive = 1;
 	return 1;

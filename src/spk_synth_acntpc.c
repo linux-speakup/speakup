@@ -26,110 +26,109 @@
 #include "spk_synth_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntpc
-#define synth_readable( ) ( inb_p( synth_port_control ) & SYNTH_READABLE ) 
-#define synth_writable( ) ( inb_p( synth_port_control ) & SYNTH_WRITABLE ) 
-#define synth_full( ) ( inb_p( synth_port_tts ) == 'F' ) 
+#define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
+#define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
+#define synth_full() (inb_p(synth_port_tts) == 'F')
 #define PROCSPEECH '\r'
 
 
 static int synth_port_control;
-static unsigned int synth_portlist[] =
-    { 0x2a8, 0 };
+static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
-static const char *synth_immediate ( const char *buf )
+static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
-	while (  (  ch = *buf ) ) {
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-		if ( synth_full( ) )
+	while ((ch = *buf)) {
+	if (ch == 0x0a) ch = PROCSPEECH;
+		if (synth_full())
 			return buf;
-		while ( synth_writable( ) ); 
-		outb_p( ch, synth_port_tts );
-	buf++;
+		while (synth_writable());
+		outb_p(ch, synth_port_tts);
+		buf++;
 	}
 	return 0;
 }
 
-static void do_catch_up( unsigned long data )
+static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
-	synth_stop_timer( );
-	while (  synth_buff_out < synth_buff_in ) {
-		if ( synth_full( ) ) {
-			synth_delay( synth_full_time );
+	synth_stop_timer();
+	while (synth_buff_out < synth_buff_in) {
+		if (synth_full()) {
+			synth_delay(synth_full_time);
 			return;
 		}
-		while ( synth_writable( ) ); 
+		while (synth_writable());
 		ch = *synth_buff_out++;
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-		outb_p( ch, synth_port_tts );
-		if ( jiffies >= jiff_max && ch == SPACE ) {
-			while ( synth_writable( ) );
-			outb_p( PROCSPEECH, synth_port_tts );
-			synth_delay( synth_delay_time ); 
-			return; 
+	if (ch == 0x0a) ch = PROCSPEECH;
+		outb_p(ch, synth_port_tts);
+		if (jiffies >= jiff_max && ch == SPACE) {
+			while (synth_writable());
+			outb_p(PROCSPEECH, synth_port_tts);
+			synth_delay(synth_delay_time);
+			return;
 		}
 	}
-	while ( synth_writable( ) );
-	outb_p( PROCSPEECH, synth_port_tts );
-	synth_done(  );
+	while (synth_writable());
+	outb_p(PROCSPEECH, synth_port_tts);
+	synth_done();
 }
 
-static void synth_flush( void )
+static void synth_flush(void)
 {
-	outb_p( SYNTH_CLEAR, synth_port_tts );
+	outb_p(SYNTH_CLEAR, synth_port_tts);
 }
 
-static int synth_probe( void )
+static int synth_probe(void)
 {
 	unsigned int port_val = 0;
 	int i = 0;
-	pr_info( "Probing for %s.\n", synth->long_name );
-	if ( synth_port_forced ) {
+	pr_info("Probing for %s.\n", synth->long_name);
+	if (synth_port_forced) {
 		synth_port_tts = synth_port_forced;
-		pr_info( "probe forced to %x by kernel command line\n", synth_port_tts );
-		if ( synth_request_region( synth_port_tts-1, SYNTH_IO_EXTENT ) ) {
-			pr_warn( "sorry, port already reserved\n" );
+		pr_info("probe forced to %x by kernel command line\n", synth_port_tts);
+		if (synth_request_region(synth_port_tts-1, SYNTH_IO_EXTENT)) {
+			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
-		port_val = inw( synth_port_tts-1 );
+		port_val = inw(synth_port_tts-1);
 		synth_port_control = synth_port_tts-1;
 	} else {
-		for( i=0; synth_portlist[i]; i++ ) {
-			if ( synth_request_region( synth_portlist[i], SYNTH_IO_EXTENT ) ) {
-				pr_warn( "request_region:  failed with 0x%x, %d\n",
-					synth_portlist[i], SYNTH_IO_EXTENT );
+		for (i=0; synth_portlist[i]; i++) {
+			if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
+				pr_warn("request_region: failed with 0x%x, %d\n",
+					synth_portlist[i], SYNTH_IO_EXTENT);
 				continue;
 			}
-			port_val = inw( synth_portlist[i] );
-			if ( ( port_val &= 0xfffc ) == 0x53fc ) { /* 'S' and out&input bits */
+			port_val = inw(synth_portlist[i]);
+			if ((port_val &= 0xfffc) == 0x53fc) { /* 'S' and out&input bits */
 				synth_port_control = synth_portlist[i];
 				synth_port_tts = synth_port_control+1;
 				break;
 			}
 		}
 	}
-	if ( ( port_val &= 0xfffc ) != 0x53fc ) { /* 'S' and out&input bits */
-		pr_info( "%s:  not found\n", synth->long_name );
-		synth_release_region( synth_portlist[i], SYNTH_IO_EXTENT );
+	if ((port_val &= 0xfffc) != 0x53fc) { /* 'S' and out&input bits */
+		pr_info("%s: not found\n", synth->long_name);
+		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port_control = 0;
 		return -ENODEV;
 	}
-	pr_info( "%s:  %03x-%03x, driver version %s,\n", synth->long_name,
-		synth_port_control,	synth_port_control+SYNTH_IO_EXTENT-1, 
-		synth->version );
+	pr_info("%s: %03x-%03x, driver version %s,\n", synth->long_name,
+		synth_port_control,	synth_port_control+SYNTH_IO_EXTENT-1,
+		synth->version);
 	return 0;
 }
 
-static void accent_release(  void )
+static void accent_release(void)
 {
-	if (  synth_port_tts )
-		synth_release_region( synth_port_tts-1, SYNTH_IO_EXTENT );
+	if (synth_port_tts)
+		synth_release_region(synth_port_tts-1, SYNTH_IO_EXTENT);
 	synth_port_tts = 0;
 }
 
-static int synth_is_alive( void )
+static int synth_is_alive(void)
 {
 	synth_alive = 1;
 	return 1;

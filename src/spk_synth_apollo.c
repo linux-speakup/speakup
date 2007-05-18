@@ -31,141 +31,141 @@
 
 static int timeouts = 0;	/* sequential number of timeouts */
 
-static int wait_for_xmitr( void )
+static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ( ( synth_alive ) && ( timeouts >= NUM_DISABLE_TIMEOUTS ) ) {
-		synth_alive = 0; 
+	if ((synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+		synth_alive = 0;
 		timeouts = 0;
-		return 0; 
+		return 0;
 	}
 	do {
-		check = inb( synth_port_tts + UART_LSR );
-		if ( --tmout == 0 ) {
-			pr_warn( "APOLLO:  timed out\n" );
+		check = inb(synth_port_tts + UART_LSR);
+		if (--tmout == 0) {
+			pr_warn("APOLLO: timed out\n");
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & BOTH_EMPTY ) != BOTH_EMPTY );
+	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
 	do {
-		check = inb( synth_port_tts + UART_MSR );
-				if ( --tmout == 0 ) {
-					timeouts++;
-					return 0;
-				}
-	} while ( ( check & UART_MSR_CTS ) != UART_MSR_CTS );
+		check = inb(synth_port_tts + UART_MSR);
+		if (--tmout == 0) {
+			timeouts++;
+			return 0;
+		}
+	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
 	timeouts = 0;
 	return 1;
 }
 
 static int spk_serial_out(const char ch)
 {
- // int timer = 9000000; 
-	if ( synth_alive && wait_for_xmitr( ) ) {
-		outb( ch, synth_port_tts );
-		/*while ( inb( synth_port_tts+UART_MSR ) & UART_MSR_CTS ) if ( --timer == 0 ) break;*/
-		/*    outb( UART_MCR_DTR, synth_port_tts + UART_MCR );*/
+ // int timer = 9000000;
+	if (synth_alive && wait_for_xmitr()) {
+		outb(ch, synth_port_tts);
+		/*while (inb(synth_port_tts+UART_MSR) & UART_MSR_CTS) if (--timer == 0) break;*/
+		/*	outb(UART_MCR_DTR, synth_port_tts + UART_MCR);*/
 		return 1;
 	}
 	return 0;
 }
 
 /*
-static unsigned char spk_serial_in( void ) 
+static unsigned char spk_serial_in(void)
 {
 	int c, lsr, tmout = SPK_SERIAL_TIMEOUT;
 	do {
-		lsr = inb( synth_port_tts + UART_LSR );
-		if ( --tmout == 0 ) return 0xff;
-	} while ( !( lsr & UART_LSR_DR ) );
-	c = inb( synth_port_tts + UART_RX );
-	return ( unsigned char ) c;
+		lsr = inb(synth_port_tts + UART_LSR);
+		if (--tmout == 0) return 0xff;
+	} while (!(lsr & UART_LSR_DR));
+	c = inb(synth_port_tts + UART_RX);
+	return (unsigned char) c;
 }
 */
 
-static void do_catch_up( unsigned long data )
+static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
-synth_stop_timer( );
-	while ( synth_buff_out < synth_buff_in ) {
+synth_stop_timer();
+	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-		if ( !spk_serial_out( ch ) ) {
-			outb( UART_MCR_DTR, synth_port_tts + UART_MCR );
-			outb( UART_MCR_DTR | UART_MCR_RTS, synth_port_tts + UART_MCR );
-			synth_delay( synth_full_time );
+		if (!spk_serial_out(ch)) {
+			outb(UART_MCR_DTR, synth_port_tts + UART_MCR);
+			outb(UART_MCR_DTR | UART_MCR_RTS, synth_port_tts + UART_MCR);
+			synth_delay(synth_full_time);
 			return;
 		}
 		synth_buff_out++;
-		if ( jiffies >= jiff_max && synth_buff_out-synth_buffer > 10 ) {
-		spk_serial_out( PROCSPEECH );
-		synth_delay( synth_delay_time ); 
-		return; 
+		if (jiffies >= jiff_max && synth_buff_out-synth_buffer > 10) {
+			spk_serial_out(PROCSPEECH);
+			synth_delay(synth_delay_time);
+			return;
 		}
 	}
-	spk_serial_out( PROCSPEECH );
-	synth_done( );
+	spk_serial_out(PROCSPEECH);
+	synth_done();
 }
 
-static const char *synth_immediate ( const char *buf )
+static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
-	while ( ( ch = *buf ) ) {
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-        if ( wait_for_xmitr( ) )
-	  outb( ch, synth_port_tts );
-	else return buf;
-	buf++;
+	while ((ch = *buf)) {
+		if (ch == 0x0a) ch = PROCSPEECH;
+		if (wait_for_xmitr())
+			outb(ch, synth_port_tts);
+		else return buf;
+		buf++;
 	}
 	return 0;
 }
 
-static void synth_flush ( void )
+static void synth_flush(void)
 {
-	spk_serial_out ( SYNTH_CLEAR );
+	spk_serial_out(SYNTH_CLEAR);
 }
 
-static int serprobe( int index )
+static int serprobe(int index)
 {
-	struct serial_state *ser = spk_serial_init( index );
-	if ( ser == NULL ) return -1;
-	outb( 0x0d, ser->port ); /* wake it up if older BIOS */
-	mdelay( 1 );
+	struct serial_state *ser = spk_serial_init(index);
+	if (ser == NULL) return -1;
+	outb(0x0d, ser->port); /* wake it up if older BIOS */
+	mdelay(1);
 	synth_port_tts = ser->port;
-	if ( synth_port_forced ) return 0;
+	if (synth_port_forced) return 0;
 	/* check for apollo now... */
-	if ( !synth_immediate( "\x18" ) ) return 0;
-	pr_warn( "port %x failed\n", synth_port_tts );
-	spk_serial_release( );
+	if (!synth_immediate("\x18")) return 0;
+	pr_warn("port %x failed\n", synth_port_tts);
+	spk_serial_release();
 	timeouts = synth_alive = synth_port_tts = 0;
 	return -1;
 }
 
-static int synth_probe( void )
+static int synth_probe(void)
 {
 	int i, failed=0;
-	pr_info( "Probing for %s.\n", synth->long_name );
-	for ( i=SPK_LO_TTY; i <= SPK_HI_TTY; i++ ) {
-	  if (( failed = serprobe( i )) == 0 ) break; /* found it */
+	pr_info("Probing for %s.\n", synth->long_name);
+	for (i=SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		if ((failed = serprobe(i)) == 0) break; /* found it */
 	}
-	if ( failed ) {
-		pr_info( "%s:  not found\n", synth->long_name );
+	if (failed) {
+		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
-	pr_info( "%s:  %03x-%03x, Driver version %s,\n", synth->long_name,
-	 synth_port_tts, synth_port_tts + 7, synth->version );
+	pr_info("%s: %03x-%03x, Driver version %s,\n", synth->long_name,
+	 synth_port_tts, synth_port_tts + 7, synth->version);
 	return 0;
 }
 
-static int synth_is_alive( void )
+static int synth_is_alive(void)
 {
-	if ( synth_alive ) return 1;
-	if ( !synth_alive && wait_for_xmitr( ) > 0 ) { /* restart */
+	if (synth_alive) return 1;
+	if (!synth_alive && wait_for_xmitr() > 0) { /* restart */
 		synth_alive = 1;
-		synth_write_string( synth->init );
-		return 2;  /* reenabled */
-	} else pr_warn( "%s: can't restart synth\n", synth->long_name );
+		synth_write_string(synth->init);
+		return 2; /* reenabled */
+	} else pr_warn("%s: can't restart synth\n", synth->long_name);
 	return 0;
 }
 
@@ -184,7 +184,7 @@ static struct st_num_var numvars[] = {
 	{ LANG, "@=%d,", 1, 1, 4, 0, 0, 0 },
 	V_LAST_NUM
 };
-	 
+
 struct spk_synth synth_apollo = {"apollo", "1.2", "Apollo",
 	init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,

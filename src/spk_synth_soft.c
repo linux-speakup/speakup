@@ -22,13 +22,13 @@
  * package and is not a general device driver.  */
 
 #include <linux/unistd.h>
-#include <linux/miscdevice.h>   /* for misc_register, and SYNTH_MINOR */
-#include <linux/poll.h>  // for poll_wait()
+#include <linux/miscdevice.h> /* for misc_register, and SYNTH_MINOR */
+#include <linux/poll.h> // for poll_wait()
 #include <asm/semaphore.h>
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_sftsyn
-#define SOFTSYNTH_MINOR 26  // might as well give it one more than /dev/synth
+#define SOFTSYNTH_MINOR 26 // might as well give it one more than /dev/synth
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
 
@@ -36,61 +36,61 @@ static struct miscdevice synth_device;
 static int misc_registered = 0;
 static int dev_opened = 0;
 static DECLARE_MUTEX(sem);
-DECLARE_WAIT_QUEUE_HEAD ( wait_on_output );
+DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
 
-static int softsynth_open (struct inode *inode, struct file *fp)
+static int softsynth_open(struct inode *inode, struct file *fp)
 {
-        if (dev_opened) return -EBUSY;
-	//if ((fp->f_flags & O_ACCMODE) != O_RDONLY ) return -EPERM;
+	if (dev_opened) return -EBUSY;
+	//if ((fp->f_flags & O_ACCMODE) != O_RDONLY) return -EPERM;
 	dev_opened++;
-        return 0;
+	return 0;
 }
 
-static int softsynth_close (struct inode *inode, struct file *fp)
+static int softsynth_close(struct inode *inode, struct file *fp)
 {
-        fp->f_op = NULL;
+	fp->f_op = NULL;
 	dev_opened = 0;
 	return 0;
 }
 
-static ssize_t softsynth_read (struct file *fp, char *buf, size_t count, loff_t *pos)
+static ssize_t softsynth_read(struct file *fp, char *buf, size_t count, loff_t *pos)
 {
 	int chars_sent=0;
 
-        if (down_interruptible( &sem )) return -ERESTARTSYS;
-        while (synth_buff_in == synth_buff_out) {
-	  up ( &sem );
-	  if (fp->f_flags & O_NONBLOCK)
-	    return -EAGAIN;
-	  if (wait_event_interruptible( wait_on_output, (synth_buff_in > synth_buff_out)))
-	    return -ERESTARTSYS;
-	  if (down_interruptible( &sem )) return -ERESTARTSYS;
+	if (down_interruptible(&sem)) return -ERESTARTSYS;
+	while (synth_buff_in == synth_buff_out) {
+		up(&sem);
+		if (fp->f_flags & O_NONBLOCK)
+			return -EAGAIN;
+		if (wait_event_interruptible(wait_on_output, (synth_buff_in > synth_buff_out)))
+			return -ERESTARTSYS;
+		if (down_interruptible(&sem)) return -ERESTARTSYS;
 	}
 
-	chars_sent = (count > synth_buff_in-synth_buff_out) 
-	  ? synth_buff_in-synth_buff_out : count;
+	chars_sent = (count > synth_buff_in-synth_buff_out)
+		? synth_buff_in-synth_buff_out : count;
 	if (copy_to_user(buf, (char *) synth_buff_out, chars_sent)) {
-	  up ( &sem);
-	  return -EFAULT;
+		up(&sem);
+		return -EFAULT;
 	}
 	synth_buff_out += chars_sent;
 	*pos += chars_sent;
 	if (synth_buff_out >= synth_buff_in) {
-	  synth_done();
-	  *pos = 0;
+		synth_done();
+		*pos = 0;
 	}
-	up ( &sem );
+	up(&sem);
 	return chars_sent;
 }
 
 static int last_index=0;
 
-static ssize_t softsynth_write (struct file *fp, const char *buf, size_t count, loff_t *pos)
+static ssize_t softsynth_write(struct file *fp, const char *buf, size_t count, loff_t *pos)
 {
 	int i;
 	char indbuf[5];
-	if (down_interruptible( &sem))
+	if (down_interruptible(&sem))
 		return -ERESTARTSYS;
 
 	if (copy_from_user(indbuf,buf,count))
@@ -105,22 +105,22 @@ static ssize_t softsynth_write (struct file *fp, const char *buf, size_t count, 
 	return count;
 }
 
-static unsigned int softsynth_poll (struct file *fp, struct poll_table_struct *wait)
+static unsigned int softsynth_poll(struct file *fp, struct poll_table_struct *wait)
 {
-        poll_wait(fp, &wait_on_output, wait);
-
+	poll_wait(fp, &wait_on_output, wait);
+	
 	if (synth_buff_out < synth_buff_in)
-	  return (POLLIN | POLLRDNORM);
+		return (POLLIN | POLLRDNORM);
 	return 0;
 }
 
-static void 
-softsynth_flush( void )
+static void
+softsynth_flush(void)
 {
-	synth_write( "\x18", 1 );
+	synth_write("\x18", 1);
 }
 
-static unsigned char get_index( void )
+static unsigned char get_index(void)
 {
 	int rv;
 	rv=last_index;
@@ -129,51 +129,51 @@ static unsigned char get_index( void )
 }
 
 static struct file_operations softsynth_fops = {
-        poll:softsynth_poll,
-        read:softsynth_read,
-	write:softsynth_write,
-        open:softsynth_open,
-        release:softsynth_close,
+	.poll=softsynth_poll,
+	.read=softsynth_read,
+	.write=softsynth_write,
+	.open=softsynth_open,
+	.release=softsynth_close,
 };
- 
 
-static int 
-softsynth_probe( void )
+
+static int
+softsynth_probe(void)
 {
 
-        if ( misc_registered != 0 ) return 0;
-	memset( &synth_device, 0, sizeof( synth_device ) );
-        synth_device.minor = SOFTSYNTH_MINOR;
-        synth_device.name = "softsynth";
-        synth_device.fops = &softsynth_fops;
-        if ( misc_register ( &synth_device ) ) {
-	  pr_warn("Couldn't initialize miscdevice /dev/softsynth.\n" );
-	  return -ENODEV;
-        }
-
-        misc_registered = 1;
-	pr_info("initialized device: /dev/softsynth, node (MAJOR 10, MINOR 26)\n" );
+	if (misc_registered != 0) return 0;
+	memset(&synth_device, 0, sizeof(synth_device));
+	synth_device.minor = SOFTSYNTH_MINOR;
+	synth_device.name = "softsynth";
+	synth_device.fops = &softsynth_fops;
+	if (misc_register(&synth_device)) {
+		pr_warn("Couldn't initialize miscdevice /dev/softsynth.\n");
+		return -ENODEV;
+	}
+	
+	misc_registered = 1;
+	pr_info("initialized device: /dev/softsynth, node (MAJOR 10, MINOR 26)\n");
 	return 0;
 }
 
-static void 
+static void
 softsynth_release(void)
 {
-        misc_deregister( &synth_device );
+	misc_deregister(&synth_device);
 	misc_registered = 0;
 	pr_info("unregistered /dev/softsynth\n");
 }
 
-static void 
-softsynth_start ( void )
+static void
+softsynth_start(void)
 {
-        wake_up_interruptible ( &wait_on_output );
+	wake_up_interruptible(&wait_on_output);
 }
 
-static int 
-softsynth_is_alive( void )
+static int
+softsynth_is_alive(void)
 {
-	if ( synth_alive ) return 1;
+	if (synth_alive) return 1;
 	return 0;
 }
 

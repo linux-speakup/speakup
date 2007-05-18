@@ -30,45 +30,45 @@
 #define MY_SYNTH synth_dectlk
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-#define synth_full( )  ( inb_p( synth_port_tts ) == 0x13 )
+#define synth_full() (inb_p(synth_port_tts) == 0x13)
 
 static int timeouts = 0;
 static int in_escape = 0, is_flushing = 0;
 atomic_t dectest=ATOMIC_INIT(0);
 
-static int wait_for_xmitr ( void )
+static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ( ( synth_alive ) && ( timeouts >= NUM_DISABLE_TIMEOUTS ) ) {
+	if ((synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
 		synth_alive = 0;
 		timeouts = 0;
 		return 0;
 	}
 	do { /* holding register empty? */
-		check = inb_p( synth_port_tts + UART_LSR );
-		if ( --tmout == 0 ) {
-			pr_warn ( "%s:  timed out\n", synth->long_name );
+		check = inb_p(synth_port_tts + UART_LSR);
+		if (--tmout == 0) {
+			pr_warn("%s: timed out\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & BOTH_EMPTY ) != BOTH_EMPTY );
-	//} while ( ( check & UART_LSR_THRE ) != UART_LSR_THRE );
+	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
+	//} while ((check & UART_LSR_THRE) != UART_LSR_THRE);
 	tmout = SPK_XMITR_TIMEOUT;
 	do { /* CTS */
-		check = inb_p ( synth_port_tts + UART_MSR );
-		if ( --tmout == 0 ) {
+		check = inb_p(synth_port_tts + UART_MSR);
+		if (--tmout == 0) {
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & UART_MSR_CTS ) != UART_MSR_CTS );
+	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
 	timeouts = 0;
 	return 1;
 }
 
-static int spk_serial_out ( const char ch )
+static int spk_serial_out(const char ch)
 {
-	if ( synth_alive && wait_for_xmitr ( ) ) {
-		outb_p ( ch, synth_port_tts );
+	if (synth_alive && wait_for_xmitr()) {
+		outb_p(ch, synth_port_tts);
 
 		return 1;
 	}
@@ -76,7 +76,7 @@ static int spk_serial_out ( const char ch )
 }
 
 /*static u_char
-spk_serial_in ( void )
+spk_serial_in(void)
 {
 	int c = 0;
 
@@ -96,11 +96,11 @@ static int is_indnum(u_char *ch)
 	return 0;
 }
 
-static const char *synth_immediate (const char *);
+static const char *synth_immediate(const char *);
 
 static u_char lastind=0;
 
-static unsigned char get_index( void )
+static unsigned char get_index(void)
 {
 	u_char rv;
 	rv=lastind;
@@ -132,129 +132,129 @@ void read_buff_add(u_char c)
 	}
 }
 
-static void do_catch_up( unsigned long data )
+static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
 	static u_char last='\0';
-	synth_stop_timer( );
+	synth_stop_timer();
 	if (is_flushing)
 	{
-		if (--is_flushing == 0 )
-			pr_warn ( "flush timeout\n" );
+		if (--is_flushing == 0)
+			pr_warn("flush timeout\n");
 		else
 		{
-			synth_delay( synth_delay_time );
+			synth_delay(synth_delay_time);
 			return;
 		}
 	}
-	while ( synth_buff_out < synth_buff_in ) {
+	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-		if ( ch == '\n' ) ch = 0x0D;
-		if ( synth_full( ) || !spk_serial_out( ch ) ) {
-			synth_delay( synth_full_time );
+		if (ch == '\n') ch = 0x0D;
+		if (synth_full() || !spk_serial_out(ch)) {
+			synth_delay(synth_full_time);
 			return;
 		}
 		synth_buff_out++;
-		if ( ch == '[' ) in_escape = 1;
-		else if ( ch == ']' ) in_escape = 0;
-		else if ( ch <= SPACE ) {
-			if ( !in_escape && strchr( ",.!?;:", last ) )
-				spk_serial_out( PROCSPEECH );
-			if ( jiffies >= jiff_max ) { 
-				if ( !in_escape )
-					spk_serial_out( PROCSPEECH );
-				synth_delay( synth_delay_time ); 
-				return; 
+		if (ch == '[') in_escape = 1;
+		else if (ch == ']') in_escape = 0;
+		else if (ch <= SPACE) {
+			if (!in_escape && strchr(",.!?;:", last))
+				spk_serial_out(PROCSPEECH);
+			if (jiffies >= jiff_max) {
+				if (!in_escape)
+					spk_serial_out(PROCSPEECH);
+				synth_delay(synth_delay_time);
+				return;
 			}
 		}
 		last = ch;
 	}
-	if ( synth_done( ) || !in_escape )
-	spk_serial_out( PROCSPEECH );
+	if (synth_done() || !in_escape)
+	spk_serial_out(PROCSPEECH);
 }
 
-static const char *synth_immediate ( const char *buf )
+static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
-	while ( ( ch = *buf ) ) {
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-        if ( wait_for_xmitr( ) )
-          outb( ch, synth_port_tts );
-        else return buf;
-	buf++;
+	while ((ch = *buf)) {
+		if (ch == 0x0a) ch = PROCSPEECH;
+		if (wait_for_xmitr())
+			outb(ch, synth_port_tts);
+		else return buf;
+		buf++;
 	}
 	return 0;
 }
 
-static void synth_flush( void )
+static void synth_flush(void)
 {
 	if (in_escape)
 	{
 		// if in command output ']' so we don't get an error
-		spk_serial_out( ']' );
+		spk_serial_out(']');
 	}
 	in_escape = 0;
-	spk_serial_out ( SYNTH_CLEAR );
+	spk_serial_out(SYNTH_CLEAR);
 	is_flushing = 5; /* if no ctl-a in 4, send data anyway */
 }
 
-static int serprobe ( int index )
+static int serprobe(int index)
 {
-	struct serial_state *ser = spk_serial_init( index );
+	struct serial_state *ser = spk_serial_init(index);
 	//u_char test;//, timeout = 10000;
 	int timeout=1000000;
-	if ( ser == NULL ) return -1;
-	outb ( 0x0d, ser->port );
+	if (ser == NULL) return -1;
+	outb(0x0d, ser->port);
 	/* ignore any error results, if port was forced */
-	if ( synth_port_forced ) return 0;
+	if (synth_port_forced) return 0;
 	/* check for dectalk express now... */
 
 	atomic_set(&dectest,5);
-	if ( !synth_immediate ( "\x03" ) ) {
+	if (!synth_immediate("\x03")) {
 		/*do {
-			test = spk_serial_in ( );
-			if ( test == 0x01 ) return 0;
-		} while ( --timeout > 0 );*/
-	
+			test = spk_serial_in();
+			if (test == 0x01) return 0;
+		} while (--timeout > 0);*/
+
 		do {
-			if ( atomic_read(&dectest)==0) return 0;
-			outb('a',0x80);  // Sleep about a microsecond
-		} while ( --timeout > 0);
-		
+			if (atomic_read(&dectest)==0) return 0;
+			outb('a',0x80); // Sleep about a microsecond
+		} while (--timeout > 0);
+
 	}
-	spk_serial_release( );
+	spk_serial_release();
 	timeouts = synth_alive = synth_port_tts = 0;	/* not ignoring */
 	return -1;
 }
 
-static int synth_probe ( void )
+static int synth_probe(void)
 {
 	int i = 0, failed=0;
-	pr_info ( "Probing for %s.\n", synth->long_name );
+	pr_info("Probing for %s.\n", synth->long_name);
 	/* check ttyS0-ttyS3 */
-	for ( i = SPK_LO_TTY; i <= SPK_HI_TTY; i++ ) {
-	  if (( failed = serprobe( i )) == 0 ) break; /* found it */
-        }
-        if ( failed ) {
-		pr_info ( "%s:  not found\n", synth->long_name );
+	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		if ((failed = serprobe(i)) == 0) break; /* found it */
+	}
+	if (failed) {
+		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
-	pr_info ( "%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
-		synth_port_tts, synth_port_tts + 7, synth->version );
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
+		synth_port_tts, synth_port_tts + 7, synth->version);
 	return 0;
 }
 
 static int
-synth_is_alive ( void )
+synth_is_alive(void)
 {
-	if ( synth_alive ) return 1;
-	if ( !synth_alive && wait_for_xmitr ( ) > 0 ) {	/* restart */
+	if (synth_alive) return 1;
+	if (!synth_alive && wait_for_xmitr() > 0) {	/* restart */
 		synth_alive = 1;
-		synth_write_string ( synth->init );
+		synth_write_string(synth->init);
 		return 2;
 	} else
-		pr_warn ( "%s: can't restart synth\n", synth->long_name );
+		pr_warn("%s: can't restart synth\n", synth->long_name);
 	return 0;
 }
 
@@ -273,7 +273,7 @@ static struct st_num_var numvars[] = {
 	{ VOICE, "[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" },
 	V_LAST_NUM
 };
-   
+
 struct spk_synth synth_dectlk = { "dectlk", "1.3", "Dectalk Express",
 	init_string, 500, 50, 50, 1000, 0, SF_DEC, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,

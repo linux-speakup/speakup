@@ -10,7 +10,7 @@
 					 output with TTS, PCM or CVSD
 					 synthesizers or tone generators
 					 (that is, all but LPC) */
-#define TTS_SPEAKING2	  0x20	/* mask for SYNC2 bit,
+#define TTS_SPEAKING2	   0x20	/* mask for SYNC2 bit,
 					 which falls to zero up to 0.4 sec
 					 before speech stops */
 #define TTS_WRITABLE	   0x10	/* mask for RDY bit, which when set to

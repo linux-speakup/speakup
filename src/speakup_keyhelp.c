@@ -3,12 +3,12 @@
 
   written by David Borowski.
 
-    Copyright (C ) 2003  David Borowski.
+    Copyright (C) 2003  David Borowski.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
-    (at your option ) any later version.
+    (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -114,7 +114,7 @@ static char *funcnames[] = {
 	"line, say previous", "line, say with indent",
 	"paste", "pitch decrement", "pitch increment",
 	"punctuation decrement", "punctuation increment",
-	"punc  level decrement", "punc level increment",
+	"punc level decrement", "punc level increment",
 	"quiet",
 	"rate decrement", "rate increment",
 	"reading punctuation decrement", "reading punctuation increment",
@@ -138,142 +138,142 @@ static char *funcnames[] = {
 static u_char *state_tbl;
 static int cur_item = 0, nstates = 0;
 
-static void build_key_data( void )
+static void build_key_data(void)
 {
 	u_char *kp, counters[MAXFUNCS], ch, ch1;
 	u_short *p_key = key_buf, key;
 	int i, offset = 1;
-	nstates = (int)( state_tbl[-1] );
-	memset( counters, 0, sizeof( counters ) );
-	memset( key_offsets, 0, sizeof( key_offsets ) );
+	nstates = (int)(state_tbl[-1]);
+	memset(counters, 0, sizeof(counters));
+	memset(key_offsets, 0, sizeof(key_offsets));
 	kp = state_tbl + nstates + 1;
-	while ( *kp++ ) { /* count occurrances of each function */
-		for ( i = 0; i < nstates; i++, kp++ ) {
-			if ( !*kp ) continue;
-			if ( (state_tbl[i]&16) != 0 && *kp == SPK_KEY )
+	while (*kp++) { /* count occurrances of each function */
+		for (i = 0; i < nstates; i++, kp++) {
+			if (!*kp) continue;
+			if ((state_tbl[i]&16) != 0 && *kp == SPK_KEY)
 				continue;
 			counters[*kp]++;
 		}
 	}
-	for ( i = 0; i < MAXFUNCS; i++ ) {
-		if ( counters[i] == 0 ) continue;
+	for (i = 0; i < MAXFUNCS; i++) {
+		if (counters[i] == 0) continue;
 		key_offsets[i] = offset;
-		offset += ( counters[i]+1 );
-		if ( offset >= MAXKEYS ) break;
+		offset += (counters[i]+1);
+		if (offset >= MAXKEYS) break;
 	}
 /* leave counters set so high keycodes come first.
    this is done so num pad and other extended keys maps are spoken before
    the alpha with speakup type mapping. */
 	kp = state_tbl + nstates + 1;
-	while ( ( ch = *kp++ ) ) {
-		for ( i = 0; i < nstates; i++ ) {
+	while ((ch = *kp++)) {
+		for (i = 0; i < nstates; i++) {
 			ch1 = *kp++;
-			if ( !ch1 ) continue;
-			if ( (state_tbl[i]&16) != 0 && ch1 == SPK_KEY )
+			if (!ch1) continue;
+			if ((state_tbl[i]&16) != 0 && ch1 == SPK_KEY)
 				continue;
-			key = ( state_tbl[i]<<8 ) + ch;
+			key = (state_tbl[i]<<8) + ch;
 			counters[ch1]--;
-			if ( !(offset = key_offsets[ch1]) ) continue;
+			if (!(offset = key_offsets[ch1])) continue;
 			p_key = key_buf + offset + counters[ch1];
 			*p_key = key;
 		}
 	}
 }
 
-static void say_key( int key )
+static void say_key(int key)
 {
 	int i, state = key>>8;
 	key &= 0xff;
-	for ( i = 0; i < 6; i++ ) {
-		if ( ( state & masks[i] ) )
-			synth_write_string( statenames[i] );
+	for (i = 0; i < 6; i++) {
+		if (state & masks[i])
+			synth_write_string(statenames[i]);
 	}
-	synth_write_string( " " );
-		synth_write_msg( keynames[--key] );
+	synth_write_string(" ");
+		synth_write_msg(keynames[--key]);
 }
 
-static int handle_help ( struct vc_data *vc, u_char type, u_char ch, u_short key )
+static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 {
 	int i, n;
 	char *name;
 	u_char func, *kp;
 	u_short *p_keys, val;
-	if ( type == KT_LATIN ) {
-		if ( ch == SPACE ) {
+	if (type == KT_LATIN) {
+		if (ch == SPACE) {
 			special_handler = NULL;
-			synth_write_msg( "leaving help" );
+			synth_write_msg("leaving help");
 			return 1;
 		}
 		ch |= 32; /* lower case */
-		if ( ch < 'a' || ch > 'z' ) return -1;
-		if ( letter_offsets[ch-'a'] == -1 ) {
-			synth_write_string( "no commands for " );
-			synth_write( &ch, 1 );
-			synth_write( "\n", 1 );
+		if (ch < 'a' || ch > 'z') return -1;
+		if (letter_offsets[ch-'a'] == -1) {
+			synth_write_string("no commands for ");
+			synth_write(&ch, 1);
+			synth_write("\n", 1);
 			return 1;
 		}
 	cur_item	= letter_offsets[ch-'a'];
-	} else if ( type == KT_CUR ) {
-		if ( ch == 0 && funcnames[cur_item+1] != NULL )
+	} else if (type == KT_CUR) {
+		if (ch == 0 && funcnames[cur_item+1] != NULL)
 			cur_item++;
-		else if ( ch == 3 && cur_item > 0 )
+		else if (ch == 3 && cur_item > 0)
 			cur_item--;
 		else return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
 		special_handler = help_handler;
-		synth_write_msg( help_info );
-		build_key_data( ); /* rebuild each time in case new mapping */
+		synth_write_msg(help_info);
+		build_key_data(); /* rebuild each time in case new mapping */
 		return 1;
 	} else {
 		name = NULL;
-		if ( type != KT_SPKUP ) {
-			synth_write_msg( keynames[key-1] );
+		if (type != KT_SPKUP) {
+			synth_write_msg(keynames[key-1]);
 			return 1;
 		}
-		for ( i = 0; funcvals[i] != 0 && !name; i++ ) {
-			if ( ch == funcvals[i] )
+		for (i = 0; funcvals[i] != 0 && !name; i++) {
+			if (ch == funcvals[i])
 				name = funcnames[i];
 		}
-		if ( !name ) return -1;
+		if (!name) return -1;
 		kp = our_keys[key]+1;
-		for ( i = 0; i < nstates; i++ ) {
-			if ( ch == kp[i] ) break;
+		for (i = 0; i < nstates; i++) {
+			if (ch == kp[i]) break;
 		}
-		key += ( state_tbl[i]<<8 );
-		say_key( key );
-		synth_write_string( "is " );
-		synth_write_msg( name );
+		key += (state_tbl[i]<<8);
+		say_key(key);
+		synth_write_string("is ");
+		synth_write_msg(name);
 		return 1;
 	}
 	name = funcnames[cur_item];
 	func = funcvals[cur_item];
-	synth_write_string( name );
-	if ( key_offsets[func] == 0 ) {
-		synth_write_msg( " is unassigned" );
+	synth_write_string(name);
+	if (key_offsets[func] == 0) {
+		synth_write_msg(" is unassigned");
 		return 1;
 	}
 	p_keys = key_buf + key_offsets[func];
-	for ( n = 0; p_keys[n]; n++ ) {
+	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
-		if ( n > 0 ) synth_write_string( "or " );
-		say_key( val );
+		if (n > 0) synth_write_string("or ");
+		say_key(val);
 	}
 	return 1;
 }
 
-static void __exit mod_help_exit( void )
+static void __exit mod_help_exit(void)
 {
 	help_handler = 0;
 }
 
-static int __init mod_help_init( void )
+static int __init mod_help_init(void)
 {
 	char start = SPACE;
 	int i;
 state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
-	for (i = 0; i < 26; i++ ) letter_offsets[i] = -1;
-	for ( i = 0; funcnames[i]; i++ ) {
-		if ( start == *funcnames[i] ) continue;
+	for (i = 0; i < 26; i++) letter_offsets[i] = -1;
+	for (i = 0; funcnames[i]; i++) {
+		if (start == *funcnames[i]) continue;
 		start = *funcnames[i];
 		letter_offsets[(start&31)-1] = i;
 	}
@@ -281,8 +281,8 @@ state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
 	return 0;
 }
 
-module_init( mod_help_init );
-module_exit( mod_help_exit );
+module_init(mod_help_init);
+module_exit(mod_help_exit);
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup keyboard help MODULE");
 MODULE_LICENSE("GPL");

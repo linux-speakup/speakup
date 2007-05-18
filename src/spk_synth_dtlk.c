@@ -28,8 +28,8 @@
 
 #define MY_SYNTH synth_dtlk
 #define PROCSPEECH 0x00
-#define synth_readable() ((synth_status = inb_p(synth_port_tts)) & TTS_READABLE) 
-#define synth_full() ((synth_status = inb_p(synth_port_tts)) & TTS_ALMOST_FULL) 
+#define synth_readable() ((synth_status = inb_p(synth_port_tts)) & TTS_READABLE)
+#define synth_full() ((synth_status = inb_p(synth_port_tts)) & TTS_ALMOST_FULL)
 
 static int synth_lpc;
 static unsigned int synth_portlist[] =
@@ -39,10 +39,10 @@ static u_char synth_status = 0;
 static void spk_out(const char ch)
 {
 	int tmout = 100000;
-	while (((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) == 0); 
+	while (((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) == 0);
 	outb_p(ch, synth_port_tts);
 	while ((((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) != 0)
-		&& (--tmout != 0) );
+		&& (--tmout != 0));
 }
 
 static void do_catch_up(unsigned long data)
@@ -58,48 +58,48 @@ static void do_catch_up(unsigned long data)
 		}
 		ch = *synth_buff_out++;
 		if (ch == 0x0a) ch = PROCSPEECH;
-		spk_out( ch );
-		if (jiffies >= jiff_max && ch == SPACE) { 
+		spk_out(ch);
+		if (jiffies >= jiff_max && ch == SPACE) {
 			spk_out(PROCSPEECH);
-			synth_delay(synth_delay_time); 
-			return; 
+			synth_delay(synth_delay_time);
+			return;
 		}
 	}
 	spk_out(PROCSPEECH);
-	synth_done( );
+	synth_done();
 }
 
-static const char *synth_immediate(const char *buf )
+static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	synth_status = inb_p(synth_port_tts);
-	while ( (ch = (u_char)*buf ) ) {
+	while ((ch = (u_char)*buf)) {
 		if (synth_status & TTS_ALMOST_FULL)
 			return buf;
-		if ( ch == 0x0a ) ch = PROCSPEECH;
+		if (ch == 0x0a) ch = PROCSPEECH;
 		spk_out(ch);
 		buf++;
 	}
 	return 0;
 }
 
-static unsigned char get_index( void )
+static unsigned char get_index(void)
 {
-        int c, lsr;//, tmout = SPK_SERIAL_TIMEOUT;
-        lsr = inb_p( synth_port_tts + UART_LSR );
-        if ( ( lsr & UART_LSR_DR) == UART_LSR_DR )
-        {
-                c = inb_p( synth_port_tts + UART_RX );
-                return ( unsigned char ) c;
-        }
-        return 0;
+	int c, lsr;//, tmout = SPK_SERIAL_TIMEOUT;
+	lsr = inb_p(synth_port_tts + UART_LSR);
+	if ((lsr & UART_LSR_DR) == UART_LSR_DR)
+	{
+		c = inb_p(synth_port_tts + UART_RX);
+		return (unsigned char) c;
+	}
+	return 0;
 }
 
 static void synth_flush(void)
 {
 	outb_p(SYNTH_CLEAR, synth_port_tts);
 	while (((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) != 0);
-	}
+}
 
 static char synth_read_tts(void)
 {
@@ -108,7 +108,7 @@ static char synth_read_tts(void)
 	ch = synth_status & 0x7f;
 	outb_p(ch, synth_port_tts);
 	while ((inb_p(synth_port_tts) & TTS_READABLE) != 0);
-return (char) ch;
+	return (char) ch;
 }
 
 /* interrogate the DoubleTalk PC and return its settings */
@@ -120,17 +120,17 @@ static struct synth_settings * synth_interrogate(void)
 	static struct synth_settings status;
 	synth_immediate("\x18\x01?");
 	for (total = 0, i = 0; i < 50; i++) {
-			buf[total] = synth_read_tts();
-			if (total > 2 && buf[total] == 0x7f) break;
-			if (total < sizeof(struct synth_settings)) total++;
-		}
+		buf[total] = synth_read_tts();
+		if (total > 2 && buf[total] == 0x7f) break;
+		if (total < sizeof(struct synth_settings)) total++;
+	}
 	t = buf;
 	status.serial_number = t[0] + t[1]*256; /* serial number is little endian */
 	t += 2;
-	for ( i = 0; *t != '\r'; t++ ) {
-			status.rom_version[i] = *t;
-			if (i < sizeof(status.rom_version)-1) i++;
-		}
+	for (i = 0; *t != '\r'; t++) {
+		status.rom_version[i] = *t;
+		if (i < sizeof(status.rom_version)-1) i++;
+	}
 	status.rom_version[i] = 0;
 	t++;
 	status.mode = *t++;
@@ -166,25 +166,25 @@ static int synth_probe(void)
 		port_val = inw(synth_port_tts-1);
 		synth_lpc = synth_port_tts-1;
 	} else {
-		for(i=0; synth_portlist[i]; i++) {
+		for (i=0; synth_portlist[i]; i++) {
 			if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT))
-	continue;
+				continue;
 			port_val = inw(synth_portlist[i]);
 			if ((port_val &= 0xfbff) == 0x107f) {
-	synth_lpc = synth_portlist[i];
-	synth_port_tts = synth_lpc+1;
-	break;
+				synth_lpc = synth_portlist[i];
+				synth_port_tts = synth_lpc+1;
+				break;
 			}
 			synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		}
 	}
 	if ((port_val &= 0xfbff) != 0x107f) {
-		pr_info("DoubleTalk PC:  not found\n");
+		pr_info("DoubleTalk PC: not found\n");
 		return -ENODEV;
 	}
-	while (inw_p(synth_lpc) != 0x147f ); /* wait until it's ready */
+	while (inw_p(synth_lpc) != 0x147f); /* wait until it's ready */
 	sp = synth_interrogate();
-	pr_info("%s:  %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
+	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
 		synth->long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
 	 sp->rom_version, sp->serial_number, synth->version);
 	//	synth_alive = 1;
@@ -197,9 +197,9 @@ static int synth_is_alive(void)
 }
 
 static void
-dtlk_release( void )
+dtlk_release(void)
 {
-	if ( synth_port_tts )
+	if (synth_port_tts)
 		synth_release_region(synth_port_tts-1, SYNTH_IO_EXTENT);
 	synth_port_tts = 0;
 }
@@ -221,9 +221,9 @@ static struct st_num_var numvars[] = {
 	{ FREQ, "\x01%df", 5, 0, 9, 0, 0, 0 },
 	V_LAST_NUM
 };
-	 
+
 struct spk_synth synth_dtlk = {"dtlk", "1.1", "DoubleTalk PC",
-			   init_string, 500, 30, 50, 1000, 0, 0, SYNTH_CHECK,
+	init_string, 500, 30, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
 	{"\x01%di",1,5,1} };

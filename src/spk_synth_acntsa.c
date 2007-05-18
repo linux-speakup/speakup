@@ -27,35 +27,35 @@
 #include "spk_synth_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntsa
-#define synth_full( ) ( inb_p( synth_port_tts ) == 'F' )
+#define synth_full() (inb_p(synth_port_tts) == 'F')
 #define PROCSPEECH '\r'
 
 static int timeouts = 0;	/* sequential number of timeouts */
 
 static int
-wait_for_xmitr ( void )
+wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ( ( synth_alive ) && ( timeouts >= NUM_DISABLE_TIMEOUTS ) ) {
+	if ((synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
 		synth_alive = 0;
 		return 0;
 	}
 	do { /* holding register empty? */
-		check = inb_p ( synth_port_tts + UART_LSR );
-		if ( --tmout == 0 ) {
-			pr_warn ( "%s:  timed out\n", synth->long_name );
+		check = inb_p(synth_port_tts + UART_LSR);
+		if (--tmout == 0) {
+			pr_warn("%s: timed out\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & BOTH_EMPTY ) != BOTH_EMPTY );
+	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
 	do { /* CTS */
-		check = inb_p ( synth_port_tts + UART_MSR );
-		if ( --tmout == 0 ) {
+		check = inb_p(synth_port_tts + UART_MSR);
+		if (--tmout == 0) {
 			timeouts++;
 			return 0;
 		}
-	} while ( ( check & UART_MSR_CTS ) != UART_MSR_CTS );
+	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
 	timeouts = 0;
 	return 1;
 }
@@ -70,91 +70,91 @@ static int spk_serial_out(const char ch)
 }
 
 static void
-do_catch_up ( unsigned long data )
+do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
-	synth_stop_timer ( );
-	while ( synth_buff_out < synth_buff_in ) {
+	synth_stop_timer();
+	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-	if ( ch == 0x0a ) ch = 0x0D;
-		if ( !spk_serial_out ( ch ) ) {
-			synth_delay ( synth_full_time );
+	if (ch == 0x0a) ch = 0x0D;
+		if (!spk_serial_out(ch)) {
+			synth_delay(synth_full_time);
 			return;
 		}
 		synth_buff_out++;
-		if ( jiffies >= jiff_max && ch == ' ' ) {
-			spk_serial_out ( PROCSPEECH );
-			synth_delay ( synth_delay_time );
+		if (jiffies >= jiff_max && ch == ' ') {
+			spk_serial_out(PROCSPEECH);
+			synth_delay(synth_delay_time);
 			return;
 		}
 	}
-	spk_serial_out ( PROCSPEECH );
-	synth_done( );
+	spk_serial_out(PROCSPEECH);
+	synth_done();
 }
 
-static const char *synth_immediate ( const char *buff )
+static const char *synth_immediate(const char *buff)
 {
 	u_char ch;
-	while ( ( ch = *buff ) ) {
-	if ( ch == 0x0a ) ch = PROCSPEECH;
-        if ( wait_for_xmitr( ) )
-          outb( ch, synth_port_tts );
-        else return buff;
-	buff++;
+	while ((ch = *buff)) {
+		if (ch == 0x0a) ch = PROCSPEECH;
+		if (wait_for_xmitr())
+			outb(ch, synth_port_tts);
+        	else return buff;
+		buff++;
 	}
 	return 0;
 }
 
-static void synth_flush ( void )
+static void synth_flush(void)
 {
-	spk_serial_out ( SYNTH_CLEAR );
+	spk_serial_out(SYNTH_CLEAR);
 }
 
-static int serprobe ( int index )
+static int serprobe(int index)
 {
-	struct serial_state *ser = spk_serial_init( index );
-	if ( ser == NULL ) return -1;
-	outb ( 0x0d, ser->port );
-	//	mdelay ( 1 );
+	struct serial_state *ser = spk_serial_init(index);
+	if (ser == NULL) return -1;
+	outb(0x0d, ser->port);
+	//	mdelay(1);
 	/* ignore any error results, if port was forced */
-	if ( synth_port_forced ) return 0;
+	if (synth_port_forced) return 0;
 	/* check for accent s.a now... */
-	if ( !synth_immediate( "\x18" ) )
+	if (!synth_immediate("\x18"))
 		return 0;
-	spk_serial_release( );
+	spk_serial_release();
 	timeouts = synth_alive = 0;	/* not ignoring */
 	return -1;
 }
 
-static int synth_probe ( void )
+static int synth_probe(void)
 {
 	int i = 0, failed=0;
-	pr_info ( "Probing for %s.\n", synth->long_name );
-	for ( i = SPK_LO_TTY; i <= SPK_HI_TTY; i++ ) {
-	  if (( failed = serprobe( i )) == 0 ) break; /* found it */
-        }
-        if ( failed ) {
-		pr_info ( "%s:  not found\n", synth->long_name );
+	pr_info("Probing for %s.\n", synth->long_name);
+	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		if ((failed = serprobe(i)) == 0) break; /* found it */
+	}
+	if (failed) {
+		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
-	pr_info ( "%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
-		synth_port_tts, synth_port_tts + 7, synth->version );
-	synth_immediate( "\033=R\r" );
-	mdelay( 100 );
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
+		synth_port_tts, synth_port_tts + 7, synth->version);
+	synth_immediate("\033=R\r");
+	mdelay(100);
 	return 0;
 }
 
 static int
-synth_is_alive ( void )
+synth_is_alive(void)
 {
-	if ( synth_alive ) return 1;
-	if ( !synth_alive && wait_for_xmitr ( ) > 0 ) {	/* restart */
+	if (synth_alive) return 1;
+	if (!synth_alive && wait_for_xmitr() > 0) {	/* restart */
 		synth_alive = 1;
-		synth_write_string ( synth->init );
+		synth_write_string(synth->init);
 		return 2;
 	}
-	pr_warn ( "%s: can't restart synth\n", synth->long_name );
+	pr_warn("%s: can't restart synth\n", synth->long_name);
 	return 0;
 }
 
@@ -172,7 +172,7 @@ static struct st_num_var numvars[] = {
 	{ TONE, "\033V%d", 5, 0, 9, 0, 0, 0 },
 	V_LAST_NUM
 };
-   
+
 struct spk_synth synth_acntsa = { "acntsa", "1.1", "Accent-SA",
 	init_string, 400, 5, 30, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
