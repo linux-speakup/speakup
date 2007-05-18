@@ -2022,7 +2022,7 @@ void speakup_allocate(struct vc_data *vc)
 
 	vc_num = vc->vc_num;
 	if (speakup_console[vc_num] == NULL) {
-		speakup_console[vc_num] = kzalloc(sizeof(struct st_spk_t) + 1,
+		speakup_console[vc_num] = kzalloc(sizeof(*speakup_console),
 			GFP_KERNEL);
 		if (speakup_console[vc_num] == NULL)
 			return;
@@ -2037,8 +2037,8 @@ static int cursor_timer_active = 0;
 
 static void cursor_stop_timer(void)
 {
-  if (!cursor_timer_active) return;
-		stop_timer(cursor_timer);
+	if (!cursor_timer_active) return;
+	stop_timer(cursor_timer);
 	cursor_timer_active = 0;
 }
 
@@ -2843,11 +2843,11 @@ static void __exit speakup_exit(void)
 static int __init speakup_init(void)
 {
 	int i;
-	struct st_spk_t *first_console = kzalloc(sizeof(struct st_spk_t) + 1,
+	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
 		GFP_KERNEL);
 	speakup_open(vc_cons[fg_console].d, first_console);
-for (i = 0; vc_cons[i].d; i++)
-  speakup_allocate(vc_cons[i].d);
+	for (i = 0; vc_cons[i].d; i++)
+		speakup_allocate(vc_cons[i].d);
 	spkglue_register("speakup v" SPEAKUP_VERSION, &glue_funcs);
 	speakup_dev_init();
 	return 0;
