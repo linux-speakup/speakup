@@ -48,6 +48,8 @@
 #include <linux/types.h>
 #include <linux/consolemap.h>
 
+#include <linux/ctype.h>
+
 #include <asm/uaccess.h> /* copy_from|to|user() and others */
 
 #include "spk_priv.h"
@@ -277,15 +279,14 @@ static void speakup_date(struct vc_data *vc)
 	spk_attr = get_attributes((u_short *) spk_pos);
 }
 
-char *strlwr(char *s)
+static char *strlwr(char *s)
 {
 	char *p;
 	if (s == NULL)
 		return NULL;
 
 	for (p = s; *p; p++)
-		if (*p >= CAP_A && *p <= CAP_Z)
-			*p |= 32;
+		*p = tolower(*p);
 	return s;
 }
 
@@ -354,8 +355,7 @@ static void speakup_parked(struct vc_data *vc)
 
 /* ------ cut and paste ----- */
 /* Don't take this from <ctype.h>: 011-015 on the screen aren't spaces */
-#undef isspace
-#define isspace(c)	((c) == ' ')
+#define ishardspace(c)	(isspace(c) && isprint(c))
 /* Variables for selection control. */
 static struct vc_data *spk_sel_cons;	/* defined in selection.c must not be disallocated */
 static volatile int sel_start = -1;	/* cleared by clear_selection */
@@ -436,12 +436,12 @@ static int speakup_set_selection(struct tty_struct *tty)
 	/* select to end of line if on trailing space */
 	if (new_sel_end > new_sel_start &&
 	    !atedge(new_sel_end, vc->vc_size_row) &&
-	    isspace(sel_pos(new_sel_end))) {
+	    ishardspace(sel_pos(new_sel_end))) {
 		for (pe = new_sel_end + 2; ; pe += 2)
-			if (!isspace(sel_pos(pe)) ||
+			if (!ishardspace(sel_pos(pe)) ||
 			    atedge(pe, vc->vc_size_row))
 				break;
-		if (isspace(sel_pos(pe)))
+		if (ishardspace(sel_pos(pe)))
 			new_sel_end = pe;
 	}
 	if ((new_sel_start == sel_start) && (new_sel_end == sel_end))
@@ -463,7 +463,7 @@ static int speakup_set_selection(struct tty_struct *tty)
 	obp = bp;
 	for (i = sel_start; i <= sel_end; i += 2) {
 		*bp = sel_pos(i);
-		if (!isspace(*bp++))
+		if (!ishardspace(*bp++))
 			obp = bp;
 		if (! ((i + 2) % vc->vc_size_row)) {
 			/* strip trailing blanks from line and add newline,

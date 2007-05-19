@@ -51,10 +51,7 @@
 #define TOGGLE_0 0, 0, 0, 1, 0, 0, 0
 #define TOGGLE_1 0, 1, 0, 1, 0, 0, 0
 #define MAXVARLEN 15
-#define TAB 0x9
 #define SPACE 0x20
-#define CAP_A 'A'
-#define CAP_Z 'Z'
 #define SYNTH_OK 0x0001
 #define B_ALPHA 0x0002
 #define ALPHA 0x0003
