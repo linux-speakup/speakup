@@ -1,5 +1,5 @@
-#ifndef SSPK_SERIAL
-#define SSPK_SERIAL
+#ifndef _SPEAKUP_SERIAL_H
+#define _SPEAKUP_SERIAL_H
 
 #include <linux/serial.h>	/* for rs_table, serial constants &
 				   serial_uart_config */

@@ -22,6 +22,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef _SPEAKUP_KEYINFO_H
+#define _SPEAKUP_KEYINFO_H
+
 enum { /* var_ids */
 	VERSION = 0, SYNTH, SILENT, SYNTH_DIRECT,
 	KEYMAP, CHARS,
@@ -118,3 +121,5 @@ SAY_CONTROL, SAY_WORD_CTL, NO_INTERRUPT, KEY_ECHO,
 #define PUNCT_INC PUNCT_DEC+1
 #define VOICE_DEC PUNCT_DEC+2
 #define VOICE_INC VOICE_DEC+1
+
+#endif
