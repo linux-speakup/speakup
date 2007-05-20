@@ -188,6 +188,9 @@ static void stop_serial_interrupt(void)
 {
 	if (synth_port_tts == 0) return;
 
+	if (synth->read_buff_add == NULL)
+		return;
+
 	// Turn off interrupts
 	outb(0,synth_port_tts+UART_IER);
 	// Free IRQ
