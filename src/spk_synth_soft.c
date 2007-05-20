@@ -35,7 +35,6 @@
 static struct miscdevice synth_device;
 static int misc_registered = 0;
 static int dev_opened = 0;
-static DECLARE_MUTEX(sem);
 DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
 
@@ -57,21 +56,30 @@ static int softsynth_close(struct inode *inode, struct file *fp)
 static ssize_t softsynth_read(struct file *fp, char *buf, size_t count, loff_t *pos)
 {
 	int chars_sent=0;
+	unsigned long flags;
+	DEFINE_WAIT(wait);
 
-	if (down_interruptible(&sem)) return -ERESTARTSYS;
+	spk_lock(flags);
 	while (synth_buff_in == synth_buff_out) {
-		up(&sem);
-		if (fp->f_flags & O_NONBLOCK)
+		prepare_to_wait(&wait_on_output, &wait, TASK_INTERRUPTIBLE);
+		spk_unlock(flags);
+		if (fp->f_flags & O_NONBLOCK) {
+			finish_wait(&wait_on_output, &wait);
 			return -EAGAIN;
-		if (wait_event_interruptible(wait_on_output, (synth_buff_in > synth_buff_out)))
+		}
+		if (signal_pending(current)) {
+			finish_wait(&wait_on_output, &wait);
 			return -ERESTARTSYS;
-		if (down_interruptible(&sem)) return -ERESTARTSYS;
+		}
+		schedule();
+		spk_lock(flags);
 	}
+	finish_wait(&wait_on_output, &wait);
 
 	chars_sent = (count > synth_buff_in-synth_buff_out)
 		? synth_buff_in-synth_buff_out : count;
 	if (copy_to_user(buf, (char *) synth_buff_out, chars_sent)) {
-		up(&sem);
+		spk_unlock(flags);
 		return -EFAULT;
 	}
 	synth_buff_out += chars_sent;
@@ -80,7 +88,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count, loff_t *
 		synth_done();
 		*pos = 0;
 	}
-	up(&sem);
+	spk_unlock(flags);
 	return chars_sent;
 }
 
@@ -88,30 +96,29 @@ static int last_index=0;
 
 static ssize_t softsynth_write(struct file *fp, const char *buf, size_t count, loff_t *pos)
 {
-	int i;
 	char indbuf[5];
-	if (down_interruptible(&sem))
-		return -ERESTARTSYS;
+	if (count >= sizeof(indbuf))
+		return -EINVAL;
 
 	if (copy_from_user(indbuf,buf,count))
-	{
-		up(&sem);
 		return -EFAULT;
-	}
-	up(&sem);
-	last_index=0;
-	for (i=0;i<strlen(indbuf);i++)
-		last_index=last_index*10+indbuf[i]-48;
+	indbuf[4] = 0;
+
+	last_index = simple_strtoul(indbuf, NULL, 0);
 	return count;
 }
 
 static unsigned int softsynth_poll(struct file *fp, struct poll_table_struct *wait)
 {
+	unsigned long flags;
+	int ret = 0;
 	poll_wait(fp, &wait_on_output, wait);
 	
+	spk_lock(flags);
 	if (synth_buff_out < synth_buff_in)
-		return (POLLIN | POLLRDNORM);
-	return 0;
+		ret = POLLIN | POLLRDNORM;
+	spk_unlock(flags);
+	return ret;
 }
 
 static void

@@ -79,7 +79,6 @@ module_param_named(port, param_port, int, S_IRUGO);
 
 /* these are globals from the kernel code */
 extern struct kbd_struct * kbd;
-extern int fg_console;
 extern short punc_masks[];
 
 special_func special_handler = NULL;
@@ -125,7 +124,7 @@ enum {
 };
 #define read_all_mode CT_Max
 
-struct tty_struct *tty;
+static struct tty_struct *tty;
 #define key_handler k_handler
 typedef void (*k_handler_fn)(struct vc_data *vc, unsigned char value,
                              char up_flag);
@@ -264,12 +263,11 @@ static u_char spk_lastkey = 0, spk_close_press = 0, keymap_flags = 0;
 static u_char last_keycode = 0, this_speakup_key = 0;
 static u_long last_spk_jiffy = 0;
 
-struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
+static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
 /* Speakup needs to disable the keyboard IRQ */
-static spinlock_t spinlock = SPIN_LOCK_UNLOCKED;
-#define lock(flags) spin_lock_irqsave(&spinlock, flags)
-#define unlock(flags) spin_unlock_irqrestore(&spinlock, flags)
+spinlock_t spk_spinlock = SPIN_LOCK_UNLOCKED;
+EXPORT_SYMBOL_GPL(spk_spinlock);
 
 static unsigned char get_attributes(u16 *pos)
 {
@@ -1253,7 +1251,7 @@ static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	(*do_shift)(vc, value, up_flag);
 	if (synth == NULL || up_flag || spk_killed)
 		return;
-	lock(flags);
+	spk_lock(flags);
 	if (cursor_track == read_all_mode) {
 		switch (value) {
 		case KVAL(K_SHIFT):
@@ -1275,21 +1273,21 @@ static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	}
 	if (say_ctrl && value < NUM_CTL_LABELS)
 		synth_write_string(ctl_key_ids[value]);
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
 	(*do_latin)(vc, value, up_flag);
-	lock(flags);
+	spk_lock(flags);
 	if (up_flag) {
 		spk_lastkey = spk_keydown = 0;
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	if (synth == NULL || spk_killed) {
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	spk_shut_up &= 0xfe;
@@ -1298,7 +1296,7 @@ static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
 	spk_parked &= 0xfe;
 	if (key_echo == 2 && value >= MINECHOCHAR)
 		speak_char(value);
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 static int set_key_info(const u_char *key_info, u_char *k_buffer)
@@ -1515,20 +1513,21 @@ static int keys_write_proc(struct file *file, const char *buffer, u_long count,
 	int i, ret = count;
 	char *in_buff, *cp;
 	u_char *cp1;
+	unsigned long flags;
 	if (count < 1 || count > 1800)
 		return -EINVAL;
 	in_buff = (char *) __get_free_page(GFP_KERNEL);
 	if (!in_buff) return -ENOMEM;
+	spk_lock(flags);
 	if (copy_from_user(in_buff, buffer, count)) {
-		free_page((unsigned long) in_buff);
-		return -EFAULT;
+		ret = -EFAULT;
+		goto out;
 	}
 	if (in_buff[count - 1] == '\n') count--;
 	in_buff[count] = '\0';
 	if (count == 1 && *in_buff == 'd') {
-		free_page((unsigned long) in_buff);
 		set_key_info(key_defaults, key_buf);
-		return ret;
+		goto out;
 	}
 	cp = in_buff;
 	cp1 = (u_char *)in_buff;
@@ -1542,8 +1541,8 @@ static int keys_write_proc(struct file *file, const char *buffer, u_long count,
 	if (cp1[-3] != KEY_MAP_VER || cp1[-1] > 10 ||
 			i+SHIFT_TBL_SIZE+4 >= sizeof(key_buf)) {
 pr_warn("i %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
-		free_page((unsigned long) in_buff);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 	while (--i >= 0) {
 		cp = s2uchar(cp, cp1);
@@ -1560,6 +1559,8 @@ pr_warn("end %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
 pr_warn("set key failed\n");
 		}
 	}
+out:
+	spk_unlock(flags);
 	free_page((unsigned long) in_buff);
 	return ret;
 }
@@ -1701,6 +1702,7 @@ static int silent_write_proc(struct file *file, const char *buffer,
 {
 	struct vc_data *vc = vc_cons[fg_console].d;
 	char ch = 0, shut;
+	unsigned long flags;
 	if (count > 0 || count < 3) {
 		get_user(ch, buffer);
 		if (ch == '\n') ch = '0';
@@ -1709,14 +1711,15 @@ static int silent_write_proc(struct file *file, const char *buffer,
 		pr_warn("silent value not in range (0,7)\n");
 		return count;
 	}
+	spk_lock(flags);
 	if (ch&2) {
 		shut = 1;
 		do_flush();
 	} else shut = 0;
 	if (ch&4) shut |= 0x40;
-	if (ch&1)
-		spk_shut_up |= shut;
-		else spk_shut_up &= ~shut;
+	if (ch&1) spk_shut_up |= shut;
+	else spk_shut_up &= ~shut;
+	spk_unlock(flags);
 	return count;
 }
 
@@ -1731,7 +1734,9 @@ static int chars_write_proc(struct file *file, const char *buffer,
 	short i = 0, num;
 	int len;
 	char ch, *cp, *p_new;
+	unsigned long flags;
 	// reset certain vars if enough time has elapsed since last called
+	spk_lock(flags);
 	if (jiffies - jiff_last > 10) {
 		cnt = state = strings = rejects = updates = 0;
 	}
@@ -1747,14 +1752,14 @@ get_more:
 		} else if (cnt < max_desc_len)
 			desc[cnt++] = ch;
 	}
-	if (state < 2) return count;
+	if (state < 2) goto out;
 	cp = desc;
 	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
 	if ((!cnt) || strchr("dDrR", *cp)) {
 		reset_default_chars();
 		pr_info("character descriptions reset to defaults\n");
 		cnt = 0;
-		return count;
+		goto out;
 	}
 	cnt = 0;
 	if (*cp == '#') goto get_more;
@@ -1781,7 +1786,10 @@ get_more:
 		characters[num] = default_chars[num];
 		p_new = kmalloc(len+1, GFP_KERNEL);
 	}
-	if (!p_new) return -ENOMEM;
+	if (!p_new) {
+		count = -ENOMEM;
+		goto out;
+	}
 	strcpy(p_new, cp);
 	characters[num] = p_new;
 	updates++;
@@ -1793,6 +1801,8 @@ get_more:
 	chars_timer.expires = jiffies + 5;
 		start_timer(chars_timer);
 	chars_timer_active++;
+out:
+	spk_unlock(flags);
 	return count;
 }
 
@@ -1807,6 +1817,8 @@ static int chartab_write_proc(struct file *file, const char *buffer,
 	short i = 0, num;
 	char ch, *cp;
 	int value=0;
+	unsigned long flags;
+	spk_lock(flags);
 	// reset certain vars if enough time has elapsed since last called
 	if (jiffies - jiff_last > 10) {
 		cnt = state = strings = rejects = updates = 0;
@@ -1823,14 +1835,14 @@ get_more:
 		} else if (cnt < max_desc_len)
 			desc[cnt++] = ch;
 	}
-	if (state < 2) return count;
+	if (state < 2) goto out;
 	cp = desc;
 	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
 	if ((!cnt) || strchr("dDrR", *cp)) {
 		reset_default_chartab();
 		pr_info("character descriptions reset to defaults\n");
 		cnt = 0;
-		return count;
+		goto out;
 	}
 	cnt = 0;
 	if (*cp == '#') goto get_more;
@@ -1866,6 +1878,8 @@ get_more:
 	chars_timer.expires = jiffies + 5;
 		start_timer(chars_timer);
 	chars_timer_active++;
+out:
+	spk_unlock(flags);
 	return count;
 }
 
@@ -1948,6 +1962,7 @@ static int bits_write_proc(struct file *file, const char *buffer, u_long count,
 	struct st_proc_var *var = p_header->data;
 	int ret = count;
 	char punc_buf[100];
+	unsigned long flags;
 	if (count < 1 || count > 99)
 		return -EINVAL;
 	if (copy_from_user(punc_buf, buffer, count))
@@ -1955,10 +1970,12 @@ static int bits_write_proc(struct file *file, const char *buffer, u_long count,
 	if (punc_buf[count - 1] == '\n')
 		count--;
 	punc_buf[count] = '\0';
+	spk_lock(flags);
 	if (*punc_buf == 'd' || *punc_buf == 'r')
 		count = set_mask_bits(0, var->value, 3);
 	else
 		count = set_mask_bits(punc_buf, var->value, 3);
+	spk_unlock(flags);
 	if (count < 0) return count;
 	return ret;
 }
@@ -2205,27 +2222,27 @@ handle_cursor_read_all(struct vc_data *vc,int command)
 static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
-	lock(flags);
+	spk_lock(flags);
 	if (cursor_track == read_all_mode)
 	{
 		spk_parked &= 0xfe;
 		if (synth == NULL || up_flag || spk_shut_up) {
-			unlock(flags);
+			spk_unlock(flags);
 			return;
 		}
 		cursor_stop_timer();
 		spk_shut_up &= 0xfe;
 		do_flush();
 		start_read_all_timer(vc,value+1);
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
-	unlock(flags);
+	spk_unlock(flags);
 	(*do_cursor)(vc, value, up_flag);
-	lock(flags);
+	spk_lock(flags);
 	spk_parked &= 0xfe;
 	if (synth == NULL || up_flag || spk_shut_up || cursor_track == CT_Off) {
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	spk_shut_up &= 0xfe;
@@ -2245,7 +2262,7 @@ static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	read_all_key=value+1;
 	start_timer(cursor_timer);
 	cursor_timer_active++;
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 static void
@@ -2381,27 +2398,29 @@ static void
 cursor_done(u_long data)
 {
 	struct vc_data *vc = vc_cons[cursor_con].d;
+	unsigned long flags;
 	cursor_stop_timer();
+	spk_lock(flags);
 	if (cursor_con != fg_console) {
 		is_cursor = 0;
-		return;
+		goto out;
 	}
 	speakup_date(vc);
 	if (win_enabled) {
 		if (vc->vc_x >= win_left && vc->vc_x <= win_right &&
 		vc->vc_y >= win_top && vc->vc_y <= win_bottom) {
 			spk_keydown = is_cursor = 0;
-			return;
+			goto out;
 		}
 	}
 	if (cursor_track == read_all_mode) {
 		handle_cursor_read_all(vc,read_all_key);
-		return;
+		goto out;
 	}
 	if (cursor_track == CT_Highlight) {
 		if (speak_highlight(vc)) {
 			spk_keydown = is_cursor = 0;
-			return;
+			goto out;
 		}
 	}
 	if (cursor_track == CT_Window) {
@@ -2411,6 +2430,8 @@ cursor_done(u_long data)
 	else
 		say_char(vc);
 	spk_keydown = is_cursor = 0;
+out:
+	spk_unlock(flags);
 }
 
 /* These functions are the interface to speakup from the actual kernel code. */
@@ -2420,18 +2441,18 @@ speakup_bs(struct vc_data *vc)
 {
 	unsigned long flags;
 	if (!speakup_console) return;
-	lock(flags);
+	spk_lock(flags);
 	if (!spk_parked)
 		speakup_date(vc);
 	if (spk_shut_up || synth == NULL) {
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	if (vc->vc_num == fg_console && spk_keydown) {
 		spk_keydown = 0;
 		if (!is_cursor) say_char(vc);
 	}
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 void
@@ -2440,29 +2461,29 @@ speakup_con_write(struct vc_data *vc, const char *str, int len)
 	unsigned long flags;
 	if ((vc->vc_num != fg_console) || spk_shut_up)
 		return;
-	lock(flags);
+	spk_lock(flags);
 	if (bell_pos && spk_keydown && (vc->vc_x == bell_pos - 1))
 		bleep(3);
 	if (synth == NULL) {
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	if ((is_cursor)||(cursor_track == read_all_mode)) {
 		if (cursor_track == CT_Highlight)
 			update_color_buffer(vc, str, len);
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	if (win_enabled) {
 		if (vc->vc_x >= win_left && vc->vc_x <= win_right &&
 		vc->vc_y >= win_top && vc->vc_y <= win_bottom) {
-			unlock(flags);
+			spk_unlock(flags);
 			return;
 		}
 	}
 
 	spkup_write(str, len);
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 void
@@ -2471,9 +2492,9 @@ speakup_con_update(struct vc_data *vc)
 	unsigned long flags;
 	if (speakup_console[vc->vc_num] == NULL || spk_parked)
 		return;
-	lock(flags);
+	spk_lock(flags);
 	speakup_date(vc);
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
@@ -2484,7 +2505,7 @@ static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	static const char *lock_status[] = { " off", " on", "" };
 	(*do_spec)(vc, value, up_flag);
 	if (synth == NULL || up_flag || spk_killed) return;
-	lock(flags);
+	spk_lock(flags);
 	spk_shut_up &= 0xfe;
 	if (no_intr) do_flush();
 	switch (value) {
@@ -2502,11 +2523,11 @@ static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
 			break;
 	default:
 		spk_parked &= 0xfe;
-		unlock(flags);
+		spk_unlock(flags);
 		return;
 	}
 	synth_printf("%s %s\n", label, lock_status[on_off]);
-	unlock(flags);
+	spk_unlock(flags);
 }
 
 static int
@@ -2683,10 +2704,13 @@ speakup_goto(struct vc_data *vc)
 static void
 load_help(struct work_struct *work)
 {
+	unsigned long flags;
 	request_module("speakup_keyhelp");
+	spk_lock(flags);
 	if (help_handler) {
 		(*help_handler)(0, KT_SPKUP, SPEAKUP_HELP, 0);
 	} else synth_write_string("help module not found");
+	spk_unlock(flags);
 }
 
 static DECLARE_WORK(ld_help, load_help);
@@ -2767,7 +2791,7 @@ speakup_key(struct vc_data *vc, int shift_state, int keycode, u_short keysym, in
 	int ret = 0;
 	if (synth == NULL) return 0;
 
-	lock(flags);
+	spk_lock(flags);
 	tty = vc->vc_tty;
 	if (type >= 0xf0) type -= 0xf0;
 	if (type == KT_PAD && (vc_kbd_led(kbd , VC_NUMLOCK))) {
@@ -2849,7 +2873,7 @@ no_map:
 	}
 	last_keycode = 0;
 out:
-	unlock(flags);
+	spk_unlock(flags);
 	return ret;
 }
 

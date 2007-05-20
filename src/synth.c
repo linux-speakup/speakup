@@ -502,6 +502,15 @@ int synth_init(char *synth_name)
 	return 0;
 }
 
+static void synth_catch_up(u_long data)
+{
+	unsigned long flags;
+	spk_lock(flags);
+	if (synth->catch_up)
+		synth->catch_up(data);
+	spk_unlock(flags);
+}
+
 int do_synth_init(struct spk_synth *in_synth)
 {
 	struct st_num_var *n_var;
@@ -520,7 +529,7 @@ pr_warn("synth probe\n");
 	synth_time_vars[1].default_val = synth->trigger;
 	synth_time_vars[2].default_val = synth->jiffies;
 	synth_time_vars[3].default_val = synth->full;
-	synth_timer.function = synth->catch_up;
+	synth_timer.function = synth_catch_up;
 	synth_timer.entry.prev = NULL;
 	init_timer(&synth_timer);
 	for (n_var = synth_time_vars; n_var->var_id >= 0; n_var++)
@@ -949,6 +958,7 @@ speakup_file_write(struct file *fp, const char *buffer,
 	size_t count = nbytes;
 	const char *ptr = buffer;
 	int bytes;
+	unsigned long flags;
 	u_char buf[256];
 	if (synth == NULL) return -ENODEV;
 	while (count > 0) {
@@ -957,7 +967,9 @@ speakup_file_write(struct file *fp, const char *buffer,
 			return -EFAULT;
 		count -= bytes;
 		ptr += bytes;
+		spk_lock(flags);
 		synth_write(buf, bytes);
+		spk_unlock(flags);
 	}
 	return (ssize_t) nbytes;
 }

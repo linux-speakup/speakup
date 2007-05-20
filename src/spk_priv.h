@@ -33,6 +33,7 @@
 #include <linux/init.h> /* for __init */
 #include <linux/module.h>
 #include <linux/vt_kern.h>
+#include <linux/spinlock.h>
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif
@@ -227,6 +228,10 @@ extern int synth_port_tts, synth_port_forced;
 #define declare_sleeper(name) wait_queue_head_t name
 #define init_sleeper(name) 	init_waitqueue_head(&name)
 extern declare_sleeper(synth_sleeping_list);
+
+extern spinlock_t spk_spinlock;
+#define spk_lock(flags) spin_lock_irqsave(&spk_spinlock, flags)
+#define spk_unlock(flags) spin_unlock_irqrestore(&spk_spinlock, flags)
 
 extern char str_caps_start[], str_caps_stop[];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
