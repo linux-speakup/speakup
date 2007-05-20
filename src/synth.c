@@ -24,10 +24,7 @@ static struct serial_state rs_table[] = {
 	SERIAL_PORT_DFNS
 };
 
-#include "synthlist.h"
-static struct spk_synth *synths[16] = {
-#include "synthlist.h"
-	NULL };
+static struct spk_synth *synths[16];
 
 #define synthBufferSize 8192	/* currently 8K bytes */
 struct spk_synth *synth = NULL;
