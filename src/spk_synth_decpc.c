@@ -246,7 +246,7 @@ static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
-static u_char last='\0';
+	static u_char last='\0';
 	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
@@ -278,7 +278,7 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		if (dt_sendchar(ch))
 			return buf;
 		buf++;

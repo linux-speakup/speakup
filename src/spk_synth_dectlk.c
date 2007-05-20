@@ -178,7 +178,7 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		if (wait_for_xmitr())
 			outb(ch, synth_port_tts);
 		else return buf;

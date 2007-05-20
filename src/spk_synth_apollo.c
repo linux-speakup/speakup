@@ -88,7 +88,7 @@ static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
-synth_stop_timer();
+	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
 		if (!spk_serial_out(ch)) {
@@ -112,7 +112,7 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		if (wait_for_xmitr())
 			outb(ch, synth_port_tts);
 		else return buf;

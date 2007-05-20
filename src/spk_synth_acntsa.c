@@ -77,7 +77,7 @@ do_catch_up(unsigned long data)
 	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-	if (ch == 0x0a) ch = 0x0D;
+		if (ch == '\n') ch = PROCSPEECH;
 		if (!spk_serial_out(ch)) {
 			synth_delay(synth_full_time);
 			return;

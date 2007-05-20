@@ -51,15 +51,15 @@ static const char *synth_immediate(const char *buf)
 	u_char ch;
 	int timeout;
 	while ((ch = *buf)) {
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		if (synth_full())
 			return buf;
-	timeout = 1000;
+		timeout = 1000;
 		while (synth_writable())
 			if (--timeout <= 0) return (char *) oops();
 		outb_p(ch, synth_port);
 		SWAIT;
-	buf++;
+		buf++;
 	}
 	return 0;
 }
@@ -83,7 +83,7 @@ static void do_catch_up(unsigned long data)
 			break;
 		}
 		ch = *synth_buff_out++;
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		outb_p(ch, synth_port);
 		SWAIT;
 		if (jiffies >= jiff_max && ch == SPACE) {

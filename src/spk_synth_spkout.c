@@ -82,7 +82,7 @@ static void do_catch_up(unsigned long data)
 {
 	unsigned long jiff_max = jiffies+synth_jiffy_delta;
 	u_char ch;
-synth_stop_timer();
+	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
 		if (ch == 0x0a) ch = PROCSPEECH;
@@ -97,7 +97,7 @@ synth_stop_timer();
 			return;
 		}
 	}
-spk_serial_out(PROCSPEECH);
+	spk_serial_out(PROCSPEECH);
 	synth_done();
 }
 

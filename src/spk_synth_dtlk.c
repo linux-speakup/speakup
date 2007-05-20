@@ -57,7 +57,7 @@ static void do_catch_up(unsigned long data)
 			return;
 		}
 		ch = *synth_buff_out++;
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		spk_out(ch);
 		if (jiffies >= jiff_max && ch == SPACE) {
 			spk_out(PROCSPEECH);
@@ -76,7 +76,7 @@ static const char *synth_immediate(const char *buf)
 	while ((ch = (u_char)*buf)) {
 		if (synth_status & TTS_ALMOST_FULL)
 			return buf;
-		if (ch == 0x0a) ch = PROCSPEECH;
+		if (ch == '\n') ch = PROCSPEECH;
 		spk_out(ch);
 		buf++;
 	}
