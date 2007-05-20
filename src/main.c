@@ -48,6 +48,7 @@
 #include <linux/types.h>
 #include <linux/consolemap.h>
 
+#include <linux/spinlock.h>
 #include <linux/ctype.h>
 
 #include <asm/uaccess.h> /* copy_from|to|user() and others */
@@ -264,6 +265,11 @@ static u_char last_keycode = 0, this_speakup_key = 0;
 static u_long last_spk_jiffy = 0;
 
 struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
+
+/* Speakup needs to disable the keyboard IRQ */
+static spinlock_t spinlock = SPIN_LOCK_UNLOCKED;
+#define lock(flags) spin_lock_irqsave(&spinlock, flags)
+#define unlock(flags) spin_unlock_irqrestore(&spinlock, flags)
 
 static unsigned char get_attributes(u16 *pos)
 {
@@ -488,6 +494,7 @@ static int speakup_paste_selection(struct tty_struct *tty)
 	while (sel_buffer && sel_buffer_lth > pasted) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		if (test_bit(TTY_THROTTLED, &tty->flags)) {
+			/* FIXME: can't be performed in an interrupt handler !! */
 			schedule();
 			continue;
 		}
@@ -1253,9 +1260,11 @@ static void cursor_stop_timer(void);
 
 static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
 {
+	unsigned long flags;
 	(*do_shift)(vc, value, up_flag);
 	if (synth == NULL || up_flag || spk_killed)
 		return;
+	lock(flags);
 	if (cursor_track == read_all_mode) {
 		switch (value) {
 		case KVAL(K_SHIFT):
@@ -1277,23 +1286,30 @@ static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	}
 	if (say_ctrl && value < NUM_CTL_LABELS)
 		synth_write_string(ctl_key_ids[value]);
+	unlock(flags);
 }
 
 static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
 {
+	unsigned long flags;
 	(*do_latin)(vc, value, up_flag);
+	lock(flags);
 	if (up_flag) {
 		spk_lastkey = spk_keydown = 0;
+		unlock(flags);
 		return;
 	}
-	if (synth == NULL || spk_killed)
+	if (synth == NULL || spk_killed) {
+		unlock(flags);
 		return;
+	}
 	spk_shut_up &= 0xfe;
 	spk_lastkey = value;
 	spk_keydown++;
 	spk_parked &= 0xfe;
 	if (key_echo == 2 && value >= MINECHOCHAR)
 		speak_char(value);
+	unlock(flags);
 }
 
 static int set_key_info(const u_char *key_info, u_char *k_buffer)
@@ -2016,6 +2032,7 @@ struct st_proc_var spk_proc_vars[] = {
 
 #endif // CONFIG_PROC_FS
 
+/* Allocation concurrency is protected by the console semaphore */
 void speakup_allocate(struct vc_data *vc)
 {
 	int vc_num;
@@ -2198,21 +2215,30 @@ handle_cursor_read_all(struct vc_data *vc,int command)
 
 static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 {
+	unsigned long flags;
+	lock(flags);
 	if (cursor_track == read_all_mode)
 	{
 		spk_parked &= 0xfe;
-		if (synth == NULL || up_flag || spk_shut_up)
+		if (synth == NULL || up_flag || spk_shut_up) {
+			unlock(flags);
 			return;
+		}
 		cursor_stop_timer();
 		spk_shut_up &= 0xfe;
 		do_flush();
 		start_read_all_timer(vc,value+1);
+		unlock(flags);
 		return;
 	}
+	unlock(flags);
 	(*do_cursor)(vc, value, up_flag);
+	lock(flags);
 	spk_parked &= 0xfe;
-	if (synth == NULL || up_flag || spk_shut_up || cursor_track == CT_Off)
+	if (synth == NULL || up_flag || spk_shut_up || cursor_track == CT_Off) {
+		unlock(flags);
 		return;
+	}
 	spk_shut_up &= 0xfe;
 	if (no_intr) do_flush();
 /* the key press flushes if !no_inter but we want to flush on cursor
@@ -2230,6 +2256,7 @@ static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	read_all_key=value+1;
 	start_timer(cursor_timer);
 	cursor_timer_active++;
+	unlock(flags);
 }
 
 static void
@@ -2402,52 +2429,73 @@ cursor_done(u_long data)
 void
 speakup_bs(struct vc_data *vc)
 {
+	unsigned long flags;
 	if (!speakup_console) return;
+	lock(flags);
 	if (!spk_parked)
 		speakup_date(vc);
-	if (spk_shut_up || synth == NULL) return;
+	if (spk_shut_up || synth == NULL) {
+		unlock(flags);
+		return;
+	}
 	if (vc->vc_num == fg_console && spk_keydown) {
 		spk_keydown = 0;
 		if (!is_cursor) say_char(vc);
 	}
+	unlock(flags);
 }
 
 void
 speakup_con_write(struct vc_data *vc, const char *str, int len)
 {
+	unsigned long flags;
 	if ((vc->vc_num != fg_console) || spk_shut_up)
 		return;
+	lock(flags);
 	if (bell_pos && spk_keydown && (vc->vc_x == bell_pos - 1))
 		bleep(3);
-	if (synth == NULL) return;
+	if (synth == NULL) {
+		unlock(flags);
+		return;
+	}
 	if ((is_cursor)||(cursor_track == read_all_mode)) {
 		if (cursor_track == CT_Highlight)
 			update_color_buffer(vc, str, len);
+		unlock(flags);
 		return;
 	}
 	if (win_enabled) {
 		if (vc->vc_x >= win_left && vc->vc_x <= win_right &&
-		vc->vc_y >= win_top && vc->vc_y <= win_bottom) return;
+		vc->vc_y >= win_top && vc->vc_y <= win_bottom) {
+			unlock(flags);
+			return;
+		}
 	}
 
 	spkup_write(str, len);
+	unlock(flags);
 }
 
 void
 speakup_con_update(struct vc_data *vc)
 {
+	unsigned long flags;
 	if (speakup_console[vc->vc_num] == NULL || spk_parked)
 		return;
+	lock(flags);
 	speakup_date(vc);
+	unlock(flags);
 }
 
 static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
 {
+	unsigned long flags;
 	int on_off = 2;
 	char *label;
 	static const char *lock_status[] = { " off", " on", "" };
 	(*do_spec)(vc, value, up_flag);
 	if (synth == NULL || up_flag || spk_killed) return;
+	lock(flags);
 	spk_shut_up &= 0xfe;
 	if (no_intr) do_flush();
 	switch (value) {
@@ -2465,10 +2513,12 @@ static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
 			break;
 	default:
 		spk_parked &= 0xfe;
+		unlock(flags);
 		return;
 	}
 	synth_write_string(label);
 	synth_write_msg(lock_status[on_off]);
+	unlock(flags);
 }
 
 static int
@@ -2722,17 +2772,21 @@ static void do_spkup(struct vc_data *vc,u_char value)
 int
 speakup_key(struct vc_data *vc, int shift_state, int keycode, u_short keysym, int up_flag)
 {
+	unsigned long flags;
 	int kh;
 	u_char *key_info;
 	u_char type = KTYP(keysym), value = KVAL(keysym), new_key = 0;
 	u_char shift_info, offset;
-	tty = vc->vc_tty;
+	int ret = 0;
 	if (synth == NULL) return 0;
+
+	lock(flags);
+	tty = vc->vc_tty;
 	if (type >= 0xf0) type -= 0xf0;
 	if (type == KT_PAD && (vc_kbd_led(kbd , VC_NUMLOCK))) {
 		if (up_flag) {
 			spk_keydown = 0;
-			return 0;
+			goto out;
 		}
 		value = spk_lastkey = pad_chars[value];
 		spk_keydown++;
@@ -2761,15 +2815,16 @@ speakup_key(struct vc_data *vc, int shift_state, int keycode, u_short keysym, in
 	shift_info = (shift_state&0x0f) + key_speakup;
 	offset = shift_table[shift_info];
 	if (offset && (new_key = key_info[offset])) {
+		ret = 1;
 		if (new_key == SPK_KEY) {
 			if (!spk_key_locked)
 				key_speakup = (up_flag) ? 0 : 16;
-			if (up_flag || spk_killed) return 1;
+			if (up_flag || spk_killed) goto out;
 			spk_shut_up &= 0xfe;
 			do_flush();
-			return 1;
+			goto out;
 		}
-		if (up_flag) return 1;
+		if (up_flag) goto out;
 		if (last_keycode == keycode && last_spk_jiffy+MAX_DELAY > jiffies) {
 			spk_close_press = 1;
 			offset = shift_table[shift_info+32];
@@ -2786,27 +2841,29 @@ no_map:
 	if (type == KT_SPKUP && special_handler == NULL) {
 		do_spkup(vc, new_key);
 		spk_close_press = 0;
-		return 1;
+		ret = 1;
+		goto out;
 	}
-	if (up_flag || spk_killed || type == KT_SHIFT) return 0;
+	if (up_flag || spk_killed || type == KT_SHIFT) goto out;
 	spk_shut_up &= 0xfe;
 	kh=(value==KVAL(K_DOWN))||(value==KVAL(K_UP))||(value==KVAL(K_LEFT))||(value==KVAL(K_RIGHT));
 	if ((cursor_track != read_all_mode) || !kh)
 		if (!no_intr) do_flush();
 	if (special_handler) {
-		int status;
 		if (type == KT_SPEC && value == 1) {
 			value = '\n';
 			type = KT_LATIN;
 		} else if (type == KT_LETTER) type = KT_LATIN;
 		else if (value == 0x7f) value = 8; /* make del = backspace */
-		status = (*special_handler)(vc, type, value, keycode);
+		ret = (*special_handler)(vc, type, value, keycode);
 		spk_close_press = 0;
-		if (status < 0) bleep(9);
-		return status;
+		if (ret < 0) bleep(9);
+		goto out;
 	}
 	last_keycode = 0;
-	return 0;
+out:
+	unlock(flags);
+	return ret;
 }
 
 extern void speakup_remove(void);
