@@ -218,12 +218,16 @@ int synth_request_region(u_long, u_long);
 int synth_release_region(u_long, u_long);
 void spk_serial_release(void);
 extern int synth_port_tts, synth_port_forced;
+
+/* FIXME: for mainline inclusion, just make the source code use proper names. */
 #define declare_timer(name) struct timer_list name;
-#define start_timer(name) if (!name.entry.prev) add_timer(&name)
-#define stop_timer(name) del_timer(&name); name.entry.prev = NULL
+/* FIXME: couldn't this just be mod_timer? */
+#define start_timer(name) if (!timer_pending(&name)) add_timer(&name)
+#define stop_timer(name) del_timer(&name)
 #define declare_sleeper(name) wait_queue_head_t name
 #define init_sleeper(name) 	init_waitqueue_head(&name)
 extern declare_sleeper(synth_sleeping_list);
+
 extern char str_caps_start[], str_caps_stop[];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
 extern short reading_punc, attrib_bleep, bleeps;
