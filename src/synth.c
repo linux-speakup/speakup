@@ -573,6 +573,7 @@ void synth_add(struct spk_synth *in_synth)
 	int i;
 	for (i = 0; synths[i] != NULL; i++)
 		if (in_synth == synths[i]) return;
+	BUG_ON(i == ARRAY_SIZE(synths) - 1);
 	synths[i++] = in_synth;
 	synths[i] = NULL;
 }
