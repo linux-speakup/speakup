@@ -874,7 +874,6 @@ static void say_line(struct vc_data *vc)
 {
 	int i = get_line(vc);
 	char *cp;
-	char num_buf[8];
 	u_short saved_punc_mask = punc_mask;
 	if (i == 0) {
 		synth_write_msg(blank_msg);
@@ -884,8 +883,7 @@ static void say_line(struct vc_data *vc)
 	if (this_speakup_key == SAY_LINE_INDENT) {
 		for (cp = buf; *cp == SPACE; cp++)
 			;
-		sprintf(num_buf, "%d, ", (cp - buf) + 1);
-		synth_write_string(num_buf);
+		synth_printf("%d, ", (cp - buf) + 1);
 	}
 	punc_mask = punc_masks[reading_punc];
 	spkup_write(buf, i);
@@ -1112,8 +1110,7 @@ static void say_first_char(struct vc_data *vc)
 	ch = buf[i];
 	spk_pos -= (spk_x - i) * 2;
 	spk_x = i;
-	sprintf(buf, "%d, ", ++i);
-	synth_write_string(buf);
+	synth_printf("%d, ", ++i);
 	speak_char(ch);
 }
 
@@ -1129,16 +1126,14 @@ static void say_last_char(struct vc_data *vc)
 	ch = buf[--len];
 	spk_pos -= (spk_x - len) * 2;
 	spk_x = len;
-	sprintf(buf, "%d, ", ++len);
-	synth_write_string(buf);
+	synth_printf("%d, ", ++len);
 	speak_char(ch);
 }
 
 static void say_position(struct vc_data *vc)
 {
-	sprintf(buf, "line %ld, col %ld, t t y %d\n", spk_y + 1, spk_x + 1,
+	synth_printf("line %ld, col %ld, t t y %d\n", spk_y + 1, spk_x + 1,
 		vc->vc_num + 1);
-	synth_write_string(buf);
 }
 
 // Added by brianb
@@ -1146,8 +1141,7 @@ static void say_char_num(struct vc_data *vc)
 {
 	u_short ch = get_char(vc, (u_short *) spk_pos);
 	ch &= 0xff;
-	sprintf(buf, "hex %02x, decimal %d", ch, ch);
-	synth_write_msg(buf);
+	synth_printf("hex %02x, decimal %d", ch, ch);
 }
 
 /* these are stub functions to keep keyboard.c happy. */
@@ -1181,7 +1175,6 @@ static void spkup_write(const char *in_buf, int count)
 	static u_short char_type = 0, last_type = 0;
 	static u_char *exn_ptr = NULL;
 	int in_count = count;
-	char rpt_buf[32];
 	spk_keydown = 0;
 	while (count--) {
 		if (cursor_track == read_all_mode) {
@@ -1195,10 +1188,8 @@ static void spkup_write(const char *in_buf, int count)
 		if (ch == old_ch && !(char_type&B_NUM)) {
 			if (++rep_count > 2) continue;
 		} else {
-			if ((last_type&CH_RPT) && rep_count > 2) {
-				sprintf(rpt_buf, " times %d . ", ++rep_count);
-				synth_write_string(rpt_buf);
-			}
+			if ((last_type&CH_RPT) && rep_count > 2)
+				synth_printf(" times %d . ", ++rep_count);
 			rep_count = 0;
 		}
 		if (!(char_type&B_NUM))
@@ -1210,7 +1201,7 @@ static void spkup_write(const char *in_buf, int count)
 		} else if (char_type & B_ALPHA) {
 			if ((synth_flags & SF_DEC) && (last_type & PUNC))
 				synth_buffer_add(SPACE);
-			synth_write(&ch, 1);
+			synth_putc(ch);
 		} else if (char_type & B_NUM) {
 			rep_count = 0;
 			if ((last_type & B_EXNUM) && synth_buff_in == exn_ptr+1) {
@@ -1218,7 +1209,7 @@ static void spkup_write(const char *in_buf, int count)
 				synth_buffer_add(old_ch);
 				exn_ptr = NULL;
 			}
-			synth_write(&ch, 1);
+			synth_putc(ch);
 		} else if (char_type&punc_mask) {
 			speak_char(ch);
 			char_type &= ~PUNC; /* for dec nospell processing */
@@ -1227,7 +1218,7 @@ static void spkup_write(const char *in_buf, int count)
  * suppress multiple to get rid of long pausesand clear repeat count so if
  *someone has repeats on you don't get nothing repeated count */
 			if (ch != old_ch)
-				synth_write(&ch, 1);
+				synth_putc(ch);
 			else rep_count = 0;
 		} else {
 			if (char_type&B_EXNUM)
@@ -1241,10 +1232,8 @@ static void spkup_write(const char *in_buf, int count)
 	}
 	spk_lastkey = 0;
 	if (in_count > 2 && rep_count > 2) {
-		if (last_type&CH_RPT) {
-			sprintf(rpt_buf, " repeated %d . ", ++rep_count);
-			synth_write_string(rpt_buf);
-		}
+		if (last_type&CH_RPT)
+			synth_printf(" repeated %d . ", ++rep_count);
 		rep_count = 0;
 	}
 }
@@ -1629,10 +1618,10 @@ static void show_char_results(u_long data)
 	int len;
 	char buf[80];
 	chars_stop_timer();
-	len = sprintf(buf, " updated %d of %d character descriptions\n",
+	len = snprintf(buf, sizeof(buf), " updated %d of %d character descriptions\n",
 		      updates, strings);
 	if (rejects)
-		sprintf(buf + (len - 1), " with %d reject%s\n",
+		snprintf(buf + (len - 1),  sizeof(buf) - (len - 1), " with %d reject%s\n",
 			 rejects, rejects > 1 ? "s" : "");
 	printk(buf);
 }
@@ -2516,8 +2505,7 @@ static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
 		unlock(flags);
 		return;
 	}
-	synth_write_string(label);
-	synth_write_msg(lock_status[on_off]);
+	synth_printf("%s %s\n", label, lock_status[on_off]);
 	unlock(flags);
 }
 
@@ -2543,7 +2531,7 @@ inc_dec_var(u_char value)
 			else *cp++ = *pn;
 		}
 	}
-	sprintf(cp, " %d ", (int)var_data->value);
+	snprintf(cp, sizeof(num_buf) - (cp - num_buf), " %d ", (int)var_data->value);
 	synth_write_string(num_buf);
 	return 0;
 }
@@ -2564,7 +2552,7 @@ speakup_win_set(struct vc_data *vc)
 		win_left = 0;
 		win_right = vc->vc_cols-1;
 		win_bottom = spk_y;
-		sprintf(info, "window is line %d", (int)win_top+1);
+		snprintf(info, sizeof(info), "window is line %d", (int)win_top+1);
 	} else {
 		if (!win_start) {
 			win_top = spk_y;
@@ -2573,7 +2561,7 @@ speakup_win_set(struct vc_data *vc)
 			win_bottom = spk_y;
 			win_right = spk_x;
 		}
-		sprintf(info, "%s at line %d, column %d",
+		snprintf(info, sizeof(info), "%s at line %d, column %d",
 			(win_start) ? "end" : "start",
 			(int)spk_y+1, (int)spk_x+1);
 	}
@@ -2611,8 +2599,7 @@ speakup_bits(struct vc_data *vc)
 		return;
 	}
 	pb_edit = &punc_info[val];
-	sprintf(buf, "edit  %s, press space when done", pb_edit->name);
-	synth_write_msg(buf);
+	synth_printf("edit  %s, press space when done", pb_edit->name);
 	special_handler = edit_bits;
 }
 

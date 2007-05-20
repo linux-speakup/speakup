@@ -117,7 +117,7 @@ static unsigned int softsynth_poll(struct file *fp, struct poll_table_struct *wa
 static void
 softsynth_flush(void)
 {
-	synth_write("\x18", 1);
+	synth_putc('\x18');
 }
 
 static unsigned char get_index(void)

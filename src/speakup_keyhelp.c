@@ -188,8 +188,7 @@ static void say_key(int key)
 		if (state & masks[i])
 			synth_write_string(statenames[i]);
 	}
-	synth_write_string(" ");
-		synth_write_msg(keynames[--key]);
+	synth_printf(" %s\n", keynames[--key]);
 }
 
 static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
@@ -207,9 +206,7 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		ch |= 32; /* lower case */
 		if (ch < 'a' || ch > 'z') return -1;
 		if (letter_offsets[ch-'a'] == -1) {
-			synth_write_string("no commands for ");
-			synth_write(&ch, 1);
-			synth_write("\n", 1);
+			synth_printf("no commands for %c\n", ch);
 			return 1;
 		}
 	cur_item	= letter_offsets[ch-'a'];
@@ -241,8 +238,7 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		}
 		key += (state_tbl[i]<<8);
 		say_key(key);
-		synth_write_string("is ");
-		synth_write_msg(name);
+		synth_printf("is %s\n",name);
 		return 1;
 	}
 	name = funcnames[cur_item];

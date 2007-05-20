@@ -302,6 +302,32 @@ synth_write(const char *buf, size_t count)
 }
 
 void
+synth_putc(char ch)
+{
+	synth_buffer_add(ch);
+	synth_start();
+}
+
+void
+synth_printf(const char *fmt, ...)
+{
+	va_list args;
+	unsigned char buf[80], *p;
+	int r;
+
+	va_start(args, fmt);
+	r = vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+	if (r > sizeof(buf) - 1)
+		r = sizeof(buf) - 1;
+
+	p = buf;
+	while (r--)
+		synth_buffer_add(*p++);
+	synth_start();
+}
+
+void
 synth_write_string(const char *buf)
 {
 	while (*buf)
@@ -314,7 +340,7 @@ synth_write_msg(const char *buf)
 {
 	while (*buf)
 		synth_buffer_add(*buf++);
-		synth_buffer_add('\n');
+	synth_buffer_add('\n');
 	synth_start();
 }
 
@@ -345,7 +371,6 @@ void
 synth_insert_next_index(int sent_num)
 {
 	int out;
-	char buf[50];
 	if (synth_alive) {
 		if (sent_num==0)
 		{
@@ -356,8 +381,7 @@ synth_insert_next_index(int sent_num)
 		}
 
 		out=synth->indexing.currindex*10+sent_num;
-		sprintf(buf,synth->indexing.command,out,out);
-		synth_write_string(buf);
+		synth_printf(synth->indexing.command,out,out);
 	}
 }
 
@@ -510,10 +534,8 @@ pr_warn("synth probe\n");
 		speakup_register_var((struct st_num_var *) s_var);
 	for (n_var = synth->num_vars; n_var->var_id >= 0; n_var++)
 		speakup_register_var(n_var);
-	if (!quiet_boot) {
-		synth_write_string(synth->long_name);
-		synth_write_msg(" found");
-	}
+	if (!quiet_boot)
+		synth_printf("%s found\n",synth->long_name);
 #ifdef CONFIG_PROC_FS
 	speakup_register_var((struct st_num_var *) &synth_direct);
 #endif
@@ -561,7 +583,7 @@ void synth_remove(struct spk_synth *in_synth)
 	for (i = 0; synths[i] != NULL; i++) {
 		if (in_synth == synths[i]) break;
 	}
-	for (;synths[i] != NULL; i++) /* compress table */
+	for ( ; synths[i] != NULL; i++) /* compress table */
 		synths[i] = synths[i+1];
 	module_status = 0;
 }
@@ -1022,8 +1044,10 @@ EXPORT_SYMBOL_GPL(synth_release);
 EXPORT_SYMBOL_GPL(synth_add);
 EXPORT_SYMBOL_GPL(synth_remove);
 EXPORT_SYMBOL_GPL(synth_stop_timer);
+EXPORT_SYMBOL_GPL(synth_write);
+EXPORT_SYMBOL_GPL(synth_putc);
+EXPORT_SYMBOL_GPL(synth_printf);
 EXPORT_SYMBOL_GPL(synth_write_string);
 EXPORT_SYMBOL_GPL(synth_write_msg);
-EXPORT_SYMBOL_GPL(synth_write);
 EXPORT_SYMBOL_GPL(synth_supports_indexing);
 
