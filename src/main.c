@@ -133,7 +133,6 @@ static k_handler_fn do_shift, do_spec, do_latin, do_cursor;
 EXPORT_SYMBOL_GPL(help_handler);
 EXPORT_SYMBOL_GPL(special_handler);
 EXPORT_SYMBOL_GPL(our_keys);
-EXPORT_SYMBOL_GPL(synth_name);
 
 static void spkup_write(const char *in_buf, int count);
 static int set_mask_bits(const char *input, const int which, const int how);
@@ -265,8 +264,8 @@ static u_long last_spk_jiffy = 0;
 
 static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
-/* Speakup needs to disable the keyboard IRQ */
 spinlock_t spk_spinlock = SPIN_LOCK_UNLOCKED;
+DEFINE_MUTEX(spk_mutex);
 EXPORT_SYMBOL_GPL(spk_spinlock);
 
 static unsigned char get_attributes(u16 *pos)
@@ -2896,7 +2895,9 @@ static void __exit speakup_exit(void)
 	key_handler[KT_CUR] = do_cursor;
 	key_handler[KT_SHIFT] = do_shift;
 	spkglue_unregister();
+	mutex_lock(&spk_mutex);
 	synth_release();
+	mutex_unlock(&spk_mutex);
 	speakup_remove();
 	for (i = 0; i < 256; i++) {
 		if (characters[i] != default_chars[i])

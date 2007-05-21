@@ -230,17 +230,11 @@ struct spk_synth synth_dtlk = {"dtlk", "1.1", "DoubleTalk PC",
 
 static int __init dtlk_init(void)
 {
-	int status = do_synth_init(&MY_SYNTH);
-	if (status != 0)
-		return status;
-	synth_add(&MY_SYNTH);
-	return 0;
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit dtlk_exit(void)
 {
-	if (synth == &MY_SYNTH)
-		synth_release();
 	synth_remove(&MY_SYNTH);
 }
 

@@ -12,7 +12,6 @@
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/kmod.h>
 
-#include <asm/semaphore.h>
 #ifdef __powerpc__
 #include <asm-ppc/pc_serial.h> /* for SERIAL_PORT_DFNS */
 #endif
@@ -33,7 +32,6 @@ static int synth_timer_active = 0;	/* indicates when a timer is set */
 	static struct miscdevice synth_device;
 static int misc_registered = 0;
 static char pitch_buff[32] = "";
-static DECLARE_MUTEX(sem);
 declare_sleeper(synth_sleeping_list);
 static int module_status = 0;
 static declare_timer(synth_timer);
@@ -50,6 +48,7 @@ static struct serial_state *serstate;
 static void speakup_unregister_var(short var_id);
 static void start_serial_interrupt(int irq);
 static void speakup_register_devsynth(void);
+static int do_synth_init(struct spk_synth *in_synth);
 
 static char *xlate(char *s)
 {
@@ -476,16 +475,20 @@ static struct spk_synth *do_load_synth(const char *synth_name)
 int synth_init(char *synth_name)
 {
 	int i;
+	int ret = 0;
 	struct spk_synth *synth = NULL;
 
 	if (synth_name == NULL)
 		return 0;
 
 	if (strcmp(synth_name, "none") == 0) {
+		mutex_lock(&spk_mutex);
 		synth_release();
+		mutex_unlock(&spk_mutex);
 		return 0;
 	}
 
+	mutex_lock(&spk_mutex);
 	/* First, check if we already have it loaded. */
 	for (i = 0; synths[i] != NULL; i++)
 		if (strcmp(synths[i]->name, synth_name) == 0)
@@ -497,9 +500,10 @@ int synth_init(char *synth_name)
 
 	/* If we got one, initialize it now. */
 	if (synth)
-		return do_synth_init(synth);
+		ret = do_synth_init(synth);
+	mutex_unlock(&spk_mutex);
 
-	return 0;
+	return ret;
 }
 
 static void synth_catch_up(u_long data)
@@ -511,20 +515,24 @@ static void synth_catch_up(u_long data)
 	spk_unlock(flags);
 }
 
-int do_synth_init(struct spk_synth *in_synth)
+static int do_synth_init(struct spk_synth *in_synth)
 {
 	struct st_num_var *n_var;
 	struct st_string_var *s_var;
+	unsigned long flags;
 
 	synth_release();
 	if (in_synth->checkval != SYNTH_CHECK) return -EINVAL;
 	synth = in_synth;
-pr_warn("synth probe\n");
+	pr_warn("synth probe\n");
+	spk_lock(flags);
 	if (synth->probe() < 0) {
+		spk_unlock(flags);
 		pr_warn("%s: device probe failed\n", in_synth->name);
 		synth = NULL;
 		return -ENODEV;
 	}
+	spk_unlock(flags);
 	synth_time_vars[0].default_val = synth->delay;
 	synth_time_vars[1].default_val = synth->trigger;
 	synth_time_vars[2].default_val = synth->jiffies;
@@ -554,8 +562,8 @@ synth_release(void)
 {
 	struct st_num_var *n_var;
 	struct st_string_var *s_var;
+	unsigned long flags;
 	if (synth == NULL) return;
-	if (down_interruptible(&sem)) return;
 	pr_info("releasing synth %s\n", synth->name);
 	for (s_var = synth->string_vars; s_var->var_id >= 0; s_var++)
 		speakup_unregister_var(s_var->var_id);
@@ -568,31 +576,48 @@ synth_release(void)
 #endif
 	synth_dummy_catchup((unsigned long) NULL);
 	synth_timer.function = synth_dummy_catchup;
+	spk_lock(flags);
 	stop_serial_interrupt();
 	synth->release();
+	spk_unlock(flags);
 	synth = NULL;
-	up(&sem);
 }
 
-void synth_add(struct spk_synth *in_synth)
+int synth_add(struct spk_synth *in_synth)
 {
 	int i;
+	int status;
+	mutex_lock(&spk_mutex);
+	status = do_synth_init(in_synth);
+	if (status != 0) {
+		mutex_unlock(&spk_mutex);
+		return status;
+	}
 	for (i = 0; synths[i] != NULL; i++)
-		if (in_synth == synths[i]) return;
+		if (in_synth == synths[i]) {
+			mutex_unlock(&spk_mutex);
+			return 0;
+		}
 	BUG_ON(i == ARRAY_SIZE(synths) - 1);
 	synths[i++] = in_synth;
 	synths[i] = NULL;
+	mutex_unlock(&spk_mutex);
+	return 0;
 }
 
 void synth_remove(struct spk_synth *in_synth)
 {
 	int i;
+	mutex_lock(&spk_mutex);
+	if (synth == in_synth)
+		synth_release();
 	for (i = 0; synths[i] != NULL; i++) {
 		if (in_synth == synths[i]) break;
 	}
 	for ( ; synths[i] != NULL; i++) /* compress table */
 		synths[i] = synths[i+1];
 	module_status = 0;
+	mutex_unlock(&spk_mutex);
 }
 
 static struct st_var_header var_headers[] = {
@@ -1031,9 +1056,6 @@ static void speakup_register_devsynth(void)
 }
 
 /* exported symbols needed by synth modules */
-EXPORT_SYMBOL_GPL(speakup_dev_init);
-EXPORT_SYMBOL_GPL(synth_init);
-EXPORT_SYMBOL_GPL(do_synth_init);
 EXPORT_SYMBOL_GPL(spk_serial_init);
 EXPORT_SYMBOL_GPL(spk_serial_release);
 EXPORT_SYMBOL_GPL(synth);
@@ -1050,7 +1072,6 @@ EXPORT_SYMBOL_GPL(synth_port_forced);
 EXPORT_SYMBOL_GPL(synth_port_tts);
 EXPORT_SYMBOL_GPL(synth_request_region);
 EXPORT_SYMBOL_GPL(synth_release_region);
-EXPORT_SYMBOL_GPL(synth_release);
 EXPORT_SYMBOL_GPL(synth_add);
 EXPORT_SYMBOL_GPL(synth_remove);
 EXPORT_SYMBOL_GPL(synth_stop_timer);
@@ -1059,5 +1080,3 @@ EXPORT_SYMBOL_GPL(synth_putc);
 EXPORT_SYMBOL_GPL(synth_printf);
 EXPORT_SYMBOL_GPL(synth_write_string);
 EXPORT_SYMBOL_GPL(synth_write_msg);
-EXPORT_SYMBOL_GPL(synth_supports_indexing);
-

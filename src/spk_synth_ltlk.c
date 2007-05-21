@@ -225,17 +225,11 @@ struct spk_synth synth_ltlk = { "ltlk", "1.1", "LiteTalk",
 
 static int __init ltlk_init(void)
 {
-	int status = do_synth_init(&MY_SYNTH);
-	if (status != 0)
-		return status;
-	synth_add(&MY_SYNTH);
-	return 0;
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit ltlk_exit(void)
 {
-	if (synth == &MY_SYNTH)
-		synth_release();
 	synth_remove(&MY_SYNTH);
 }
 

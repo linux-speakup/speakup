@@ -282,17 +282,11 @@ struct spk_synth synth_dectlk = { "dectlk", "1.3", "Dectalk Express",
 
 static int __init dectlk_init(void)
 {
-	int status = do_synth_init(&MY_SYNTH);
-	if (status != 0)
-		return status;
-	synth_add(&MY_SYNTH);
-	return 0;
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit dectlk_exit(void)
 {
-	if (synth == &MY_SYNTH)
-		synth_release();
 	synth_remove(&MY_SYNTH);
 }
 

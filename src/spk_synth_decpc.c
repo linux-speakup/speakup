@@ -345,17 +345,11 @@ struct spk_synth synth_dec_pc = { "decpc", "1.1", "Dectalk PC",
 
 static int __init decpc_init(void)
 {
-	int status = do_synth_init(&MY_SYNTH);
-	if (status != 0)
-		return status;
-	synth_add(&MY_SYNTH);
-	return 0;
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit decpc_exit(void)
 {
-	if (synth == &MY_SYNTH)
-		synth_release();
 	synth_remove(&MY_SYNTH);
 }
 

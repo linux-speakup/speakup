@@ -24,7 +24,6 @@
 #include <linux/unistd.h>
 #include <linux/miscdevice.h> /* for misc_register, and SYNTH_MINOR */
 #include <linux/poll.h> // for poll_wait()
-#include <asm/semaphore.h>
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_sftsyn
@@ -210,17 +209,11 @@ struct spk_synth synth_sftsyn = { "sftsyn", "0.3", "software synth",
 
 static int __init soft_init(void)
 {
-	int status = do_synth_init(&MY_SYNTH);
-	if (status != 0)
-		return status;
-	synth_add(&MY_SYNTH);
-	return 0;
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit soft_exit(void)
 {
-	if (synth == &MY_SYNTH)
-		synth_release();
 	synth_remove(&MY_SYNTH);
 }
 

@@ -34,6 +34,7 @@
 #include <linux/module.h>
 #include <linux/vt_kern.h>
 #include <linux/spinlock.h>
+#include <linux/mutex.h>
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 #endif
@@ -229,7 +230,11 @@ extern int synth_port_tts, synth_port_forced;
 #define init_sleeper(name) 	init_waitqueue_head(&name)
 extern declare_sleeper(synth_sleeping_list);
 
+/* Protect speakup machinery */
 extern spinlock_t spk_spinlock;
+/* Protect speakup synthesizer list */
+extern struct mutex spk_mutex;
+/* Speakup needs to disable the keyboard IRQ */
 #define spk_lock(flags) spin_lock_irqsave(&spk_spinlock, flags)
 #define spk_unlock(flags) spin_unlock_irqrestore(&spk_spinlock, flags)
 
@@ -245,9 +250,8 @@ extern int synth_alive, quiet_boot;
 extern u_char synth_buffer[]; /* guess what this is for! */
 extern volatile u_char *synth_buff_in, *synth_buff_out;
 int synth_init(char *name);
-int do_synth_init(struct spk_synth *in_synth);
 void synth_release(void);
-void synth_add(struct spk_synth *in_synth);
+int synth_add(struct spk_synth *in_synth);
 void synth_remove(struct spk_synth *in_synth);
 struct serial_state * spk_serial_init(int index);
 void synth_delay(int ms);
