@@ -265,7 +265,7 @@ static u_long last_spk_jiffy = 0;
 
 static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
-spinlock_t spk_spinlock = SPIN_LOCK_UNLOCKED;
+spinlock_t spk_spinlock;
 DEFINE_MUTEX(spk_mutex);
 EXPORT_SYMBOL_GPL(spk_spinlock);
 
@@ -2915,6 +2915,7 @@ static int __init speakup_init(void)
 	int i;
 	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
 		GFP_KERNEL);
+	spin_lock_init(&spk_spinlock);
 	speakup_open(vc_cons[fg_console].d, first_console);
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);
