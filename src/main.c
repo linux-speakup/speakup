@@ -31,6 +31,7 @@
 #include <linux/ctype.h>
 #include <linux/selection.h>
 #include <linux/unistd.h>
+#include <linux/jiffies.h>
 
 #include <linux/keyboard.h>	/* for KT_SHIFT */
 #include <linux/kbd_kern.h> /* for vc_kbd_* and friends */

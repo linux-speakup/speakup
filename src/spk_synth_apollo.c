@@ -22,6 +22,8 @@
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.
 		*/
+#include <linux/jiffies.h>
+
 #include "spk_priv.h"
 #include "serialio.h"
 

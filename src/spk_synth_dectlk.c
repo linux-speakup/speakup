@@ -24,6 +24,7 @@
 		*/
 #include <linux/unistd.h>
 #include <linux/proc_fs.h>
+#include <linux/jiffies.h>
 #include "spk_priv.h"
 #include "serialio.h"
 

@@ -11,6 +11,7 @@
 #include <linux/wait.h>		/* for wait_queue */
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/kmod.h>
+#include <linux/jiffies.h>
 
 #ifdef __powerpc__
 #include <asm-ppc/pc_serial.h> /* for SERIAL_PORT_DFNS */
