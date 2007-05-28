@@ -33,7 +33,7 @@
 #define synth_full() (inb_p(synth_port_tts) == 'F')
 #define PROCSPEECH '\r'
 
-static int timeouts = 0;	/* sequential number of timeouts */
+static int timeouts;	/* sequential number of timeouts */
 
 static int
 wait_for_xmitr(void)

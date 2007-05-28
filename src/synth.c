@@ -28,17 +28,17 @@ static struct spk_synth *synths[16];
 
 #define synthBufferSize 8192	/* currently 8K bytes */
 struct spk_synth *synth = NULL;
-int synth_port_tts = 0, synth_port_forced = 0;
-static int synth_timer_active = 0;	/* indicates when a timer is set */
+int synth_port_tts, synth_port_forced;
+static int synth_timer_active;	/* indicates when a timer is set */
 	static struct miscdevice synth_device;
-static int misc_registered = 0;
+static int misc_registered;
 static char pitch_buff[32] = "";
 declare_sleeper(synth_sleeping_list);
-static int module_status = 0;
+static int module_status;
 static declare_timer(synth_timer);
 short synth_delay_time = 500, synth_trigger_time = 50;
 short synth_jiffy_delta = 50, synth_full_time = 1000;
-int synth_alive = 0, quiet_boot = 0;
+int synth_alive, quiet_boot;
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
 static u_char *buffer_highwater = synth_buffer+synthBufferSize-100;
 u_char *buffer_end = synth_buffer+synthBufferSize-1;
@@ -850,7 +850,7 @@ static int speakup_vars_read_proc(char *page, char **start, off_t off,
 }
 
 static const char spk_dir[] = "speakup";
-static struct proc_dir_entry *dir_ent = 0;
+static struct proc_dir_entry *dir_ent;
 
 static int spk_make_proc(struct st_var_header *p_header)
 {
@@ -1013,7 +1013,7 @@ speakup_file_read(struct file *fp, char *buf, size_t nbytes, loff_t * ppos)
 	return 0;
 }
 
-static int synth_file_inuse = 0;
+static int synth_file_inuse;
 
 static int
 speakup_file_open(struct inode *ip, struct file *fp)

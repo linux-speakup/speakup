@@ -32,8 +32,8 @@
 #define CLEAR_SYNTH 0x18
 
 static struct miscdevice synth_device;
-static int misc_registered = 0;
-static int dev_opened = 0;
+static int misc_registered;
+static int dev_opened;
 DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
 

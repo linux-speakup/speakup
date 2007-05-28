@@ -36,7 +36,7 @@
 static int synth_lpc;
 static unsigned int synth_portlist[] =
 		{ 0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0 };
-static u_char synth_status = 0;
+static u_char synth_status;
 
 static void spk_out(const char ch)
 {

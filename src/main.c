@@ -82,16 +82,16 @@ module_param_named(port, param_port, int, S_IRUGO);
 extern struct kbd_struct * kbd;
 extern short punc_masks[];
 
-special_func special_handler = NULL;
-special_func help_handler = NULL;
+special_func special_handler;
+special_func help_handler;
 
-short pitch_shift = 0, synth_flags = 0;
+short pitch_shift, synth_flags;
 static char buf[256];
-short attrib_bleep = 0, bleeps = 0, bleep_time = 1;
-short no_intr = 0, spell_delay = 0;
-short key_echo = 0, cursor_timeout = 120, say_word_ctl = 0;
-short say_ctrl = 0, bell_pos = 0;
-short punc_mask = 0, punc_level = 0, reading_punc = 0;
+short attrib_bleep, bleeps, bleep_time = 1;
+short no_intr, spell_delay;
+short key_echo, cursor_timeout = 120, say_word_ctl;
+short say_ctrl, bell_pos;
+short punc_mask, punc_level, reading_punc;
 char str_caps_start[MAXVARLEN+1] = "\0", str_caps_stop[MAXVARLEN+1] = "\0";
 static const struct st_bits_data punc_info[] = {
 	{ "none", "", 0 },
@@ -104,7 +104,7 @@ static const struct st_bits_data punc_info[] = {
 	{ "symbols", "", B_SYM },
 	{ 0, 0 }
 };
-static char mark_cut_flag = 0;
+static char mark_cut_flag;
 #define MAX_KEY 160
 u_char *our_keys[MAX_KEY], *shift_table;
 static u_char key_buf[600];
@@ -258,10 +258,10 @@ ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, B_SYM, /* 240-247 */
 ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA /* 248-255 */
 };
 
-static int spk_keydown = 0;
-static u_char spk_lastkey = 0, spk_close_press = 0, keymap_flags = 0;
-static u_char last_keycode = 0, this_speakup_key = 0;
-static u_long last_spk_jiffy = 0;
+static int spk_keydown;
+static u_char spk_lastkey, spk_close_press, keymap_flags;
+static u_char last_keycode, this_speakup_key;
+static u_long last_spk_jiffy;
 
 static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
@@ -1603,7 +1603,7 @@ static int chars_read_proc(char *page, char **start, off_t off, int count,
 	return ((count < begin + len - off) ? count : begin + len - off);
 }
 
-static volatile int chars_timer_active = 0;	// indicates when timer is set
+static volatile int chars_timer_active;	// indicates when timer is set
 static declare_timer(chars_timer);
 
 static void chars_stop_timer(void)
@@ -2053,10 +2053,10 @@ void speakup_allocate(struct vc_data *vc)
 	} else if (!spk_parked) speakup_date(vc);
 }
 
-static u_char is_cursor = 0;
+static u_char is_cursor;
 static u_long old_cursor_pos, old_cursor_x, old_cursor_y;
 static int cursor_con;
-static int cursor_timer_active = 0;
+static int cursor_timer_active;
 
 static void cursor_stop_timer(void)
 {
@@ -2733,7 +2733,7 @@ do_nothing(struct vc_data *vc)
 {
 	return; /* flush done in do_spkup */
 }
-static u_char key_speakup = 0, spk_key_locked = 0;
+static u_char key_speakup, spk_key_locked;
 
 static void
 speakup_lock(struct vc_data *vc)

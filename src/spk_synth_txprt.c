@@ -32,7 +32,7 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
-static int timeouts = 0;	/* sequential number of timeouts */
+static int timeouts;	/* sequential number of timeouts */
 
 static int wait_for_xmitr(void)
 {

@@ -134,8 +134,8 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define SYNTH_IO_EXTENT 8
 
 static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
-static int in_escape = 0, is_flushing = 0;
-static int dt_stat, dma_state = 0;
+static int in_escape, is_flushing;
+static int dt_stat, dma_state;
 
 static int dt_getstatus(void)
 {

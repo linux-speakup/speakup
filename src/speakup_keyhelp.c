@@ -136,7 +136,7 @@ static char *funcnames[] = {
 };
 
 static u_char *state_tbl;
-static int cur_item = 0, nstates = 0;
+static int cur_item, nstates;
 
 static void build_key_data(void)
 {

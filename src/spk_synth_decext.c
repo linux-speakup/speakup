@@ -32,8 +32,8 @@
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(synth_port_tts) == 0x13)
 
-static int timeouts = 0;
-static int in_escape = 0;
+static int timeouts;
+static int in_escape;
 
 static int wait_for_xmitr(void)
 {
