@@ -236,6 +236,7 @@ extern spinlock_t spk_spinlock;
 extern struct mutex spk_mutex;
 /* Speakup needs to disable the keyboard IRQ */
 #define spk_lock(flags) spin_lock_irqsave(&spk_spinlock, flags)
+#define spk_trylock(flags) spin_trylock_irqsave(&spk_spinlock, flags)
 #define spk_unlock(flags) spin_unlock_irqrestore(&spk_spinlock, flags)
 
 extern char str_caps_start[], str_caps_stop[];

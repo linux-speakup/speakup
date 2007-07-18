@@ -2461,7 +2461,9 @@ speakup_con_write(struct vc_data *vc, const char *str, int len)
 	unsigned long flags;
 	if ((vc->vc_num != fg_console) || spk_shut_up)
 		return;
-	spk_lock(flags);
+	if (!spk_trylock(flags))
+		/* Speakup output, discard */
+		return;
 	if (bell_pos && spk_keydown && (vc->vc_x == bell_pos - 1))
 		bleep(3);
 	if (synth == NULL) {
@@ -2492,7 +2494,9 @@ speakup_con_update(struct vc_data *vc)
 	unsigned long flags;
 	if (speakup_console[vc->vc_num] == NULL || spk_parked)
 		return;
-	spk_lock(flags);
+	if (!spk_trylock(flags))
+		/* Speakup output, discard */
+		return;
 	speakup_date(vc);
 	spk_unlock(flags);
 }
