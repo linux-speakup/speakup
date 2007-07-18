@@ -230,11 +230,14 @@ extern int synth_port_tts, synth_port_forced;
 #define init_sleeper(name) 	init_waitqueue_head(&name)
 extern declare_sleeper(synth_sleeping_list);
 
-/* Protect speakup machinery */
-extern spinlock_t spk_spinlock;
 /* Protect speakup synthesizer list */
 extern struct mutex spk_mutex;
-/* Speakup needs to disable the keyboard IRQ */
+
+/* Protect the whole speakup machinery, must be taken at each kernel->speakup
+ * transition and released at all corresponding speakup->kernel transitions
+ * (flags must be the same variable between lock/trylock and unlock). */
+extern spinlock_t spk_spinlock;
+/* Speakup needs to disable the keyboard IRQ, hence irqsave/restore */
 #define spk_lock(flags) spin_lock_irqsave(&spk_spinlock, flags)
 #define spk_trylock(flags) spin_trylock_irqsave(&spk_spinlock, flags)
 #define spk_unlock(flags) spin_unlock_irqrestore(&spk_spinlock, flags)
