@@ -26,7 +26,7 @@
 
 #include "spk_priv.h"
 #include "serialio.h"
-#include "spk_synth_dtlk.h" /* local header file for DoubleTalk values */
+#include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
 #define MY_SYNTH synth_dtlk
 #define PROCSPEECH 0x00

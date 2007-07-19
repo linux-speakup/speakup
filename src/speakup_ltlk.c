@@ -26,7 +26,7 @@
 
 #include "spk_priv.h"
 #include "serialio.h"
-#include "spk_synth_dtlk.h" /* local header file for LiteTalk values */
+#include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
 #define MY_SYNTH synth_ltlk
 #define PROCSPEECH 0x0d

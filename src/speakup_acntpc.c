@@ -25,7 +25,7 @@
 #include <linux/jiffies.h>
 
 #include "spk_priv.h"
-#include "spk_synth_acnt.h" /* local header file for Accent values */
+#include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntpc
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)

@@ -27,7 +27,7 @@
 
 #include "spk_priv.h"
 #include "serialio.h"
-#include "spk_synth_acnt.h" /* local header file for Accent values */
+#include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntsa
 #define synth_full() (inb_p(synth_port_tts) == 'F')
