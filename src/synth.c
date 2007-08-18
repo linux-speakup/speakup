@@ -519,20 +519,16 @@ static int do_synth_init(struct spk_synth *in_synth)
 {
 	struct st_num_var *n_var;
 	struct st_string_var *s_var;
-	unsigned long flags;
 
 	synth_release();
 	if (in_synth->checkval != SYNTH_CHECK) return -EINVAL;
 	synth = in_synth;
 	pr_warn("synth probe\n");
-	spk_lock(flags);
 	if (synth->probe() < 0) {
-		spk_unlock(flags);
 		pr_warn("%s: device probe failed\n", in_synth->name);
 		synth = NULL;
 		return -ENODEV;
 	}
-	spk_unlock(flags);
 	synth_time_vars[0].default_val = synth->delay;
 	synth_time_vars[1].default_val = synth->trigger;
 	synth_time_vars[2].default_val = synth->jiffies;
@@ -562,7 +558,6 @@ synth_release(void)
 {
 	struct st_num_var *n_var;
 	struct st_string_var *s_var;
-	unsigned long flags;
 	if (synth == NULL) return;
 	pr_info("releasing synth %s\n", synth->name);
 	for (s_var = synth->string_vars; s_var->var_id >= 0; s_var++)
@@ -576,10 +571,8 @@ synth_release(void)
 #endif
 	synth_dummy_catchup((unsigned long) NULL);
 	synth_timer.function = synth_dummy_catchup;
-	spk_lock(flags);
 	stop_serial_interrupt();
 	synth->release();
-	spk_unlock(flags);
 	synth = NULL;
 }
 
