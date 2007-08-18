@@ -238,10 +238,9 @@ extern struct mutex spk_mutex;
  * (flags must be the same variable between lock/trylock and unlock). */
 extern spinlock_t spk_spinlock;
 /* Speakup needs to disable the keyboard bh, hence _bh */
-#define spk_lock(flags) spin_lock_bh(&spk_spinlock, flags)
-#define spk_trylock(flags) spin_trylock_bh(&spk_spinlock, flags)
-#define spk_unlock(flags) spin_unlock_bh(&spk_spinlock, flags)
-#endif
+#define spk_lock(flags) spin_lock_bh(&spk_spinlock)
+#define spk_trylock(flags) spin_trylock_bh(&spk_spinlock)
+#define spk_unlock(flags) spin_unlock_bh(&spk_spinlock)
 
 extern char str_caps_start[], str_caps_stop[];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
