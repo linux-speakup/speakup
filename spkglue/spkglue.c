@@ -26,14 +26,14 @@ static const struct spkglue_funcs *funcs = NULL;
 
 void spkglue_allocate(struct vc_data *vc)
 {
-	if (funcs)
+	if (funcs && funcs->allocate)
 		funcs->allocate(vc);
 }
 
 int spkglue_key(struct vc_data *vc, int shift_state, int keycode,
 		unsigned short keysym, int up_flag)
 {
-	if (funcs)
+	if (funcs && funcs->key)
 		return funcs->key(vc, shift_state, keycode, keysym, up_flag);
 	else
 		return 0;
@@ -41,19 +41,19 @@ int spkglue_key(struct vc_data *vc, int shift_state, int keycode,
 
 void spkglue_bs(struct vc_data *vc)
 {
-	if (funcs)
+	if (funcs && funcs->bs)
 		funcs->bs(vc);
 }
 
 void spkglue_con_write(struct vc_data *vc, const char *str, int len)
 {
-	if (funcs)
+	if (funcs && funcs->con_write)
 		funcs->con_write(vc, str, len);
 }
 
 void spkglue_con_update(struct vc_data *vc)
 {
-	if (funcs)
+	if (funcs && funcs->con_update)
 		funcs->con_update(vc);
 }
 
