@@ -1252,9 +1252,9 @@ static void spkup_write(const char *in_buf, int count)
 
 static char *ctl_key_ids[] = {
 	"shift", "altgr", "control", "ault", "l shift", "speakup",
-"l control", "r control"
+"l control", "r control", "caps shift"
 };
-#define NUM_CTL_LABELS 8
+#define NUM_CTL_LABELS 9
 
 static void read_all_doc(struct vc_data *vc);
 static void cursor_stop_timer(void);
