@@ -10,7 +10,7 @@ Index: linux-speakup/drivers/Kconfig
 +
  source "sound/Kconfig"
  
- source "drivers/usb/Kconfig"
+ source "drivers/hid/Kconfig"
 Index: linux-speakup/drivers/Makefile
 ===================================================================
 --- linux-speakup.orig/drivers/Makefile
@@ -25,8 +25,8 @@ Index: linux-speakup/drivers/Makefile
 +obj-$(CONFIG_INPUT)		+= input/
  obj-$(CONFIG_NUBUS)		+= nubus/
  obj-$(CONFIG_ATM)		+= atm/
- obj-$(CONFIG_PPC_PMAC)		+= macintosh/
-@@ -51,9 +55,6 @@ obj-$(CONFIG_TC)		+= tc/
+ obj-y				+= macintosh/
+@@ -53,9 +57,6 @@ obj-$(CONFIG_TC)		+= tc/
  obj-$(CONFIG_USB)		+= usb/
  obj-$(CONFIG_PCI)		+= usb/
  obj-$(CONFIG_USB_GADGET)	+= usb/gadget/
@@ -40,7 +40,7 @@ Index: linux-speakup/drivers/char/Makefile
 ===================================================================
 --- linux-speakup.orig/drivers/char/Makefile
 +++ linux-speakup/drivers/char/Makefile
-@@ -91,6 +91,7 @@ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.
+@@ -94,6 +94,7 @@ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.
  obj-$(CONFIG_TANBAC_TB0219)	+= tb0219.o
  obj-$(CONFIG_TELCLOCK)		+= tlclk.o
  
@@ -115,7 +115,7 @@ Index: linux-speakup/drivers/char/keyboard.c
  
  /*
   * Setting the keyboard rate.
-@@ -1233,6 +1241,8 @@ static void kbd_keycode(unsigned int key
+@@ -1226,6 +1234,8 @@ static void kbd_keycode(unsigned int key
  	key_map = key_maps[shift_final];
  
  	if (!key_map) {
@@ -124,7 +124,7 @@ Index: linux-speakup/drivers/char/keyboard.c
  		compute_shiftstate();
  		kbd->slockstate = 0;
  		return;
-@@ -1255,6 +1265,8 @@ static void kbd_keycode(unsigned int key
+@@ -1248,6 +1258,8 @@ static void kbd_keycode(unsigned int key
  	}
  
  	type -= 0xf0;
@@ -133,7 +133,7 @@ Index: linux-speakup/drivers/char/keyboard.c
  
  	if (raw_mode && type != KT_SPEC && type != KT_SHIFT)
  		return;
-@@ -1274,6 +1286,9 @@ static void kbd_keycode(unsigned int key
+@@ -1267,6 +1279,9 @@ static void kbd_keycode(unsigned int key
  		kbd->slockstate = 0;
  }
  
@@ -143,7 +143,7 @@ Index: linux-speakup/drivers/char/keyboard.c
  static void kbd_event(struct input_handle *handle, unsigned int event_type,
  		      unsigned int event_code, int value)
  {
-@@ -1311,6 +1326,7 @@ static struct input_handle *kbd_connect(
+@@ -1304,6 +1319,7 @@ static struct input_handle *kbd_connect(
  		return NULL;
  
  	handle->dev = dev;
@@ -163,7 +163,7 @@ Index: linux-speakup/drivers/char/vt.c
  
  #include <asm/io.h>
  #include <asm/system.h>
-@@ -739,6 +740,7 @@ int vc_allocate(unsigned int currcons)	/
+@@ -737,6 +738,7 @@ int vc_allocate(unsigned int currcons)	/
  	    }
  	    vc->vc_kmalloced = 1;
  	    vc_init(vc, vc->vc_rows, vc->vc_cols, 1);
@@ -171,7 +171,7 @@ Index: linux-speakup/drivers/char/vt.c
  	}
  	return 0;
  }
-@@ -1003,6 +1005,7 @@ static void lf(struct vc_data *vc)
+@@ -1001,6 +1003,7 @@ static void lf(struct vc_data *vc)
  		vc->vc_pos += vc->vc_size_row;
  	}
  	vc->vc_need_wrap = 0;
@@ -179,7 +179,7 @@ Index: linux-speakup/drivers/char/vt.c
  }
  
  static void ri(struct vc_data *vc)
-@@ -1031,6 +1034,7 @@ static inline void bs(struct vc_data *vc
+@@ -1029,6 +1032,7 @@ static inline void bs(struct vc_data *vc
  		vc->vc_pos -= 2;
  		vc->vc_x--;
  		vc->vc_need_wrap = 0;
@@ -187,7 +187,7 @@ Index: linux-speakup/drivers/char/vt.c
  	}
  }
  
-@@ -1568,6 +1572,7 @@ static void do_con_trol(struct tty_struc
+@@ -1566,6 +1570,7 @@ static void do_con_trol(struct tty_struc
  				break;
  		}
  		vc->vc_pos += (vc->vc_x << 1);
@@ -195,7 +195,7 @@ Index: linux-speakup/drivers/char/vt.c
  		return;
  	case 10: case 11: case 12:
  		lf(vc);
-@@ -2107,6 +2112,7 @@ display_glyph:
+@@ -2105,6 +2110,7 @@ display_glyph:
  			}
  			if (vc->vc_decim)
  				insert_char(vc, 1);
@@ -203,7 +203,7 @@ Index: linux-speakup/drivers/char/vt.c
  			scr_writew(himask ?
  				     ((vc->vc_attr << 8) & ~himask) + ((tc & 0x100) ? himask : 0) + (tc & 0xff) :
  				     (vc->vc_attr << 8) + tc,
-@@ -2141,6 +2147,7 @@ display_glyph:
+@@ -2139,6 +2145,7 @@ display_glyph:
  	release_console_sem();
  
  out:
@@ -211,7 +211,7 @@ Index: linux-speakup/drivers/char/vt.c
  	return n;
  #undef FLUSH
  }
-@@ -2166,6 +2173,7 @@ static void console_callback(void *ignor
+@@ -2164,6 +2171,7 @@ static void console_callback(void *ignor
  			/* we only changed when the console had already
  			   been allocated - a new console is not created
  			   in an interrupt routine */
@@ -219,7 +219,7 @@ Index: linux-speakup/drivers/char/vt.c
  		}
  		want_console = -1;
  	}
-@@ -2184,6 +2192,7 @@ static void console_callback(void *ignor
+@@ -2182,6 +2190,7 @@ static void console_callback(void *ignor
  		do_blank_screen(0);
  		blank_timer_expired = 0;
  	}
@@ -227,7 +227,7 @@ Index: linux-speakup/drivers/char/vt.c
  
  	release_console_sem();
  }
-@@ -2229,6 +2238,7 @@ static void vt_console_print(struct cons
+@@ -2245,6 +2254,7 @@ static void vt_console_print(struct cons
  		/* printk("vt_console_print: tty %d not allocated ??\n", currcons+1); */
  		goto quit;
  	}
@@ -235,7 +235,7 @@ Index: linux-speakup/drivers/char/vt.c
  
  	if (vc->vc_mode != KD_TEXT)
  		goto quit;
-@@ -2241,6 +2251,7 @@ static void vt_console_print(struct cons
+@@ -2257,6 +2267,7 @@ static void vt_console_print(struct cons
  
  	/* Contrived structure to try to emulate original need_wrap behaviour
  	 * Problems caused when we have need_wrap set on '\n' character */
@@ -243,7 +243,7 @@ Index: linux-speakup/drivers/char/vt.c
  	while (count--) {
  		c = *b++;
  		if (c == 10 || c == 13 || c == 8 || vc->vc_need_wrap) {
-@@ -2285,6 +2296,7 @@ static void vt_console_print(struct cons
+@@ -2301,6 +2312,7 @@ static void vt_console_print(struct cons
  		}
  	}
  	set_cursor(vc);
@@ -251,7 +251,7 @@ Index: linux-speakup/drivers/char/vt.c
  
  quit:
  	clear_bit(0, &printing);
-@@ -2650,6 +2662,7 @@ static int __init con_init(void)
+@@ -2665,6 +2677,7 @@ static int __init con_init(void)
  	master_display_fg = vc = vc_cons[currcons].d;
  	set_origin(vc);
  	save_screen(vc);
@@ -259,7 +259,7 @@ Index: linux-speakup/drivers/char/vt.c
  	gotoxy(vc, vc->vc_x, vc->vc_y);
  	csi_J(vc, 0);
  	update_screen(vc);
-@@ -3763,6 +3776,7 @@ u16 screen_glyph(struct vc_data *vc, int
+@@ -3779,6 +3792,7 @@ u16 screen_glyph(struct vc_data *vc, int
  		c |= 0x100;
  	return c;
  }
