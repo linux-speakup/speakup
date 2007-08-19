@@ -131,10 +131,9 @@ enum {
 #define read_all_mode CT_Max
 
 static struct tty_struct *tty;
-#define key_handler k_handler
 typedef void (*k_handler_fn)(struct vc_data *vc, unsigned char value,
                              char up_flag);
-extern k_handler_fn key_handler[16];
+extern k_handler_fn k_handler[16];
 #ifndef USE_KEYBOARD_NOTIFIER
 static k_handler_fn do_shift, do_spec, do_latin, do_cursor;
 #endif
@@ -1455,14 +1454,14 @@ static void __init speakup_open(struct vc_data *vc,
 #ifdef USE_KEYBOARD_NOTIFIER
 	register_keyboard_notifier(&keyboard_notifier_block);
 #else
-	do_latin = key_handler[KT_LATIN];
-	key_handler[KT_LATIN] = handle_latin;
-	do_spec = key_handler[KT_SPEC];
-	key_handler[KT_SPEC] = handle_spec;
-	do_cursor = key_handler[KT_CUR];
-	key_handler[KT_CUR] = handle_cursor;
-	do_shift = key_handler[KT_SHIFT];
-	key_handler[KT_SHIFT] = handle_shift;
+	do_latin = k_handler[KT_LATIN];
+	k_handler[KT_LATIN] = handle_latin;
+	do_spec = k_handler[KT_SPEC];
+	k_handler[KT_SPEC] = handle_spec;
+	do_cursor = k_handler[KT_CUR];
+	k_handler[KT_CUR] = handle_cursor;
+	do_shift = k_handler[KT_SHIFT];
+	k_handler[KT_SHIFT] = handle_shift;
 #endif
 	set_key_info(key_defaults, key_buf);
 	if (quiet_boot) spk_shut_up |= 0x01;
@@ -3010,10 +3009,10 @@ static void __exit speakup_exit(void)
 #ifdef USE_KEYBOARD_NOTIFIER
 	unregister_keyboard_notifier(&keyboard_notifier_block);
 #else
-	key_handler[KT_LATIN] = do_latin;
-	key_handler[KT_SPEC] = do_spec;
-	key_handler[KT_CUR] = do_cursor;
-	key_handler[KT_SHIFT] = do_shift;
+	k_handler[KT_LATIN] = do_latin;
+	k_handler[KT_SPEC] = do_spec;
+	k_handler[KT_CUR] = do_cursor;
+	k_handler[KT_SHIFT] = do_shift;
 #endif
 	spkglue_unregister();
 	mutex_lock(&spk_mutex);
