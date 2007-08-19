@@ -51,10 +51,15 @@
 
 #include <linux/spinlock.h>
 #include <linux/ctype.h>
+#include <linux/notifier.h>
 
 #include <asm/uaccess.h> /* copy_from|to|user() and others */
 
 #include "spk_priv.h"
+
+#if 0 || LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
+#define USE_KEYBOARD_NOTIFIER
+#endif
 
 #define SPEAKUP_VERSION "3.0.0"
 #define MAX_DELAY ((500 * HZ) / 1000)
@@ -130,7 +135,9 @@ static struct tty_struct *tty;
 typedef void (*k_handler_fn)(struct vc_data *vc, unsigned char value,
                              char up_flag);
 extern k_handler_fn key_handler[16];
+#ifndef USE_KEYBOARD_NOTIFIER
 static k_handler_fn do_shift, do_spec, do_latin, do_cursor;
+#endif
 EXPORT_SYMBOL_GPL(help_handler);
 EXPORT_SYMBOL_GPL(special_handler);
 EXPORT_SYMBOL_GPL(our_keys);
@@ -268,6 +275,14 @@ static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 spinlock_t spk_spinlock;
 DEFINE_MUTEX(spk_mutex);
 EXPORT_SYMBOL_GPL(spk_spinlock);
+
+#ifdef USE_KEYBOARD_NOTIFIER
+static int keyboard_notifier_call(struct notifier_block *, unsigned long code, void *param);
+
+struct notifier_block keyboard_notifier_block = {
+	.notifier_call = keyboard_notifier_call,
+};
+#endif
 
 static unsigned char get_attributes(u16 *pos)
 {
@@ -1245,10 +1260,9 @@ static char *ctl_key_ids[] = {
 static void read_all_doc(struct vc_data *vc);
 static void cursor_stop_timer(void);
 
-static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
+static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
-	(*do_shift)(vc, value, up_flag);
 	if (synth == NULL || up_flag || spk_killed)
 		return;
 	spk_lock(flags);
@@ -1276,10 +1290,17 @@ static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	spk_unlock(flags);
 }
 
-static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
+#ifndef USE_KEYBOARD_NOTIFIER
+static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
+{
+	(*do_shift)(vc, value, up_flag);
+	do_handle_shift(vc, value, up_flag);
+}
+#endif
+
+static void do_handle_latin(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
-	(*do_latin)(vc, value, up_flag);
 	spk_lock(flags);
 	if (up_flag) {
 		spk_lastkey = spk_keydown = 0;
@@ -1298,6 +1319,14 @@ static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
 		speak_char(value);
 	spk_unlock(flags);
 }
+
+#ifndef USE_KEYBOARD_NOTIFIER
+static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
+{
+	(*do_latin)(vc, value, up_flag);
+	do_handle_latin(vc, value, up_flag);
+}
+#endif
 
 static int set_key_info(const u_char *key_info, u_char *k_buffer)
 {
@@ -1385,8 +1414,10 @@ static void reset_default_chartab(void)
 	memcpy(spk_chartab, default_chartab, sizeof(default_chartab));
 }
 
+#ifndef USE_KEYBOARD_NOTIFIER
 static void handle_cursor(struct vc_data *vc, u_char value, char up_flag);
 static void handle_spec(struct vc_data *vc, u_char value, char up_flag);
+#endif
 static void cursor_done(u_long data);
 
 static declare_timer(cursor_timer);
@@ -1421,6 +1452,9 @@ static void __init speakup_open(struct vc_data *vc,
 		speakup_register_var(n_var);
 	for (i = 1; punc_info[i].mask != 0; i++)
 		set_mask_bits(0, i, 2);
+#ifdef USE_KEYBOARD_NOTIFIER
+	register_keyboard_notifier(&keyboard_notifier_block);
+#else
 	do_latin = key_handler[KT_LATIN];
 	key_handler[KT_LATIN] = handle_latin;
 	do_spec = key_handler[KT_SPEC];
@@ -1429,6 +1463,7 @@ static void __init speakup_open(struct vc_data *vc,
 	key_handler[KT_CUR] = handle_cursor;
 	do_shift = key_handler[KT_SHIFT];
 	key_handler[KT_SHIFT] = handle_shift;
+#endif
 	set_key_info(key_defaults, key_buf);
 	if (quiet_boot) spk_shut_up |= 0x01;
 }
@@ -2083,8 +2118,13 @@ static void
 kbd_fakekey2(struct vc_data *vc,int v,int command)
 {
 	cursor_stop_timer();
+#ifdef USE_KEYBOARD_NOTIFIER
+	k_handler[KT_CUR](vc, v, 0);
+	k_handler[KT_CUR](vc, v, 1);
+#else
 	(*do_cursor)(vc,v,0);
 	(*do_cursor)(vc,v,1);
+#endif
 	start_read_all_timer(vc,command);
 }
 
@@ -2219,7 +2259,7 @@ handle_cursor_read_all(struct vc_data *vc,int command)
 	}
 }
 
-static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
+static int pre_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
 	spk_lock(flags);
@@ -2228,17 +2268,22 @@ static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 		spk_parked &= 0xfe;
 		if (synth == NULL || up_flag || spk_shut_up) {
 			spk_unlock(flags);
-			return;
+			return NOTIFY_STOP;
 		}
 		cursor_stop_timer();
 		spk_shut_up &= 0xfe;
 		do_flush();
 		start_read_all_timer(vc,value+1);
 		spk_unlock(flags);
-		return;
+		return NOTIFY_STOP;
 	}
 	spk_unlock(flags);
-	(*do_cursor)(vc, value, up_flag);
+	return NOTIFY_OK;
+}
+
+static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
+{
+	unsigned long flags;
 	spk_lock(flags);
 	spk_parked &= 0xfe;
 	if (synth == NULL || up_flag || spk_shut_up || cursor_track == CT_Off) {
@@ -2264,6 +2309,15 @@ static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	cursor_timer_active++;
 	spk_unlock(flags);
 }
+
+#ifndef USE_KEYBOARD_NOTIFIER
+static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
+{
+	if (pre_handle_cursor(vc, value, up_flag) != NOTIFY_STOP)
+		(*do_cursor)(vc, value, up_flag);
+	do_handle_cursor(vc, value, up_flag);
+}
+#endif
 
 static void
 update_color_buffer(struct vc_data *vc , const char *ic , int len)
@@ -2501,13 +2555,12 @@ speakup_con_update(struct vc_data *vc)
 	spk_unlock(flags);
 }
 
-static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
+static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
 	int on_off = 2;
 	char *label;
 	static const char *lock_status[] = { " off", " on", "" };
-	(*do_spec)(vc, value, up_flag);
 	if (synth == NULL || up_flag || spk_killed) return;
 	spk_lock(flags);
 	spk_shut_up &= 0xfe;
@@ -2533,6 +2586,14 @@ static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	synth_printf("%s %s\n", label, lock_status[on_off]);
 	spk_unlock(flags);
 }
+
+#ifndef USE_KEYBOARD_NOTIFIER
+static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
+{
+	(*do_spec)(vc, value, up_flag);
+	do_handle_spec(vc, value, up_flag);
+}
+#endif
 
 static int
 inc_dec_var(u_char value)
@@ -2881,11 +2942,62 @@ out:
 	return ret;
 }
 
+#ifdef USE_KEYBOARD_NOTIFIER
+static int keyboard_notifier_call(struct notifier_block *nb, unsigned long code, void *_param)
+{
+	struct keyboard_notifier_param *param = _param;
+	struct vc_data *vc = param->vc;
+	int up = !param->down;
+	int ret = NOTIFY_OK;
+	switch (code) {
+		case KBD_KEYCODE:
+			/* not used yet */
+			break;
+		case KBD_UNBOUND_KEYCODE:
+			if (speakup_key(vc, param->shift, param->value, K(KT_SHIFT,0), up))
+				ret = NOTIFY_STOP;
+			break;
+		case KBD_UNICODE:
+			/* not used yet */
+			break;
+		case KBD_KEYSYM:
+			if (speakup_key(vc, param->shift, MAX_KEY, param->value, up))
+				ret = NOTIFY_STOP;
+			else
+				if (KTYP(param->value) == KT_CUR)
+					ret = pre_handle_cursor(vc, KVAL(param->value), up);
+			break;
+		case KBD_POST_KEYSYM: {
+			unsigned char type = KTYP(param->value) - 0xf0;
+			unsigned char val = KVAL(param->value);
+			switch (type) {
+			case KT_SHIFT:
+				do_handle_shift(vc, val, up);
+				break;
+			case KT_LATIN:
+				do_handle_latin(vc, val, up);
+				break;
+			case KT_CUR:
+				do_handle_cursor(vc, val, up);
+				break;
+			case KT_SPEC:
+				do_handle_spec(vc, val, up);
+				break;
+			}
+			break;
+		}
+	}
+	return ret;
+}
+#endif
+
 extern void speakup_remove(void);
 
 static const struct spkglue_funcs glue_funcs = {
 	.allocate = speakup_allocate,
+#ifndef USE_KEYBOARD_NOTIFIER
 	.key = speakup_key,
+#endif
 	.bs = speakup_bs,
 	.con_write = speakup_con_write,
 	.con_update = speakup_con_update,
@@ -2895,10 +3007,14 @@ static void __exit speakup_exit(void)
 {
 	int i;
 
+#ifdef USE_KEYBOARD_NOTIFIER
+	unregister_keyboard_notifier(&keyboard_notifier_block);
+#else
 	key_handler[KT_LATIN] = do_latin;
 	key_handler[KT_SPEC] = do_spec;
 	key_handler[KT_CUR] = do_cursor;
 	key_handler[KT_SHIFT] = do_shift;
+#endif
 	spkglue_unregister();
 	mutex_lock(&spk_mutex);
 	synth_release();
