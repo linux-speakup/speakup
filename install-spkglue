@@ -13,10 +13,10 @@ SPKDIR=$(pwd)
 [[ -d ${KDIR} ]] || die "${KDIR} is not a directory"
 [[ -e ${KDIR}/MAINTAINERS ]] || die "${KDIR} is not a kernel dir"
 
-patch -d ${KDIR} -p1 -s -f --dry-run -i ${SPKDIR}/spkglue/kernel-integration.patch ||
+patch -l -d ${KDIR} -p1 -s -f --dry-run -i ${SPKDIR}/spkglue/kernel-integration.patch ||
 	die "spkglue/kernel-integration.patch does not apply to ${KDIR}, probably wrong kernel version"
 
-patch -d ${KDIR} -p1 -s -f -i ${SPKDIR}/spkglue/kernel-integration.patch ||
+patch -l -d ${KDIR} -p1 -s -f -i ${SPKDIR}/spkglue/kernel-integration.patch ||
 	die "spkglue/kernel-integration.patch patching failed"
 
 cp ${SPKDIR}/spkglue/spkglue.h ${KDIR}/include/linux
