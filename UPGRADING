@@ -67,6 +67,6 @@ load a synth module: it will be used by default.
 
 5. Module names
 
-speakup is now speakup.ko. The synth's are named spk_synth_foo.ko, and the
-software synthesizer is spk_synth_soft.ko
+speakup is now speakup.ko. The synth's are named speakup_foo.ko, and the
+software synthesizer is speakup_soft.ko
 
