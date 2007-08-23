@@ -1,0 +1,53 @@
+This file is a work list and specifications for the tasks which need
+to be completed to get the git version of speakup ready for
+prime-time.  Hopefully folks will undertake some of the tasks here and
+help by submitting patches to implement them.  If you can think of
+better ways of implementing any of these please speakup!
+
+
+Kernel command line and modules specification. on the kcl with speakup
+built-in speakup will be the keyword with arguments separated by a
+period as in speakup.synth=ltlk for the LiteTalk synthesizer.  Each
+argument will require a separate occurrence of the speakup command so
+that a person wanting to specify the LiteTalk on ttyS2 would type at
+the kcl: linux speakup.synth=ltlk speakup.ser=2.  In the case of
+loading speakup from modules modprobe would be followed by
+speakup_ltlk for the LiteTalk and additional arguments are passed as
+separate arguments such as: modprobe speakup_ltlk ser=2 quiet=1 to
+load the LiteTalk driver specifying ttyS2 and starting quietly. The
+current available arguments are synth, ser, port and quiet.
+
+
+Need a script to check the modified kernel sources and take diff's
+against them like the old checkin script did.  This will make getting
+edits to the kernel source a lot easier to get into the repository.
+Quilt might be useful for something like this.  When using the linux
+git repository git-diff can be used.
+
+
+The install-spkglue script will need to be made smarter so that the
+correct speakup version can be checked out for the correct linux
+version.  It also needs some way to actually create a reject file when
+it fails so it's easier to hunt down the patching trouble.
+
+
+Various methods have been discussed on how to best rewrite portions of
+speakup to implement the tty discipline for serial synths.  Currently
+we have kludged the io port method we've always used by supplying the
+parametres which have been removed from kernels starting at 2.6.22.
+This however is only a temporary fix except for synths which use
+non-standard rs232c ports.  Samuel has suggested using filp_open() for
+module built speakup and possibly a virtual file system for the
+built-in case.
+
+
+Need to re examen synth probing to attempt to identify the synth by
+the probing sequence it responds to.  It is at least important to
+identify that you have the synth you have requested to prevent getting
+the wrong serial port.
+
+
+Need to start moving speakups /proc file system functions over to
+/sys.  Also need to re implement synth_name support to provide the
+ability to switch synths when speakup is built-in.
+
