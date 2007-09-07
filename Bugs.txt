@@ -1,0 +1,11 @@
+This file is to keep track of the bugs we know about until we come up
+with a better bug tracking system.  Feel free to try your hand at
+fixing any of these!
+
+The DECTalk Express driver is not finding the synth with the git
+repository in driver speakup_dectlk.c.
+
+Starting with 2.6.22 speakup's cut and paste system appears to be
+pumping random garbage into the paste position.  This is extremely
+dangerous and will very easily hang the computer.
+
