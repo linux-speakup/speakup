@@ -38,7 +38,6 @@
 #include <linux/vt_kern.h>
 #include <linux/input.h>
 #include <linux/kmod.h>
-#include <linux/spkglue.h>
 
 #include <linux/bootmem.h>	/* for alloc_bootmem */
 
@@ -59,6 +58,9 @@
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
 #define USE_NOTIFIERS
+#define inverse_translate(vc, c) inverse_translate(vc, c, 0)
+#else
+#include <linux/spkglue.h>
 #endif
 
 #define SPEAKUP_VERSION "3.0.0"

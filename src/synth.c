@@ -12,6 +12,10 @@
 #include <linux/kmod.h>
 #include <linux/jiffies.h>
 
+#ifndef SYNTH_MINOR
+#define SYNTH_MINOR 25
+#endif
+
 #ifdef __powerpc__
 #include <asm-ppc/pc_serial.h> /* for SERIAL_PORT_DFNS */
 #endif
