@@ -57,7 +57,7 @@
 
 #include "spk_priv.h"
 
-#if 0 || LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
 #define USE_NOTIFIERS
 #endif
 
