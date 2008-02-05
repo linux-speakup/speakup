@@ -2968,19 +2968,20 @@ static int keyboard_notifier_call(struct notifier_block *nb, unsigned long code,
 	struct vc_data *vc = param->vc;
 	int up = !param->down;
 	int ret = NOTIFY_OK;
+	static int keycode; /* to hold the current keycode */
+	
 	switch (code) {
 		case KBD_KEYCODE:
-			/* not used yet */
+			keycode = param->value; /* speakup requires keycode and keysym currently */
 			break;
 		case KBD_UNBOUND_KEYCODE:
-			if (speakup_key(vc, param->shift, param->value, K(KT_SHIFT,0), up))
-				ret = NOTIFY_STOP;
+			/* not used yet */
 			break;
 		case KBD_UNICODE:
 			/* not used yet */
 			break;
 		case KBD_KEYSYM:
-			if (speakup_key(vc, param->shift, MAX_KEY, param->value, up))
+			if (speakup_key(vc, param->shift, keycode, param->value, up))
 				ret = NOTIFY_STOP;
 			else
 				if (KTYP(param->value) == KT_CUR)
