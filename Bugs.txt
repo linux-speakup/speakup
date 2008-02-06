@@ -9,3 +9,8 @@ Starting with 2.6.22 speakup's cut and paste system appears to be
 pumping random garbage into the paste position.  This is extremely
 dangerous and will very easily hang the computer.
 
+When switching between consoles with the alt-function keys or
+alt-left/right arrows speakup is not getting updated to the new
+screens cursor position.  I am not sure how long this has been an
+issue but I know it is a problem in my 2.6.19.1 system so it's been
+around for a while.
