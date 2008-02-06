@@ -2,26 +2,26 @@
  * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
 * this version considerably modified by David Borowski, david575@rogers.com
 
-		Copyright (C) 1998-99  Kirk Reiser.
-		Copyright (C) 2003 David Borowski.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
- * this code is specificly written as a driver for the speakup screenreview
- * package and is not a general device driver.
-		*/
+ * Copyright (C) 1998-99  Kirk Reiser.
+ * Copyright (C) 2003 David Borowski.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * specificly written as a driver for the speakup screenreview
+ * s not a general device driver.
+ */
 #include <linux/jiffies.h>
 
 #include "spk_priv.h"
@@ -41,7 +41,8 @@ static int wait_for_xmitr(void)
 		timeouts = 0;
 		return 0;
 	}
-	do { /* holding register empty? */
+	do {
+		/* holding register empty? */
 		check = inb(synth_port_tts + UART_LSR);
 		if (--tmout == 0) {
 			pr_warn("%s: timed out\n", synth->long_name);
@@ -50,7 +51,8 @@ static int wait_for_xmitr(void)
 		}
 	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
-	do { /* CTS */
+	do {
+		/* CTS */
 		check = inb(synth_port_tts + UART_MSR);
 		if (--tmout == 0) {
 			timeouts++;
@@ -75,7 +77,8 @@ static unsigned char spk_serial_in(void)
 	int c, lsr, tmout = SPK_SERIAL_TIMEOUT;
 	do {
 		lsr = inb(synth_port_tts + UART_LSR);
-		if (--tmout == 0) return 0xff;
+		if (--tmout == 0)
+			return 0xff;
 	} while (!(lsr & UART_LSR_DR));
 	c = inb(synth_port_tts + UART_RX);
 	return (unsigned char) c;
@@ -88,7 +91,8 @@ static void do_catch_up(unsigned long data)
 	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (!spk_serial_out(ch)) {
 			synth_delay(synth_full_time);
 			return;
@@ -108,10 +112,12 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (wait_for_xmitr())
 			outb(ch, synth_port_tts);
-		else return buf;
+		else
+			return buf;
 		buf++;
 	}
 	return 0;
@@ -130,13 +136,16 @@ static int serprobe(int index)
 {
 	u_char test = 0;
 	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL) return -1;
+	if (ser == NULL)
+		return -1;
 	/* ignore any error results, if port was forced */
 	if (synth_port_forced)
 		return 0;
 	synth_immediate("\x05[Q]");
-	if ((synth_id[test] = spk_serial_in()) == 'A') {
-		do { /* read version string from synth */
+	synth_id[test] = spk_serial_in();
+	if (synth_id[test] == 'A') {
+		do {
+			/* read version string from synth */
 			synth_id[++test] = spk_serial_in();
 		} while (synth_id[test] != '\n' && test < 32);
 		synth_id[++test] = 0x00;
@@ -150,10 +159,12 @@ static int serprobe(int index)
 
 static int synth_probe(void)
 {
-	int i=0, failed=0;
+	int i = 0, failed = 0;
 	pr_info("Probing for %s.\n", synth->long_name);
-	for (i=SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		if ((failed = serprobe(i)) == 0) break; /* found it */
+	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		failed = serprobe(i);
+		if (failed == 0)
+			break; /* found it */
 	}
 	if (failed) {
 		pr_info("%s: not found\n", synth->long_name);
@@ -168,8 +179,10 @@ static int synth_probe(void)
 
 static int synth_is_alive(void)
 {
-	if (synth_alive) return 1;
-	if (!synth_alive && wait_for_xmitr() > 0) { /* restart */
+	if (synth_alive)
+		return 1;
+	if (!synth_alive && wait_for_xmitr() > 0) {
+		/* restart */
 		synth_alive = 1;
 		synth_write_string(synth->init);
 		return 2;
@@ -188,7 +201,7 @@ static struct st_num_var numvars[] = {
 	{ RATE, "\x05[r%d]", 10, 0, 20, -100, 10, 0 },
 	{ PITCH, "\x05[f%d]", 80, 39, 4500, 0, 0, 0 },
 	{ VOL, "\x05[g%d]", 21, 0, 40, 0, 0, 0 },
-	{ TONE, "\x05[s%d]", 9, 0,63, 0, 0, 0 },
+	{ TONE, "\x05[s%d]", 9, 0, 63, 0, 0, 0 },
 	{ PUNCT, "\x05[A%c]", 0, 0, 3, 0, 0, "nmsa" },
 	V_LAST_NUM
 };
@@ -197,7 +210,7 @@ struct spk_synth synth_audptr = {"audptr", "1.1", "Audapter",
 	 init_string, 400, 5, 30, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL,0,0,0} };
+	{NULL, 0, 0, 0} };
 
 static int __init audptr_init(void)
 {

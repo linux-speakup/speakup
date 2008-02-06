@@ -2,26 +2,26 @@
  * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
 * this version considerably modified by David Borowski, david575@rogers.com
 
-		Copyright (C) 1998-99  Kirk Reiser.
-		Copyright (C) 2003 David Borowski.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Copyright (C) 1998-99  Kirk Reiser.
+ * Copyright (C) 2003 David Borowski.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.
-		*/
+ */
 #include <linux/jiffies.h>
 
 #include "spk_priv.h"
@@ -43,7 +43,7 @@ static int wait_for_xmitr(void)
 	do {
 		check = inb(synth_port_tts + UART_LSR);
 		if (--tmout == 0) {
-		 	pr_warn("BNS: timed out\n");
+			pr_warn("BNS: timed out\n");
 			timeouts++;
 			return 0;
 		}
@@ -76,7 +76,8 @@ static void do_catch_up(unsigned long data)
 	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
 		ch = *synth_buff_out;
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (!spk_serial_out(ch)) {
 			synth_delay(synth_full_time);
 			return;
@@ -96,10 +97,12 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (wait_for_xmitr())
 			outb(ch, synth_port_tts);
-		else return buf;
+		else
+			return buf;
 		buf++;
 	}
 	return 0;
@@ -113,11 +116,14 @@ static void synth_flush(void)
 static int serprobe(int index)
 {
 	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL) return -1;
+	if (ser == NULL)
+		return -1;
 	outb('\r', ser->port);
-	if (synth_port_forced) return 0;
+	if (synth_port_forced)
+		return 0;
 	/* check for bns now... */
-	if (!synth_immediate("\x18")) return 0;
+	if (!synth_immediate("\x18"))
+		return 0;
 	spk_serial_release();
 	synth_alive = 0;
 	return -1;
@@ -125,10 +131,12 @@ static int serprobe(int index)
 
 static int synth_probe(void)
 {
-	int i=0, failed=0;
+	int i = 0, failed = 0;
 	pr_info("Probing for %s.\n", synth->long_name);
-	for (i=SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		if ((failed = serprobe(i)) == 0) break; /* found it */
+	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		failed = serprobe(i);
+		if (failed == 0)
+			break; /* found it */
 	}
 	if (failed) {
 		pr_info("%s: not found\n", synth->long_name);
@@ -141,8 +149,10 @@ static int synth_probe(void)
 
 static int synth_is_alive(void)
 {
-	if (synth_alive) return 1;
-	if (!synth_alive && wait_for_xmitr() > 0) { /* restart */
+	if (synth_alive)
+		return 1;
+	if (!synth_alive && wait_for_xmitr() > 0) {
+		/* restart */
 		synth_alive = 1;
 		synth_write_string(synth->init);
 		return 2;
@@ -170,7 +180,7 @@ struct spk_synth synth_bns = {"bns", "1.1", "Braille 'N Speak",
 	init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL,0,0,0} };
+	{NULL, 0, 0, 0} };
 
 static int __init bns_init(void)
 {

@@ -1,25 +1,25 @@
 /*
 * written by David Borowski
 
-		Copyright (C) 2003 David Borowski.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
- * this code is specificly written as a driver for the speakup screenreview
- * package and is not a general device driver.
-		*/
+ * Copyright (C) 2003 David Borowski.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * specificly written as a driver for the speakup screenreview
+ * s not a general device driver.
+ */
 #include <linux/jiffies.h>
 
 #include "spk_priv.h"
@@ -53,12 +53,14 @@ static const char *synth_immediate(const char *buf)
 	u_char ch;
 	int timeout;
 	while ((ch = *buf)) {
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (synth_full())
 			return buf;
 		timeout = 1000;
 		while (synth_writable())
-			if (--timeout <= 0) return (char *) oops();
+			if (--timeout <= 0)
+				return (char *) oops();
 		outb_p(ch, synth_port);
 		SWAIT;
 		buf++;
@@ -73,25 +75,28 @@ static void do_catch_up(unsigned long data)
 	int timeout;
 	synth_stop_timer();
 	while (synth_buff_out < synth_buff_in) {
- 		if (synth_full()) {
+		if (synth_full()) {
 			synth_delay(synth_full_time);
 			return;
 		}
 		timeout = 1000;
 		while (synth_writable())
-			if (--timeout <= 0) break;
+			if (--timeout <= 0)
+				break;
 		if (timeout <= 0) {
 			oops();
 			break;
 		}
 		ch = *synth_buff_out++;
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
 		SWAIT;
 		if (jiffies >= jiff_max && ch == SPACE) {
 			timeout = 1000;
 			while (synth_writable())
-				if (--timeout <= 0) break;
+				if (--timeout <= 0)
+					break;
 			if (timeout <= 0) {
 				oops();
 				break;
@@ -103,9 +108,12 @@ static void do_catch_up(unsigned long data)
 	}
 	timeout = 1000;
 	while (synth_writable())
-		if (--timeout <= 0) break;
-	if (timeout <= 0) oops();
-	else outb_p(PROCSPEECH, synth_port);
+		if (--timeout <= 0)
+			break;
+	if (timeout <= 0)
+		oops();
+	else
+		outb_p(PROCSPEECH, synth_port);
 	synth_done();
 }
 
@@ -128,8 +136,9 @@ static int synth_probe(void)
 		}
 		port_val = inb(synth_port);
 	} else {
-		for (i=0; synth_portlist[i]; i++) {
-			if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
+		for (i = 0; synth_portlist[i]; i++) {
+			if (synth_request_region(synth_portlist[i],
+						SYNTH_IO_EXTENT)) {
 				pr_warn("request_region: failed with 0x%x, %d\n",
 					synth_portlist[i], SYNTH_IO_EXTENT);
 				continue;
@@ -148,7 +157,7 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, driver version %s,\n", synth->long_name,
-		synth_port,	synth_port+SYNTH_IO_EXTENT-1,
+		synth_port, synth_port+SYNTH_IO_EXTENT-1,
 		synth->version);
 	return 0;
 }
@@ -183,7 +192,7 @@ struct spk_synth synth_keypc = {"keypc", "1.1", "Keynote PC",
 	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, keynote_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL,0,0,0} };
+	{NULL, 0, 0, 0} };
 
 static int __init keypc_init(void)
 {

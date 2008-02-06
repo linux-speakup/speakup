@@ -20,15 +20,16 @@
 #include <asm-ppc/pc_serial.h> /* for SERIAL_PORT_DFNS */
 #endif
 
-/* 2.6.22 doesn't have them any more, hardcode it for now (these values should be fine for 99% cases) */
+/* 2.6.22 doesn't have them any more, hardcode it for now (these values should
+ * be fine for 99% cases) */
 #ifndef BASE_BAUD
-#define BASE_BAUD ( 1843200 / 16 )
+#define BASE_BAUD (1843200 / 16)
 #endif
 #ifndef STD_COM_FLAGS
 #ifdef CONFIG_SERIAL_DETECT_IRQ
 #define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST | ASYNC_AUTO_IRQ)
 #define STD_COM4_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_AUTO_IRQ)
-#else 
+#else
 #define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST)
 #define STD_COM4_FLAGS ASYNC_BOOT_AUTOCONF
 #endif
@@ -56,7 +57,11 @@ static struct spk_synth *synths[16];
 
 #define synthBufferSize 8192	/* currently 8K bytes */
 struct spk_synth *synth = NULL;
-int synth_port_tts, synth_port_forced;
+EXPORT_SYMBOL_GPL(synth);
+int synth_port_tts;
+EXPORT_SYMBOL_GPL(synth_port_tts);
+int synth_port_forced;
+EXPORT_SYMBOL_GPL(synth_port_forced);
 static int synth_timer_active;	/* indicates when a timer is set */
 	static struct miscdevice synth_device;
 static int misc_registered;
@@ -65,12 +70,20 @@ declare_sleeper(synth_sleeping_list);
 static int module_status;
 static declare_timer(synth_timer);
 short synth_delay_time = 500, synth_trigger_time = 50;
-short synth_jiffy_delta = 50, synth_full_time = 1000;
+EXPORT_SYMBOL_GPL(synth_delay_time);
+short synth_jiffy_delta = 50;
+EXPORT_SYMBOL_GPL(synth_jiffy_delta);
+short synth_full_time = 1000;
+EXPORT_SYMBOL_GPL(synth_full_time);
 int synth_alive, quiet_boot;
+EXPORT_SYMBOL_GPL(synth_alive);
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
 static u_char *buffer_highwater = synth_buffer+synthBufferSize-100;
 u_char *buffer_end = synth_buffer+synthBufferSize-1;
-volatile u_char *synth_buff_in = synth_buffer, *synth_buff_out = synth_buffer;
+volatile u_char *synth_buff_in = synth_buffer;
+EXPORT_SYMBOL_GPL(synth_buff_in);
+volatile u_char *synth_buff_out = synth_buffer;
+EXPORT_SYMBOL_GPL(synth_buff_out);
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static struct serial_state *serstate;
 
@@ -99,14 +112,15 @@ static char *xlate(char *s)
 				num = (*p1++)&7;
 			}
 			*p++ = num;
-		} else if (*p1 == 'x'&& strchr(hx, p1[1]) && strchr(hx, p1[2])) {
+		} else if (*p1 == 'x' &&
+				strchr(hx, p1[1]) && strchr(hx, p1[2])) {
 			p1++;
 			c = *p1++;
 			if (c > '9')
-				c = (c-'7')&0x0f;
+				c = (c - '7') & 0x0f;
 			else
 				c -= '0';
-			num = c<<4;
+			num = c << 4;
 			c = *p1++;
 			if (c > '9')
 				c = (c-'7')&0x0f;
@@ -131,15 +145,17 @@ struct serial_state *spk_serial_init(int index)
 	struct serial_state *ser = NULL;
 
 	if (synth_port_forced) {
-		if (index > 0) return NULL;
+		if (index > 0)
+			return NULL;
 		pr_info("probe forced to 0x%x by kernel command line\n",
 			synth_port_forced);
-		for (i=0; i <= SPK_HI_TTY; i++)
+		for (i = 0; i <= SPK_HI_TTY; i++)
 			if ((rs_table+i)->port == synth_port_forced) {
 				ser = rs_table+i;
 				break;
 			}
-	} else ser = rs_table + index;
+	} else
+		ser = rs_table + index;
 	/*	Divisor, bytesize and parity */
 	quot = ser->baud_base / baud;
 	cval = cflag & (CSIZE | CSTOPB);
@@ -152,9 +168,11 @@ struct serial_state *spk_serial_init(int index)
 		cval |= UART_LCR_PARITY;
 	if (!(cflag & PARODD))
 		cval |= UART_LCR_EPAR;
-	if (synth_request_region(ser->port, 8)) { // try to take it back.
+	if (synth_request_region(ser->port, 8)) {
+		/* try to take it back. */
 		__release_region(&ioport_resource, ser->port, 8);
-		if (synth_request_region(ser->port, 8)) return NULL;
+		if (synth_request_region(ser->port, 8))
+			return NULL;
 	}
 
 	/*	Disable UART interrupts, set DTR and RTS high
@@ -164,25 +182,26 @@ struct serial_state *spk_serial_init(int index)
 	outb(quot >> 8, ser->port + UART_DLM);		/* MS of divisor */
 	outb(cval, ser->port + UART_LCR);		/* reset DLAB */
 
-	// Turn off Interrupts
+	/* Turn off Interrupts */
 	outb(0, ser->port + UART_IER);
 	outb(UART_MCR_DTR | UART_MCR_RTS, ser->port + UART_MCR);
 
 	/* If we read 0xff from the LSR, there is no UART here. */
 	if (inb(ser->port + UART_LSR) == 0xff) {
 		synth_release_region(ser->port, 8);
-		serstate=NULL;
+		serstate = NULL;
 		return NULL;
 	}
 
 	mdelay(1);
 	synth_port_tts = ser->port;
-	serstate=ser;
+	serstate = ser;
 
 	start_serial_interrupt(ser->irq);
 
 	return ser;
 }
+EXPORT_SYMBOL_GPL(spk_serial_init);
 
 static void start_serial_interrupt(int irq)
 {
@@ -195,13 +214,13 @@ static void start_serial_interrupt(int irq)
 			 "serial", (void *) synth_readbuf_handler);
 
 	if (rv)
-	{
 		printk(KERN_ERR "Unable to request Speakup serial I R Q\n");
-	}
-	// Set MCR
-	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2, synth_port_tts + UART_MCR);
-	// Turn on Interrupts
-	outb(UART_IER_MSI|UART_IER_RLSI|UART_IER_RDI,synth_port_tts+ UART_IER);
+	/* Set MCR */
+	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2,
+			synth_port_tts + UART_MCR);
+	/* Turn on Interrupts */
+	outb(UART_IER_MSI|UART_IER_RLSI|UART_IER_RDI,
+			synth_port_tts + UART_IER);
 	inb(synth_port_tts+UART_LSR);
 	inb(synth_port_tts+UART_RX);
 	inb(synth_port_tts+UART_IIR);
@@ -211,36 +230,38 @@ static void start_serial_interrupt(int irq)
 
 static void stop_serial_interrupt(void)
 {
-	if (synth_port_tts == 0) return;
+	if (synth_port_tts == 0)
+		return;
 
 	if (synth->read_buff_add == NULL)
 		return;
 
-	// Turn off interrupts
-	outb(0,synth_port_tts+UART_IER);
-	// Free IRQ
+	/* Turn off interrupts */
+	outb(0, synth_port_tts+UART_IER);
+	/* Free IRQ */
 	free_irq(serstate->irq, (void *) synth_readbuf_handler);
 }
 
 void spk_serial_release(void)
 {
-	if (synth_port_tts == 0) return;
+	if (synth_port_tts == 0)
+		return;
 	synth_release_region(synth_port_tts, 8);
 	synth_port_tts = 0;
 }
+EXPORT_SYMBOL_GPL(spk_serial_release);
 
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 {
-//printk(KERN_ERR "in irq\n");
-//pr_warn("in IRQ\n");
+/*printk(KERN_ERR "in irq\n"); */
+/*pr_warn("in IRQ\n"); */
 	int c;
-	while (inb_p(synth_port_tts + UART_LSR) & UART_LSR_DR)
-	{
+	while (inb_p(synth_port_tts + UART_LSR) & UART_LSR_DR) {
 
-		c=inb_p(synth_port_tts+UART_RX);
+		c = inb_p(synth_port_tts+UART_RX);
 		synth->read_buff_add((u_char) c);
-//printk(KERN_ERR "c = %d\n",c);
-//pr_warn("C = %d\n",c);
+/*printk(KERN_ERR "c = %d\n", c); */
+/*pr_warn("C = %d\n", c); */
 	}
 	return IRQ_HANDLED;
 }
@@ -249,11 +270,13 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 void
 synth_delay(int val)
 {
-	if (val == 0) return;
+	if (val == 0)
+		return;
 	synth_timer.expires = jiffies + val;
 	start_timer(synth_timer);
 	synth_timer_active++;
 }
+EXPORT_SYMBOL_GPL(synth_delay);
 
 static void synth_dummy_catchup(unsigned long data)
 {
@@ -268,6 +291,7 @@ synth_stop_timer(void)
 		stop_timer(synth_timer);
 	synth_timer_active = 0;
 }
+EXPORT_SYMBOL_GPL(synth_stop_timer);
 
 int synth_done(void)
 {
@@ -278,6 +302,7 @@ int synth_done(void)
 	}
 	return 1;
 }
+EXPORT_SYMBOL_GPL(synth_done);
 
 static void synth_start(void)
 {
@@ -313,7 +338,8 @@ synth_buffer_add(char ch)
 		synth_start();
 		if (!waitqueue_active(&synth_sleeping_list))
 			interruptible_sleep_on(&synth_sleeping_list);
-		if (synth_buff_in >= buffer_end) return;
+		if (synth_buff_in >= buffer_end)
+			return;
 	}
 	*synth_buff_in++ = ch;
 }
@@ -325,6 +351,7 @@ synth_write(const char *buf, size_t count)
 		synth_buffer_add(*buf++);
 	synth_start();
 }
+EXPORT_SYMBOL_GPL(synth_write);
 
 void
 synth_putc(char ch)
@@ -332,6 +359,7 @@ synth_putc(char ch)
 	synth_buffer_add(ch);
 	synth_start();
 }
+EXPORT_SYMBOL_GPL(synth_putc);
 
 void
 synth_printf(const char *fmt, ...)
@@ -351,6 +379,7 @@ synth_printf(const char *fmt, ...)
 		synth_buffer_add(*p++);
 	synth_start();
 }
+EXPORT_SYMBOL_GPL(synth_printf);
 
 void
 synth_write_string(const char *buf)
@@ -359,6 +388,7 @@ synth_write_string(const char *buf)
 		synth_buffer_add(*buf++);
 	synth_start();
 }
+EXPORT_SYMBOL_GPL(synth_write_string);
 
 void
 synth_write_msg(const char *buf)
@@ -368,26 +398,27 @@ synth_write_msg(const char *buf)
 	synth_buffer_add('\n');
 	synth_start();
 }
+EXPORT_SYMBOL_GPL(synth_write_msg);
 
-static int index_count=0;
-static int sentence_count=0;
+static int index_count = 0;
+static int sentence_count = 0;
 
 void
 reset_index_count(int sc)
 {
 	static int first = 1;
 	if (first)
-		first=0;
+		first = 0;
 	else
 		synth->get_index();
-	index_count=0;
-	sentence_count=sc;
+	index_count = 0;
+	sentence_count = sc;
 }
 
 int
 synth_supports_indexing(void)
 {
-	if (synth->get_index!=NULL)
+	if (synth->get_index != NULL)
 		return 1;
 	return 0;
 }
@@ -397,35 +428,36 @@ synth_insert_next_index(int sent_num)
 {
 	int out;
 	if (synth_alive) {
-		if (sent_num==0)
-		{
+		if (sent_num == 0) {
 			synth->indexing.currindex++;
 			index_count++;
-			if (synth->indexing.currindex>synth->indexing.highindex)
-				synth->indexing.currindex=synth->indexing.lowindex;
+			if (synth->indexing.currindex >
+					synth->indexing.highindex)
+				synth->indexing.currindex =
+					synth->indexing.lowindex;
 		}
 
-		out=synth->indexing.currindex*10+sent_num;
-		synth_printf(synth->indexing.command,out,out);
+		out = synth->indexing.currindex * 10 + sent_num;
+		synth_printf(synth->indexing.command, out, out);
 	}
 }
 
 void
-get_index_count(int *linecount,int *sentcount)
+get_index_count(int *linecount, int *sentcount)
 {
-	int ind=synth->get_index();
-	if (ind)
-	{
-		sentence_count=ind%10;
+	int ind = synth->get_index();
+	if (ind) {
+		sentence_count = ind % 10;
 
-		if ((ind/10)<=synth->indexing.currindex)
+		if ((ind / 10) <= synth->indexing.currindex)
 			index_count = synth->indexing.currindex-(ind/10);
 		else
-			index_count = synth->indexing.currindex-synth->indexing.lowindex + synth->indexing.highindex-(ind/10)+1;
+			index_count = synth->indexing.currindex-synth->indexing.lowindex
+				+ synth->indexing.highindex-(ind/10)+1;
 
 	}
-	*sentcount=sentence_count;
-	*linecount=index_count;
+	*sentcount = sentence_count;
+	*linecount = index_count;
 }
 
 static struct resource synth_res;
@@ -440,27 +472,30 @@ int synth_request_region(unsigned long start, unsigned long n)
 	synth_res.flags = IORESOURCE_BUSY;
 	return request_resource(parent, &synth_res);
 }
+EXPORT_SYMBOL_GPL(synth_request_region);
 
 int synth_release_region(unsigned long start, unsigned long n)
 {
 	return release_resource(&synth_res);
 }
+EXPORT_SYMBOL_GPL(synth_release_region);
 
 #ifdef CONFIG_PROC_FS
 
-// /proc/synth-specific code
+/* /proc/synth-specific code */
 
 #include <asm/uaccess.h>
 #include <linux/limits.h>
 
-// this is the write handler for /proc/speakup/synth-specific/direct
+/* this is the write handler for /proc/speakup/synth-specific/direct */
 static int spk_direct_write_proc(struct file *file, const char *buffer,
 				 u_long count, void *data)
 {
 	u_char buf[256];
 	int ret = count, bytes;
 	const char *ptr = buffer;
-	if (synth == NULL) return -EPERM;
+	if (synth == NULL)
+		return -EPERM;
 	while (count > 0) {
 		bytes = min_t(size_t, count, 250);
 		if (copy_from_user(buf, ptr, bytes))
@@ -550,7 +585,8 @@ static int do_synth_init(struct spk_synth *in_synth)
 	struct st_string_var *s_var;
 
 	synth_release();
-	if (in_synth->checkval != SYNTH_CHECK) return -EINVAL;
+	if (in_synth->checkval != SYNTH_CHECK)
+		return -EINVAL;
 	synth = in_synth;
 	pr_warn("synth probe\n");
 	if (synth->probe() < 0) {
@@ -574,7 +610,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	for (n_var = synth->num_vars; n_var->var_id >= 0; n_var++)
 		speakup_register_var(n_var);
 	if (!quiet_boot)
-		synth_printf("%s found\n",synth->long_name);
+		synth_printf("%s found\n", synth->long_name);
 #ifdef CONFIG_PROC_FS
 	speakup_register_var((struct st_num_var *) &synth_direct);
 #endif
@@ -587,7 +623,8 @@ synth_release(void)
 {
 	struct st_num_var *n_var;
 	struct st_string_var *s_var;
-	if (synth == NULL) return;
+	if (synth == NULL)
+		return;
 	pr_info("releasing synth %s\n", synth->name);
 	for (s_var = synth->string_vars; s_var->var_id >= 0; s_var++)
 		speakup_unregister_var(s_var->var_id);
@@ -626,6 +663,7 @@ int synth_add(struct spk_synth *in_synth)
 	mutex_unlock(&spk_mutex);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(synth_add);
 
 void synth_remove(struct spk_synth *in_synth)
 {
@@ -634,13 +672,15 @@ void synth_remove(struct spk_synth *in_synth)
 	if (synth == in_synth)
 		synth_release();
 	for (i = 0; synths[i] != NULL; i++) {
-		if (in_synth == synths[i]) break;
+		if (in_synth == synths[i])
+			break;
 	}
 	for ( ; synths[i] != NULL; i++) /* compress table */
 		synths[i] = synths[i+1];
 	module_status = 0;
 	mutex_unlock(&spk_mutex);
 }
+EXPORT_SYMBOL_GPL(synth_remove);
 
 static struct st_var_header var_headers[] = {
   { "version", VERSION, VAR_PROC, USER_R, 0, 0, 0 },
@@ -691,8 +731,10 @@ speakup_s2i(char *start, short *dest)
 {
 	int val;
 	char ch = *start;
-	if (ch == '-' || ch == '+') start++;
-	if (*start < '0' || *start > '9') return start;
+	if (ch == '-' || ch == '+')
+		start++;
+	if (*start < '0' || *start > '9')
+		return start;
 	val = (*start) - '0';
 	start++;
 	while (*start >= '0' && *start <= '9') {
@@ -700,14 +742,16 @@ speakup_s2i(char *start, short *dest)
 		val += (*start) - '0';
 		start++;
 	}
-	if (ch == '-') *dest = -val;
-	else *dest = val;
+	if (ch == '-')
+		*dest = -val;
+	else
+		*dest = val;
 	return start;
 }
 
 short punc_masks[] = { 0, SOME, MOST, PUNC, PUNC|B_SYM };
 
-// handlers for setting vars
+/* handlers for setting vars */
 int set_num_var(short input, struct st_var_header *var, int how)
 {
 	short val, ret = 0;
@@ -721,10 +765,14 @@ int set_num_var(short input, struct st_var_header *var, int how)
 		val = var_data->default_val;
 		ret = SET_DEFAULT;
 	} else {
-		if (how == E_SET) val = input;
-		else val = var_data->value;
-		if (how == E_INC) val += input;
-		else if (how == E_DEC) val -= input;
+		if (how == E_SET)
+			val = input;
+		else
+			val = var_data->value;
+		if (how == E_INC)
+			val += input;
+		else if (how == E_DEC)
+			val -= input;
 		if (val < var_data->low || val > var_data->high)
 			return E_RANGE;
 	}
@@ -733,7 +781,8 @@ int set_num_var(short input, struct st_var_header *var, int how)
 		*p_val = (val * HZ + 1000 - HZ) / 1000;
 		return ret;
 	}
-	if (p_val != 0) *p_val = val;
+	if (p_val != 0)
+		*p_val = val;
 	if (var->var_id == PUNC_LEVEL) {
 		punc_mask = punc_masks[val];
 		return ret;
@@ -741,17 +790,22 @@ int set_num_var(short input, struct st_var_header *var, int how)
 	if (var_data->multiplier != 0)
 		val *= var_data->multiplier;
 	val += var_data->offset;
-	if (var->var_id < FIRST_SYNTH_VAR || synth == NULL) return ret;
+	if (var->var_id < FIRST_SYNTH_VAR || synth == NULL)
+		return ret;
 	if (synth->synth_adjust != NULL) {
 		int status = synth->synth_adjust(var);
 		return (status != 0) ? status : ret;
 	}
-	if (!var_data->synth_fmt) return ret;
-	if (var->var_id == PITCH) cp = pitch_buff;
-	else cp = buf;
+	if (!var_data->synth_fmt)
+		return ret;
+	if (var->var_id == PITCH)
+		cp = pitch_buff;
+	else
+		cp = buf;
 	if (!var_data->out_str)
 		l = sprintf(cp, var_data->synth_fmt, (int)val);
-	else l = sprintf(cp, var_data->synth_fmt, var_data->out_str[val]);
+	else
+		l = sprintf(cp, var_data->synth_fmt, var_data->out_str[val]);
 	synth_write_string(cp);
 	return ret;
 }
@@ -760,32 +814,38 @@ static int set_string_var(char *page, struct st_var_header *var, int len)
 {
 	int ret = 0;
 	struct st_string_var *var_data = var->data;
-	if (var_data == NULL) return E_UNDEF;
+	if (var_data == NULL)
+		return E_UNDEF;
 	if (len > MAXVARLEN)
 		return -E_TOOLONG;
 	if (!len) {
-	if (!var_data->default_val) return 0;
+	if (!var_data->default_val)
+		return 0;
 		ret = SET_DEFAULT;
-		if (!var->p_val) var->p_val = var_data->default_val;
+		if (!var->p_val)
+			var->p_val = var_data->default_val;
 		if (var->p_val != var_data->default_val)
 			strcpy((char *)var->p_val, var_data->default_val);
 		} else if (var->p_val)
 			strcpy((char *)var->p_val, page);
-	else return -E_TOOLONG;
+	else
+		return -E_TOOLONG;
 	return ret;
 }
 
 struct st_var_header *get_var_header(short var_id)
 {
 	struct st_var_header *p_header;
-	if (var_id < 0 || var_id >= MAXVARS) return NULL;
+	if (var_id < 0 || var_id >= MAXVARS)
+		return NULL;
 	p_header = var_ptrs[var_id];
-	if (p_header->data == NULL) return NULL;
+	if (p_header->data == NULL)
+		return NULL;
 	return p_header;
 }
 
 #ifdef CONFIG_PROC_FS
-// this is the write handler for /proc/speakup vars
+/* this is the write handler for /proc/speakup vars */
 static int speakup_vars_write_proc(struct file *file, const char *buffer,
 				   u_long count, void *data)
 {
@@ -795,38 +855,44 @@ static int speakup_vars_write_proc(struct file *file, const char *buffer,
 	char *v_name = p_header->name, *cp;
 	struct st_num_var *var_data;
 	short value;
-	if (!page) return -ENOMEM;
+	if (!page)
+		return -ENOMEM;
 	if (copy_from_user(page, buffer, count)) {
 		ret = -EFAULT;
 		goto out;
 	}
-	if (page[len - 1] == '\n') --len;
+	if (page[len - 1] == '\n')
+		--len;
 	page[len] = '\0';
 	cp = xlate(page);
-	switch(p_header->var_type) {
-		case VAR_NUM:
-		case VAR_TIME:
-			if (*cp == 'd' || *cp == 'r' || *cp == '\0')
-				len = E_DEFAULT;
-			else if (*cp == '+' || *cp == '-') len = E_INC;
-			else len = E_SET;
-			speakup_s2i(cp, &value);
-			ret = set_num_var(value, p_header, len);
-			if (ret != E_RANGE) break;
-			var_data = p_header->data;
-			pr_warn("value for %s out of range, expect %d to %d\n",
-			v_name, (int)var_data->low, (int)var_data->high);
+	switch (p_header->var_type) {
+	case VAR_NUM:
+	case VAR_TIME:
+		if (*cp == 'd' || *cp == 'r' || *cp == '\0')
+			len = E_DEFAULT;
+		else if (*cp == '+' || *cp == '-')
+			len = E_INC;
+		else
+			len = E_SET;
+		speakup_s2i(cp, &value);
+		ret = set_num_var(value, p_header, len);
+		if (ret != E_RANGE)
 			break;
-		case VAR_STRING:
-			len = strlen(page);
-			ret = set_string_var(page, p_header, len);
-			if (ret != E_TOOLONG) break;
-			pr_warn("value too long for %s\n", v_name);
-			break;
-		default:
-			pr_warn("%s unknown type %d\n",
-				p_header->name, (int)p_header->var_type);
+		var_data = p_header->data;
+		pr_warn("value for %s out of range, expect %d to %d\n",
+		v_name, (int)var_data->low, (int)var_data->high);
 		break;
+	case VAR_STRING:
+		len = strlen(page);
+		ret = set_string_var(page, p_header, len);
+		if (ret != E_TOOLONG)
+			break;
+		pr_warn("value too long for %s\n", v_name);
+		break;
+	default:
+		pr_warn("%s unknown type %d\n",
+			p_header->name, (int)p_header->var_type);
+	break;
 	}
 out:
 	if (ret == SET_DEFAULT)
@@ -835,7 +901,7 @@ out:
 	return count;
 }
 
-// this is the read handler for /proc/speakup vars
+/* this is the read handler for /proc/speakup vars */
 static int speakup_vars_read_proc(char *page, char **start, off_t off,
 				  int count, int *eof, void *data)
 {
@@ -844,28 +910,28 @@ static int speakup_vars_read_proc(char *page, char **start, off_t off,
 	char ch, *cp, *cp1;
 	*start = 0;
 	*eof = 1;
-	switch(var->var_type) {
-		case VAR_NUM:
-		case VAR_TIME:
-			return sprintf(page, "%d\n", (int)n_var->value);
-			break;
-		case VAR_STRING:
-			cp1 = page;
-			*cp1++ = '"';
-			for (cp = (char *)var->p_val; (ch = *cp); cp++) {
-				if (ch >= ' ' && ch < '~')
-					*cp1++ = ch;
-				else
-					cp1 += sprintf(cp1, "\\""x%02x", ch);
-			}
-			*cp1++ = '"';
-			*cp1++ = '\n';
-			*cp1 = '\0';
-			return cp1-page;
-			break;
-		default:
-			return sprintf(page, "oops bad type %d\n",
-				(int)var->var_type);
+	switch (var->var_type) {
+	case VAR_NUM:
+	case VAR_TIME:
+		return sprintf(page, "%d\n", (int)n_var->value);
+		break;
+	case VAR_STRING:
+		cp1 = page;
+		*cp1++ = '"';
+		for (cp = (char *)var->p_val; (ch = *cp); cp++) {
+			if (ch >= ' ' && ch < '~')
+				*cp1++ = ch;
+			else
+				cp1 += sprintf(cp1, "\\""x%02x", ch);
+		}
+		*cp1++ = '"';
+		*cp1++ = '\n';
+		*cp1 = '\0';
+		return cp1-page;
+		break;
+	default:
+		return sprintf(page, "oops bad type %d\n",
+			(int)var->var_type);
 	}
 	return 0;
 }
@@ -878,7 +944,8 @@ static int spk_make_proc(struct st_var_header *p_header)
 	struct proc_dir_entry *ent = p_header->proc_entry;
 	char *name = p_header->name;
 	struct st_proc_var *p_var;
-	if (dir_ent == 0 || p_header->proc_mode == 0 || ent != 0) return 0;
+	if (dir_ent == 0 || p_header->proc_mode == 0 || ent != 0)
+		return 0;
 	ent = create_proc_entry(name, p_header->proc_mode, dir_ent);
 	if (!ent) {
 		pr_warn("Unable to create /proc/%s/%s entry.\n",
@@ -920,17 +987,18 @@ int speakup_register_var(struct st_num_var *var)
 		}
 	}
 	p_header = var_ptrs[var_id];
-	if (p_header->data != 0) return 0;
+	if (p_header->data != 0)
+		return 0;
 	p_header->data = var;
 	switch (p_header->var_type) {
-		case VAR_STRING:
-			s_var = (struct st_string_var *) var;
-			set_string_var(nothing, p_header, 0);
-			break;
-		case VAR_NUM:
-		case VAR_TIME:
-			set_num_var(0, p_header, E_DEFAULT);
-			break;
+	case VAR_STRING:
+		s_var = (struct st_string_var *) var;
+		set_string_var(nothing, p_header, 0);
+		break;
+	case VAR_NUM:
+	case VAR_TIME:
+		set_num_var(0, p_header, E_DEFAULT);
+		break;
 	}
 #ifdef CONFIG_PROC_FS
 	return spk_make_proc(p_header);
@@ -942,7 +1010,8 @@ int speakup_register_var(struct st_num_var *var)
 static void speakup_unregister_var(short var_id)
 {
 	struct st_var_header *p_header;
-	if (var_id < 0 || var_id >= MAXVARS) return;
+	if (var_id < 0 || var_id >= MAXVARS)
+		return;
 	p_header = var_ptrs[var_id];
 	p_header->data = 0;
 #ifdef CONFIG_PROC_FS
@@ -960,7 +1029,7 @@ int speakup_dev_init(void)
 	struct st_var_header *p_header;
 	struct st_proc_var *pv = spk_proc_vars;
 
-	//pr_warn("synth name on entry is: %s\n", synth_name);
+	/*pr_warn("synth name on entry is: %s\n", synth_name); */
 	synth_init(synth_name);
 	speakup_register_devsynth();
 #ifdef CONFIG_PROC_FS
@@ -969,13 +1038,14 @@ int speakup_dev_init(void)
 		pr_warn("Unable to create /proc/%s entry.\n", spk_dir);
 		return -1;
 	}
-	while(pv->var_id >= 0) {
+	while (pv->var_id >= 0) {
 		speakup_register_var((void *) pv);
 		pv++;
 	}
 		for (i = 0; i < MAXVARS; i++) {
 			p_header = &var_headers[i];
-		if (p_header->data != 0) spk_make_proc(p_header);
+		if (p_header->data != 0)
+			spk_make_proc(p_header);
 	}
 #endif
 	return 0;
@@ -996,18 +1066,19 @@ void speakup_remove(void)
 #endif
 }
 
-// provide a file to users, so people can send to /dev/synth
+/* provide a file to users, so people can send to /dev/synth */
 
 static ssize_t
 speakup_file_write(struct file *fp, const char *buffer,
-		   size_t nbytes, loff_t * ppos)
+		   size_t nbytes, loff_t *ppos)
 {
 	size_t count = nbytes;
 	const char *ptr = buffer;
 	int bytes;
 	unsigned long flags;
 	u_char buf[256];
-	if (synth == NULL) return -ENODEV;
+	if (synth == NULL)
+		return -ENODEV;
 	while (count > 0) {
 		bytes = min_t(size_t, count, sizeof(buf));
 		if (copy_from_user(buf, ptr, bytes))
@@ -1025,11 +1096,11 @@ static int
 speakup_file_ioctl(struct inode *inode, struct file *file,
 		   unsigned int cmd, unsigned long arg)
 {
-	return 0;		// silently ignore
+	return 0;		/* silently ignore */
 }
 
 static ssize_t
-speakup_file_read(struct file *fp, char *buf, size_t nbytes, loff_t * ppos)
+speakup_file_read(struct file *fp, char *buf, size_t nbytes, loff_t *ppos)
 {
 	return 0;
 }
@@ -1055,16 +1126,17 @@ speakup_file_release(struct inode *ip, struct file *fp)
 }
 
 static struct file_operations synth_fops = {
-	.read=speakup_file_read,
-	.write=speakup_file_write,
-	.ioctl=speakup_file_ioctl,
-	.open=speakup_file_open,
-	.release=speakup_file_release,
+	.read = speakup_file_read,
+	.write = speakup_file_write,
+	.ioctl = speakup_file_ioctl,
+	.open = speakup_file_open,
+	.release = speakup_file_release,
 };
 
 static void speakup_register_devsynth(void)
 {
-	if (misc_registered != 0) return;
+	if (misc_registered != 0)
+		return;
 	misc_registered = 1;
 	memset(&synth_device, 0, sizeof(synth_device));
 /* zero it so if register fails, deregister will not ref invalid ptrs */
@@ -1076,29 +1148,3 @@ static void speakup_register_devsynth(void)
 	else
 		pr_info("initialized device: /dev/synth, node (MAJOR 10, MINOR 25)\n");
 }
-
-/* exported symbols needed by synth modules */
-EXPORT_SYMBOL_GPL(spk_serial_init);
-EXPORT_SYMBOL_GPL(spk_serial_release);
-EXPORT_SYMBOL_GPL(synth);
-EXPORT_SYMBOL_GPL(synth_alive);
-EXPORT_SYMBOL_GPL(synth_buffer);
-EXPORT_SYMBOL_GPL(synth_buff_in);
-EXPORT_SYMBOL_GPL(synth_buff_out);
-EXPORT_SYMBOL_GPL(synth_delay);
-EXPORT_SYMBOL_GPL(synth_delay_time);
-EXPORT_SYMBOL_GPL(synth_done);
-EXPORT_SYMBOL_GPL(synth_full_time);
-EXPORT_SYMBOL_GPL(synth_jiffy_delta);
-EXPORT_SYMBOL_GPL(synth_port_forced);
-EXPORT_SYMBOL_GPL(synth_port_tts);
-EXPORT_SYMBOL_GPL(synth_request_region);
-EXPORT_SYMBOL_GPL(synth_release_region);
-EXPORT_SYMBOL_GPL(synth_add);
-EXPORT_SYMBOL_GPL(synth_remove);
-EXPORT_SYMBOL_GPL(synth_stop_timer);
-EXPORT_SYMBOL_GPL(synth_write);
-EXPORT_SYMBOL_GPL(synth_putc);
-EXPORT_SYMBOL_GPL(synth_printf);
-EXPORT_SYMBOL_GPL(synth_write_string);
-EXPORT_SYMBOL_GPL(synth_write_msg);

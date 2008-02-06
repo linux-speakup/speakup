@@ -2,26 +2,26 @@
  * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
 * this version considerably modified by David Borowski, david575@rogers.com
 
-		Copyright (C) 1998-99  Kirk Reiser.
-		Copyright (C) 2003 David Borowski.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Copyright (C) 1998-99  Kirk Reiser.
+ * Copyright (C) 2003 David Borowski.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.
-		*/
+ */
 #include <linux/jiffies.h>
 
 #include "spk_priv.h"
@@ -63,10 +63,12 @@ static int wait_for_xmitr(void)
 
 static int spk_serial_out(const char ch)
 {
- // int timer = 9000000;
+ /* int timer = 9000000; */
 	if (synth_alive && wait_for_xmitr()) {
 		outb(ch, synth_port_tts);
-		/*while (inb(synth_port_tts+UART_MSR) & UART_MSR_CTS) if (--timer == 0) break;*/
+		/*while (inb(synth_port_tts+UART_MSR) & UART_MSR_CTS)
+		 *	if (--timer == 0)
+		 *		break;*/
 		/*	outb(UART_MCR_DTR, synth_port_tts + UART_MCR);*/
 		return 1;
 	}
@@ -79,7 +81,8 @@ static unsigned char spk_serial_in(void)
 	int c, lsr, tmout = SPK_SERIAL_TIMEOUT;
 	do {
 		lsr = inb(synth_port_tts + UART_LSR);
-		if (--tmout == 0) return 0xff;
+		if (--tmout == 0)
+			return 0xff;
 	} while (!(lsr & UART_LSR_DR));
 	c = inb(synth_port_tts + UART_RX);
 	return (unsigned char) c;
@@ -95,7 +98,8 @@ static void do_catch_up(unsigned long data)
 		ch = *synth_buff_out;
 		if (!spk_serial_out(ch)) {
 			outb(UART_MCR_DTR, synth_port_tts + UART_MCR);
-			outb(UART_MCR_DTR | UART_MCR_RTS, synth_port_tts + UART_MCR);
+			outb(UART_MCR_DTR | UART_MCR_RTS,
+					synth_port_tts + UART_MCR);
 			synth_delay(synth_full_time);
 			return;
 		}
@@ -114,10 +118,12 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (wait_for_xmitr())
 			outb(ch, synth_port_tts);
-		else return buf;
+		else
+			return buf;
 		buf++;
 	}
 	return 0;
@@ -131,13 +137,16 @@ static void synth_flush(void)
 static int serprobe(int index)
 {
 	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL) return -1;
+	if (ser == NULL)
+		return -1;
 	outb(0x0d, ser->port); /* wake it up if older BIOS */
 	mdelay(1);
 	synth_port_tts = ser->port;
-	if (synth_port_forced) return 0;
+	if (synth_port_forced)
+		return 0;
 	/* check for apollo now... */
-	if (!synth_immediate("\x18")) return 0;
+	if (!synth_immediate("\x18"))
+		return 0;
 	pr_warn("port %x failed\n", synth_port_tts);
 	spk_serial_release();
 	timeouts = synth_alive = synth_port_tts = 0;
@@ -146,10 +155,12 @@ static int serprobe(int index)
 
 static int synth_probe(void)
 {
-	int i, failed=0;
+	int i, failed = 0;
 	pr_info("Probing for %s.\n", synth->long_name);
-	for (i=SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		if ((failed = serprobe(i)) == 0) break; /* found it */
+	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
+		failed = serprobe(i);
+		if (failed == 0)
+			break; /* found it */
 	}
 	if (failed) {
 		pr_info("%s: not found\n", synth->long_name);
@@ -162,12 +173,15 @@ static int synth_probe(void)
 
 static int synth_is_alive(void)
 {
-	if (synth_alive) return 1;
-	if (!synth_alive && wait_for_xmitr() > 0) { /* restart */
+	if (synth_alive)
+		return 1;
+	if (!synth_alive && wait_for_xmitr() > 0) {
+		/* restart */
 		synth_alive = 1;
 		synth_write_string(synth->init);
 		return 2; /* reenabled */
-	} else pr_warn("%s: can't restart synth\n", synth->long_name);
+	} else
+		pr_warn("%s: can't restart synth\n", synth->long_name);
 	return 0;
 }
 
@@ -191,7 +205,7 @@ struct spk_synth synth_apollo = {"apollo", "1.2", "Apollo",
 	init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL,0,0,0} };
+	{NULL, 0, 0, 0} };
 
 static int __init apollo_init(void)
 {

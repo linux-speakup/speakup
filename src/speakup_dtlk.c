@@ -2,26 +2,26 @@
  * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
 * this version considerably modified by David Borowski, david575@rogers.com
 
-		Copyright (C) 1998-99  Kirk Reiser.
-		Copyright (C) 2003 David Borowski.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
- * this code is specificly written as a driver for the speakup screenreview
- * package and is not a general device driver.
-		*/
+ * Copyright (C) 1998-99  Kirk Reiser.
+ * Copyright (C) 2003 David Borowski.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * specificly written as a driver for the speakup screenreview
+ * s not a general device driver.
+ */
 #include <linux/jiffies.h>
 
 #include "spk_priv.h"
@@ -59,7 +59,8 @@ static void do_catch_up(unsigned long data)
 			return;
 		}
 		ch = *synth_buff_out++;
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		spk_out(ch);
 		if (jiffies >= jiff_max && ch == SPACE) {
 			spk_out(PROCSPEECH);
@@ -78,7 +79,8 @@ static const char *synth_immediate(const char *buf)
 	while ((ch = (u_char)*buf)) {
 		if (synth_status & TTS_ALMOST_FULL)
 			return buf;
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		spk_out(ch);
 		buf++;
 	}
@@ -87,10 +89,9 @@ static const char *synth_immediate(const char *buf)
 
 static unsigned char get_index(void)
 {
-	int c, lsr;//, tmout = SPK_SERIAL_TIMEOUT;
+	int c, lsr;/*, tmout = SPK_SERIAL_TIMEOUT; */
 	lsr = inb_p(synth_port_tts + UART_LSR);
-	if ((lsr & UART_LSR_DR) == UART_LSR_DR)
-	{
+	if ((lsr & UART_LSR_DR) == UART_LSR_DR) {
 		c = inb_p(synth_port_tts + UART_RX);
 		return (unsigned char) c;
 	}
@@ -114,7 +115,7 @@ static char synth_read_tts(void)
 }
 
 /* interrogate the DoubleTalk PC and return its settings */
-static struct synth_settings * synth_interrogate(void)
+static struct synth_settings *synth_interrogate(void)
 {
 	u_char *t;
 	static char buf[sizeof(struct synth_settings) + 1];
@@ -123,15 +124,19 @@ static struct synth_settings * synth_interrogate(void)
 	synth_immediate("\x18\x01?");
 	for (total = 0, i = 0; i < 50; i++) {
 		buf[total] = synth_read_tts();
-		if (total > 2 && buf[total] == 0x7f) break;
-		if (total < sizeof(struct synth_settings)) total++;
+		if (total > 2 && buf[total] == 0x7f)
+			break;
+		if (total < sizeof(struct synth_settings))
+			total++;
 	}
 	t = buf;
-	status.serial_number = t[0] + t[1]*256; /* serial number is little endian */
+	/* serial number is little endian */
+	status.serial_number = t[0] + t[1]*256;
 	t += 2;
 	for (i = 0; *t != '\r'; t++) {
 		status.rom_version[i] = *t;
-		if (i < sizeof(status.rom_version)-1) i++;
+		if (i < sizeof(status.rom_version)-1)
+			i++;
 	}
 	status.rom_version[i] = 0;
 	t++;
@@ -160,7 +165,8 @@ static int synth_probe(void)
 	pr_info("Probing for DoubleTalk.\n");
 	if (synth_port_forced) {
 		synth_port_tts = synth_port_forced;
-		pr_info("probe forced to %x by kernel command line\n", synth_port_tts);
+		pr_info("probe forced to %x by kernel command line\n",
+				synth_port_tts);
 		if (synth_request_region(synth_port_tts-1, SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
@@ -168,19 +174,22 @@ static int synth_probe(void)
 		port_val = inw(synth_port_tts-1);
 		synth_lpc = synth_port_tts-1;
 	} else {
-		for (i=0; synth_portlist[i]; i++) {
-			if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT))
+		for (i = 0; synth_portlist[i]; i++) {
+			if (synth_request_region(synth_portlist[i],
+						SYNTH_IO_EXTENT))
 				continue;
-			port_val = inw(synth_portlist[i]);
-			if ((port_val &= 0xfbff) == 0x107f) {
+			port_val = inw(synth_portlist[i]) & 0xfbff;
+			if (port_val == 0x107f) {
 				synth_lpc = synth_portlist[i];
 				synth_port_tts = synth_lpc+1;
 				break;
 			}
-			synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
+			synth_release_region(synth_portlist[i],
+					SYNTH_IO_EXTENT);
 		}
 	}
-	if ((port_val &= 0xfbff) != 0x107f) {
+	port_val &= 0xfbff;
+	if (port_val != 0x107f) {
 		pr_info("DoubleTalk PC: not found\n");
 		return -ENODEV;
 	}
@@ -189,7 +198,7 @@ static int synth_probe(void)
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
 		synth->long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
 	 sp->rom_version, sp->serial_number, synth->version);
-	//	synth_alive = 1;
+	/*	synth_alive = 1; */
 	return 0;
 }
 
@@ -228,7 +237,7 @@ struct spk_synth synth_dtlk = {"dtlk", "1.1", "DoubleTalk PC",
 	init_string, 500, 30, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
-	{"\x01%di",1,5,1} };
+	{"\x01%di", 1, 5, 1} };
 
 static int __init dtlk_init(void)
 {

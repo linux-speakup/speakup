@@ -32,7 +32,8 @@ extern special_func help_handler;
 static u_short key_offsets[MAXFUNCS], key_buf[MAXKEYS];
 static u_short masks[] = { 32, 16, 8, 4, 2, 1 };
 static char help_info[] =
-	"press space to leav help, cursor up or down to scroll, or a letter to go to commands in list";
+"press space to leav help, cursor up or down to scroll, \
+or a letter to go to commands in list";
 static char *statenames[] = {
 	" double", " speakup", " alt",
 	" ctrl", " altgr", " shift"
@@ -147,19 +148,23 @@ static void build_key_data(void)
 	memset(counters, 0, sizeof(counters));
 	memset(key_offsets, 0, sizeof(key_offsets));
 	kp = state_tbl + nstates + 1;
-	while (*kp++) { /* count occurrances of each function */
+	while (*kp++) {
+		/* count occurrances of each function */
 		for (i = 0; i < nstates; i++, kp++) {
-			if (!*kp) continue;
+			if (!*kp)
+				continue;
 			if ((state_tbl[i]&16) != 0 && *kp == SPK_KEY)
 				continue;
 			counters[*kp]++;
 		}
 	}
 	for (i = 0; i < MAXFUNCS; i++) {
-		if (counters[i] == 0) continue;
+		if (counters[i] == 0)
+			continue;
 		key_offsets[i] = offset;
 		offset += (counters[i]+1);
-		if (offset >= MAXKEYS) break;
+		if (offset >= MAXKEYS)
+			break;
 	}
 /* leave counters set so high keycodes come first.
    this is done so num pad and other extended keys maps are spoken before
@@ -168,12 +173,15 @@ static void build_key_data(void)
 	while ((ch = *kp++)) {
 		for (i = 0; i < nstates; i++) {
 			ch1 = *kp++;
-			if (!ch1) continue;
+			if (!ch1)
+				continue;
 			if ((state_tbl[i]&16) != 0 && ch1 == SPK_KEY)
 				continue;
-			key = (state_tbl[i]<<8) + ch;
+			key = (state_tbl[i] << 8) + ch;
 			counters[ch1]--;
-			if (!(offset = key_offsets[ch1])) continue;
+			offset = key_offsets[ch1];
+			if (!offset)
+				continue;
 			p_key = key_buf + offset + counters[ch1];
 			*p_key = key;
 		}
@@ -182,7 +190,7 @@ static void build_key_data(void)
 
 static void say_key(int key)
 {
-	int i, state = key>>8;
+	int i, state = key >> 8;
 	key &= 0xff;
 	for (i = 0; i < 6; i++) {
 		if (state & masks[i])
@@ -204,18 +212,20 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			return 1;
 		}
 		ch |= 32; /* lower case */
-		if (ch < 'a' || ch > 'z') return -1;
+		if (ch < 'a' || ch > 'z')
+			return -1;
 		if (letter_offsets[ch-'a'] == -1) {
 			synth_printf("no commands for %c\n", ch);
 			return 1;
 		}
-	cur_item	= letter_offsets[ch-'a'];
+	cur_item = letter_offsets[ch-'a'];
 	} else if (type == KT_CUR) {
 		if (ch == 0 && funcnames[cur_item+1] != NULL)
 			cur_item++;
 		else if (ch == 3 && cur_item > 0)
 			cur_item--;
-		else return -1;
+		else
+			return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
 		special_handler = help_handler;
 		synth_write_msg(help_info);
@@ -231,14 +241,16 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			if (ch == funcvals[i])
 				name = funcnames[i];
 		}
-		if (!name) return -1;
+		if (!name)
+			return -1;
 		kp = our_keys[key]+1;
 		for (i = 0; i < nstates; i++) {
-			if (ch == kp[i]) break;
+			if (ch == kp[i])
+				break;
 		}
-		key += (state_tbl[i]<<8);
+		key += (state_tbl[i] << 8);
 		say_key(key);
-		synth_printf("is %s\n",name);
+		synth_printf("is %s\n", name);
 		return 1;
 	}
 	name = funcnames[cur_item];
@@ -251,7 +263,8 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	p_keys = key_buf + key_offsets[func];
 	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
-		if (n > 0) synth_write_string("or ");
+		if (n > 0)
+			synth_write_string("or ");
 		say_key(val);
 	}
 	return 1;
@@ -269,7 +282,8 @@ static int __init mod_help_init(void)
 state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
 	for (i = 0; i < 26; i++) letter_offsets[i] = -1;
 	for (i = 0; funcnames[i]; i++) {
-		if (start == *funcnames[i]) continue;
+		if (start == *funcnames[i])
+			continue;
 		start = *funcnames[i];
 		letter_offsets[(start&31)-1] = i;
 	}

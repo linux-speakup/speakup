@@ -2,32 +2,32 @@
  * a user space device for software synthesizers.  written by: Kirk
  * Reiser <kirk@braille.uwo.ca>
 
-		Copyright (C) 2003  Kirk Reiser.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Copyright (C) 2003  Kirk Reiser.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.  */
 
 #include <linux/unistd.h>
 #include <linux/miscdevice.h> /* for misc_register, and SYNTH_MINOR */
-#include <linux/poll.h> // for poll_wait()
+#include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_sftsyn
-#define SOFTSYNTH_MINOR 26 // might as well give it one more than /dev/synth
+#define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
 
@@ -39,8 +39,10 @@ DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
 static int softsynth_open(struct inode *inode, struct file *fp)
 {
-	if (dev_opened) return -EBUSY;
-	//if ((fp->f_flags & O_ACCMODE) != O_RDONLY) return -EPERM;
+	if (dev_opened)
+		return -EBUSY;
+	/*if ((fp->f_flags & O_ACCMODE) != O_RDONLY) */
+	/*	return -EPERM; */
 	dev_opened++;
 	return 0;
 }
@@ -52,9 +54,10 @@ static int softsynth_close(struct inode *inode, struct file *fp)
 	return 0;
 }
 
-static ssize_t softsynth_read(struct file *fp, char *buf, size_t count, loff_t *pos)
+static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
+			      loff_t *pos)
 {
-	int chars_sent=0;
+	int chars_sent = 0;
 	unsigned long flags;
 	DEFINE_WAIT(wait);
 
@@ -91,15 +94,16 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count, loff_t *
 	return chars_sent;
 }
 
-static int last_index=0;
+static int last_index = 0;
 
-static ssize_t softsynth_write(struct file *fp, const char *buf, size_t count, loff_t *pos)
+static ssize_t softsynth_write(struct file *fp, const char *buf, size_t count,
+			       loff_t *pos)
 {
 	char indbuf[5];
 	if (count >= sizeof(indbuf))
 		return -EINVAL;
 
-	if (copy_from_user(indbuf,buf,count))
+	if (copy_from_user(indbuf, buf, count))
 		return -EFAULT;
 	indbuf[4] = 0;
 
@@ -107,12 +111,13 @@ static ssize_t softsynth_write(struct file *fp, const char *buf, size_t count, l
 	return count;
 }
 
-static unsigned int softsynth_poll(struct file *fp, struct poll_table_struct *wait)
+static unsigned int softsynth_poll(struct file *fp,
+		struct poll_table_struct *wait)
 {
 	unsigned long flags;
 	int ret = 0;
 	poll_wait(fp, &wait_on_output, wait);
-	
+
 	spk_lock(flags);
 	if (synth_buff_out < synth_buff_in)
 		ret = POLLIN | POLLRDNORM;
@@ -129,17 +134,17 @@ softsynth_flush(void)
 static unsigned char get_index(void)
 {
 	int rv;
-	rv=last_index;
-	last_index=0;
+	rv = last_index;
+	last_index = 0;
 	return rv;
 }
 
 static struct file_operations softsynth_fops = {
-	.poll=softsynth_poll,
-	.read=softsynth_read,
-	.write=softsynth_write,
-	.open=softsynth_open,
-	.release=softsynth_close,
+	.poll = softsynth_poll,
+	.read = softsynth_read,
+	.write = softsynth_write,
+	.open = softsynth_open,
+	.release = softsynth_close,
 };
 
 
@@ -147,7 +152,8 @@ static int
 softsynth_probe(void)
 {
 
-	if (misc_registered != 0) return 0;
+	if (misc_registered != 0)
+		return 0;
 	memset(&synth_device, 0, sizeof(synth_device));
 	synth_device.minor = SOFTSYNTH_MINOR;
 	synth_device.name = "softsynth";
@@ -156,7 +162,7 @@ softsynth_probe(void)
 		pr_warn("Couldn't initialize miscdevice /dev/softsynth.\n");
 		return -ENODEV;
 	}
-	
+
 	misc_registered = 1;
 	pr_info("initialized device: /dev/softsynth, node (MAJOR 10, MINOR 26)\n");
 	return 0;
@@ -179,7 +185,8 @@ softsynth_start(void)
 static int
 softsynth_is_alive(void)
 {
-	if (synth_alive) return 1;
+	if (synth_alive)
+		return 1;
 	return 0;
 }
 
@@ -205,7 +212,7 @@ struct spk_synth synth_sftsyn = { "sftsyn", "0.3", "software synth",
 	init_string, 0, 0, 0, 0, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
 	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
-	get_index, {"\x01%di",1,5,1} };
+	get_index, {"\x01%di", 1, 5, 1} };
 
 static int __init soft_init(void)
 {

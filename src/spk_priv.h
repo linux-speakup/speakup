@@ -96,7 +96,8 @@ enum {
 	E_DEC
 };
 
-typedef int (*special_func)(struct vc_data *vc, u_char type, u_char ch, u_short key);
+typedef int (*special_func)(struct vc_data *vc, u_char type, u_char ch,
+		u_short key);
 
 struct st_var_header {
 	char *name;
@@ -143,11 +144,16 @@ extern int set_num_var(short val, struct st_var_header *var, int how);
 
 #define COLOR_BUFFER_SIZE 160
 struct spk_highlight_color_track{
-	unsigned int bgcount[8];	// Count of each background color
-	char highbuf[8][COLOR_BUFFER_SIZE];	// Buffer for characters drawn with each background color
-	unsigned int highsize[8];	// Current index into highbuf
-	u_long rpos[8],rx[8],ry[8];	// Reading Position for each color
-	ulong cy;			// Real Cursor Y Position
+	/* Count of each background color */
+	unsigned int bgcount[8];
+	/* Buffer for characters drawn with each background color */
+	char highbuf[8][COLOR_BUFFER_SIZE];
+	/* Current index into highbuf */
+	unsigned int highsize[8];
+	/* Reading Position for each color */
+	u_long rpos[8], rx[8], ry[8];
+	/* Real Cursor Y Position */
+	ulong cy;
 };
 
 struct st_spk_t {
@@ -266,7 +272,7 @@ int synth_init(char *name);
 void synth_release(void);
 int synth_add(struct spk_synth *in_synth);
 void synth_remove(struct spk_synth *in_synth);
-struct serial_state * spk_serial_init(int index);
+struct serial_state *spk_serial_init(int index);
 void synth_delay(int ms);
 void synth_stop_timer(void);
 int synth_done(void);
@@ -281,7 +287,7 @@ int synth_supports_indexing(void);
 int speakup_dev_init(void);
 
 #ifndef pr_warn
-#define pr_warn(fmt,arg...) printk(KERN_WARNING fmt,##arg)
+#define pr_warn(fmt, arg...) printk(KERN_WARNING fmt, ##arg)
 #endif
 
 #endif

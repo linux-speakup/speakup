@@ -1,26 +1,27 @@
 /*
  * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
-* this version considerably modified by David Borowski, david575@rogers.com
+ * this version considerably modified by David Borowski, david575@rogers.com
 
-		Copyright (C) 1998-99  Kirk Reiser.
-		Copyright (C) 2003 David Borowski.
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Copyright (C) 1998-99  Kirk Reiser.
+ * Copyright (C) 2003 David Borowski.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  * this code is specificly written as a driver for the speakup screenreview
- * package and is not a general device driver.*/
+ * package and is not a general device driver.
+ */
 
 #include <linux/jiffies.h>
 
@@ -41,7 +42,8 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-	if (ch == '\n') ch = PROCSPEECH;
+	if (ch == '\n')
+		ch = PROCSPEECH;
 		if (synth_full())
 			return buf;
 		while (synth_writable());
@@ -63,7 +65,8 @@ static void do_catch_up(unsigned long data)
 		}
 		while (synth_writable());
 		ch = *synth_buff_out++;
-		if (ch == '\n') ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		outb_p(ch, synth_port_tts);
 		if (jiffies >= jiff_max && ch == SPACE) {
 			while (synth_writable());
@@ -89,7 +92,8 @@ static int synth_probe(void)
 	pr_info("Probing for %s.\n", synth->long_name);
 	if (synth_port_forced) {
 		synth_port_tts = synth_port_forced;
-		pr_info("probe forced to %x by kernel command line\n", synth_port_tts);
+		pr_info("probe forced to %x by kernel command line\n",
+				synth_port_tts);
 		if (synth_request_region(synth_port_tts-1, SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
@@ -97,21 +101,25 @@ static int synth_probe(void)
 		port_val = inw(synth_port_tts-1);
 		synth_port_control = synth_port_tts-1;
 	} else {
-		for (i=0; synth_portlist[i]; i++) {
-			if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
+		for (i = 0; synth_portlist[i]; i++) {
+			if (synth_request_region(synth_portlist[i],
+						SYNTH_IO_EXTENT)) {
 				pr_warn("request_region: failed with 0x%x, %d\n",
 					synth_portlist[i], SYNTH_IO_EXTENT);
 				continue;
 			}
-			port_val = inw(synth_portlist[i]);
-			if ((port_val &= 0xfffc) == 0x53fc) { /* 'S' and out&input bits */
+			port_val = inw(synth_portlist[i]) & 0xfffc;
+			if (port_val == 0x53fc) {
+				/* 'S' and out&input bits */
 				synth_port_control = synth_portlist[i];
 				synth_port_tts = synth_port_control+1;
 				break;
 			}
 		}
 	}
-	if ((port_val &= 0xfffc) != 0x53fc) { /* 'S' and out&input bits */
+	port_val &= 0xfffc;
+	if (port_val != 0x53fc) {
+		/* 'S' and out&input bits */
 		pr_info("%s: not found\n", synth->long_name);
 		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port_control = 0;
@@ -152,10 +160,10 @@ static struct st_num_var numvars[] = {
 };
 
 struct spk_synth synth_acntpc = {"acntpc", "1.1", "Accent PC",
-	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
+	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, accent_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL,0,0,0} };
+	{NULL, 0, 0, 0} };
 
 static int __init acntpc_init(void)
 {
