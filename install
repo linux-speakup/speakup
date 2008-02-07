@@ -1,5 +1,6 @@
+
 #!/bin/bash
-# Applies speakup and spkglue to kernel sources
+# Installs speakup to kernel sources
 # Usage: ./install <KERNELDIR>
 
 die() {
@@ -8,9 +9,18 @@ die() {
 }
 
 KDIR=${1:-/usr/src/linux}
+SPKDIR=$(pwd)
 
-./install-spkglue "${KDIR}" || die "spkglue failed to install"
-./install-speakup "${KDIR}" || die "speakup failed to install"
+[[ -d ${KDIR} ]] || die "${KDIR} is not a directory"
+[[ -e ${KDIR}/MAINTAINERS ]] || die "${KDIR} is not a kernel dir"
 
-echo "completed successfully"
+patch -l -d ${KDIR} -p1 -s -f --dry-run -i ${SPKDIR}/spkglue/kernel-integration.patch ||
+	die "spkglue/kernel-integration.patch does not apply to ${KDIR}, probably wrong kernel version"
 
+patch -l -d ${KDIR} -p1 -s -f -i ${SPKDIR}/spkglue/kernel-integration.patch ||
+	die "spkglue/kernel-integration.patch patching failed"
+
+ln -s ${SPKDIR}/src ${KDIR}/drivers/char/speakup
+ln -s ${SPKDIR}/doc ${KDIR}/Documentation/speakup
+
+echo "speakup installed to ${KDIR}"
