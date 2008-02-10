@@ -104,7 +104,7 @@ static void do_catch_up(unsigned long data)
 			return;
 		}
 		synth_buff_out++;
-		if (jiffies >= jiff_max && synth_buff_out-synth_buffer > 10) {
+		if (jiffies >= jiff_max && ch == SPACE) {
 			spk_serial_out(PROCSPEECH);
 			synth_delay(synth_delay_time);
 			return;

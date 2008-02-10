@@ -1,0 +1,50 @@
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index f4076d9..e6a8071 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -68,6 +68,8 @@ source "drivers/media/Kconfig"
+ 
+ source "drivers/video/Kconfig"
+ 
++source "drivers/char/speakup/Kconfig"
++
+ source "sound/Kconfig"
+ 
+ source "drivers/hid/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 8cb37e3..dc5a81f 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -30,6 +30,10 @@ obj-$(CONFIG_FB_INTEL)          += video/intelfb/
+ obj-y				+= serial/
+ obj-$(CONFIG_PARPORT)		+= parport/
+ obj-y				+= base/ block/ misc/ mfd/ net/ media/
++# load input early so speakup output can be silenced
++obj-$(CONFIG_SERIO)		+= input/serio/
++obj-$(CONFIG_GAMEPORT)		+= input/gameport/
++obj-$(CONFIG_INPUT)		+= input/
+ obj-$(CONFIG_NUBUS)		+= nubus/
+ obj-$(CONFIG_ATM)		+= atm/
+ obj-y				+= macintosh/
+@@ -56,9 +60,6 @@ obj-$(CONFIG_TC)		+= tc/
+ obj-$(CONFIG_USB)		+= usb/
+ obj-$(CONFIG_PCI)		+= usb/
+ obj-$(CONFIG_USB_GADGET)	+= usb/gadget/
+-obj-$(CONFIG_SERIO)		+= input/serio/
+-obj-$(CONFIG_GAMEPORT)		+= input/gameport/
+-obj-$(CONFIG_INPUT)		+= input/
+ obj-$(CONFIG_I2O)		+= message/
+ obj-$(CONFIG_RTC_LIB)		+= rtc/
+ obj-y				+= i2c/
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index 07304d5..5e873db 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -97,6 +97,7 @@ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
+ obj-$(CONFIG_GPIO_TB0219)	+= tb0219.o
+ obj-$(CONFIG_TELCLOCK)		+= tlclk.o
+ 
++obj-$(CONFIG_SPEAKUP)         += speakup/
+ obj-$(CONFIG_MWAVE)		+= mwave/
+ obj-$(CONFIG_AGP)		+= agp/
+ obj-$(CONFIG_DRM)		+= drm/
