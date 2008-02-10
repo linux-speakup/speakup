@@ -5,59 +5,85 @@ Installing speakup requires knowledge of building your own kernel. Hopefully
 your distro includes speakup in your kernel, so that you don't have to install
 it yourself. But if they don't, here are some basic instructions:
 
-speakup is divided into spkglue and speakup. spkglue must be patched into your
-kernel but speakup can optionally be built externally.
+Speakup consists of 2 patches for the kernel (one for the source and another
+for the build system) as well as the code for the speakup modules.  There are 3
+ways to install speakup into your system.
 
 
 
-1. SPKGLUE INTERNAL, SPEAKUP EXTERNAL
-=====================================
+1.  NORMAL INSTALLATION
+========================
 
-This method involves making a small modification to your kernel source, and
-then building the bulk of the speakup code as modules outside of the kernel
-source tree.
+This method will patch speakup into both your kernel source and build system so
+that you can select and configure speakup during your normal kernel
+configuration process.  It will also create symbolic links in your kernel tree
+that point to the speakup source in the location where you unpacked speakup.
+This way, the speakup source is not actually moved into the kernel tree, and
+allows easy updating if you are using the speakup git repository for example.
 
-Unpack your kernel sources to a known directory, e.g. /usr/src/linux
+Unpack your kernel source to a known location such as /usr/src/linux
+from the location where speakup is unpacked run:
+
+# ./install /usr/src/linux
+
+At this point, you will be presented with messages about the patches being
+applied to your kernel, followed by a message stating whether or not the
+installation was successful.
+
+If the installation was successful, configure, compile and install your kernel
+the usual way.  Remember to select speakup and the appropriate synthesizer
+support from the configuration menu.
+
+As of this writing, building speakup into the kernel only works if one
+synthesizer is selected.  If you build speakup into your kernel, do not select
+more than one synthesizer.
+
+You can now boot into your new kernel.
+
+
+2.  FULL INSTALLATION
+=====================
+
+A full installation is almost identical to a normal installation.  The
+difference is that the speakup source files are copied directly into the kernel
+source tree.  This allows you to remove the speakup distribution from your
+system.
+
+Unpack your kernel source to a known location such as /usr/src/linux
+From the location where speakup is unpacked run:
+
+# ./install /usr/src/linux full
+
+The remaining steps are identical to a normal installation.
+
+
+3.  MODULAR INSTALLATION
+========================
+
+This installation method only patches the kernel source and allows building the
+majority of the speakup code as modules outside the kernel build system.
+
+Unpack your kernel source to a known location such as /usr/src/linux
 From the directory where you have unpacked speakup, run:
 
-	# ./install-spkglue /usr/src/linux
+# ./install /usr/src/linux modular
 
-You should be presented with a single message informing you that spkglue has
-been installed.
+At this point, you will be presented with messages about the patches being
+applied to your kernel, followed by a message stating whether or not the
+installation was successful.
 
-Next, configure, compile and install your kernel.
+If the installation was successful, configure, compile and install your kernel.
 
 When that is done, you can compile and install the speakup modules. From the
 directory where you have unpacked speakup, run:
 
-	# cd src
-	# make KERNELDIR=/usr/src/linux
+# cd src
+# make KERNELDIR=/usr/src/linux
 
 Then, as root, from the same directory, run:
 
-	# make KERNELDIR=/usr/src/linux modules_install
+# make KERNELDIR=/usr/src/linux modules_install
 
 You are now in a position to configure the speakup modules to be loaded during
 boot, and to boot into your new kernel.
-
-
-2. SPKGLUE INTERNAL, SPEAKUP INTERNAL
-=====================================
-
-This method involves patching both spkglue and speakup directly into your
-kernel source. You can then build speakup by selecting it in the kernel
-configuration just like any other driver.
-
-Unpack your kernel sources to a known directory, e.g. /usr/src/linux
-From the directory where you have unpacked speakup, run:
-
-	# ./install /usr/src/linux
-
-You should be presented with a few messages informing you that spkglue and
-speakup have been installed, and that the operation completed successfully.
-
-Next, configure, compile and install your kernel. Remember to select speakup
-and the appropriate synth modules when in the configuration menu!
-
-You can now boot into your new kernel.
 

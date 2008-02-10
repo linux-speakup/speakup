@@ -1,10 +1,17 @@
 #!/bin/bash
 # Installs speakup to kernel sources
-# Usage: ./install <KERNELDIR> [copy]
+# Usage: ./install <KERNELDIR> [full|modular]
 
 die() {
 	echo $*
 	exit 1
+}
+
+apply() {
+	patch -N -p1 -l -d $2 -i $1
+	if [ ! $? ]; then
+		die "Unable to apply $1 to $2"
+	fi
 }
 
 KDIR=${1:-/usr/src/linux}
@@ -13,15 +20,22 @@ SPKDIR=$(pwd)
 [[ -d ${KDIR} ]] || die "${KDIR} is not a directory"
 [[ -e ${KDIR}/MAINTAINERS ]] || die "${KDIR} is not a kernel dir"
 
-patch -d ${KDIR} -l -p1 -N -i ${SPKDIR}/spkglue/kernel-integration.patch ||
-	die "spkglue/kernel-integration.patch patching failed"
+apply $SPKDIR/spkglue/kernel-integration-2.6.24-source.patch ${KDIR}
 
-if ["$2"] != "copy"]; then
-	ln -s ${SPKDIR}/src ${KDIR}/drivers/char/speakup
-	ln -s ${SPKDIR}/doc ${KDIR}/Documentation/speakup
-	echo "speakup has been installed to ${KDIR}"
-else
-	cp -R ${SPKDIR}/src ${KDIR}/drivers/char/speakup
-	cp -R ${SPKDIR}/doc ${KDIR}/Documentation/speakup
-	echo "speakup has been installed and copied to ${KDIR}"
-fi
+case $2 in
+	full)
+		apply $SPKDIR/spkglue/kernel-integration-2.6.24-build.patch ${KDIR}
+		cp -R ${SPKDIR}/src ${KDIR}/drivers/char/speakup
+		cp -R ${SPKDIR}/doc ${KDIR}/Documentation/speakup
+		echo "speakup has been installed and copied to ${KDIR}"
+		;;
+	modular)
+		echo Modular install of speakup to ${KDIR} was successful.
+		;;
+	*)
+		apply $SPKDIR/spkglue/kernel-integration-2.6.24-build.patch ${KDIR}
+		ln -s ${SPKDIR}/src ${KDIR}/drivers/char/speakup
+		ln -s ${SPKDIR}/doc ${KDIR}/Documentation/speakup
+		echo "speakup has been installed to ${KDIR}"
+		;;
+esac
