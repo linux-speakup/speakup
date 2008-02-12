@@ -38,6 +38,8 @@ As of this writing, building speakup into the kernel only works if one
 synthesizer is selected.  If you build speakup into your kernel, do not select
 more than one synthesizer.
 
+If, on the other hand, you build speakup's synthesizer drivers as modules, you
+can build as many of them as you like.
 You can now boot into your new kernel.
 
 
