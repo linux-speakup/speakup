@@ -1449,6 +1449,7 @@ static void cursor_done(u_long data);
 
 static declare_timer(cursor_timer);
 
+/* called by: speakup_init() */
 static void __init speakup_open(struct vc_data *vc,
 				struct st_spk_t *first_console)
 {
@@ -2547,10 +2548,8 @@ out:
 	spk_unlock(flags);
 }
 
-/* These functions are the interface to speakup from the actual kernel code. */
-
-void
-speakup_bs(struct vc_data *vc)
+/* called by: vt_notifier_call() */
+static void speakup_bs(struct vc_data *vc)
 {
 	unsigned long flags;
 	if (!speakup_console[vc->vc_num])
@@ -2570,21 +2569,17 @@ speakup_bs(struct vc_data *vc)
 	spk_unlock(flags);
 }
 
-void
-speakup_con_write(struct vc_data *vc, const char *str, int len)
+/* called by: vt_notifier_call() */
+static void speakup_con_write(struct vc_data *vc, const char *str, int len)
 {
 	unsigned long flags;
-	if ((vc->vc_num != fg_console) || spk_shut_up)
+	if ((vc->vc_num != fg_console) || spk_shut_up || synth == NULL)
 		return;
 	if (!spk_trylock(flags))
 		/* Speakup output, discard */
 		return;
 	if (bell_pos && spk_keydown && (vc->vc_x == bell_pos - 1))
 		bleep(3);
-	if (synth == NULL) {
-		spk_unlock(flags);
-		return;
-	}
 	if ((is_cursor) || (cursor_track == read_all_mode)) {
 		if (cursor_track == CT_Highlight)
 			update_color_buffer(vc, str, len);
@@ -3140,6 +3135,7 @@ static const struct spkglue_funcs glue_funcs = {
 };
 #endif
 
+/* called by: module_exit() */
 static void __exit speakup_exit(void)
 {
 	int i;
@@ -3168,6 +3164,7 @@ static void __exit speakup_exit(void)
 	}
 }
 
+/* call by: module_init() */
 static int __init speakup_init(void)
 {
 	int i;

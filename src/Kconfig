@@ -212,6 +212,10 @@ config SPEAKUP_SYNTH_DUMMY
 		the kernel, or m to build it as a module.  See the
 		configuration help on the Speakup choice above for more info.
 
-
+config SPEAKUP_DEFAULT
+        string "Choose Default synthesizer for Speakup"
+        depends on SPEAKUP_CORE
+        default "none"
+ 
 endmenu
 
