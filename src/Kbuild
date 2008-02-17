@@ -14,7 +14,8 @@ obj-$(CONFIG_SPEAKUP_SYNTH_SPKOUT) += speakup_spkout.o
 obj-$(CONFIG_SPEAKUP_SYNTH_TXPRT) += speakup_txprt.o
 obj-$(CONFIG_SPEAKUP_SYNTH_DUMMY) += speakup_dummy.o
 
-obj-$(CONFIG_SPEAKUP) += speakup.o speakup_keyhelp.o
+obj-$(CONFIG_SPEAKUP) += speakup.o
 speakup-objs := \
 	main.o \
+	speakup_keyhelp.o \
 	synth.o
