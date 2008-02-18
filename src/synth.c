@@ -22,9 +22,6 @@
 
 /* 2.6.22 doesn't have them any more, hardcode it for now (these values should
  * be fine for 99% cases) */
-#ifndef BASE_BAUD
-#define BASE_BAUD (1843200 / 16)
-#endif
 #ifndef STD_COM_FLAGS
 #ifdef CONFIG_SERIAL_DETECT_IRQ
 #define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST | ASYNC_AUTO_IRQ)
