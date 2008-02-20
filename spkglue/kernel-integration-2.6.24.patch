@@ -1,8 +1,58 @@
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index f4076d9..e6a8071 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -68,6 +68,8 @@ source "drivers/media/Kconfig"
+ 
+ source "drivers/video/Kconfig"
+ 
++source "drivers/char/speakup/Kconfig"
++
+ source "sound/Kconfig"
+ 
+ source "drivers/hid/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 8cb37e3..dc5a81f 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -30,6 +30,10 @@ obj-$(CONFIG_FB_INTEL)          += video/intelfb/
+ obj-y				+= serial/
+ obj-$(CONFIG_PARPORT)		+= parport/
+ obj-y				+= base/ block/ misc/ mfd/ net/ media/
++# load input early so speakup output can be silenced
++obj-$(CONFIG_SERIO)		+= input/serio/
++obj-$(CONFIG_GAMEPORT)		+= input/gameport/
++obj-$(CONFIG_INPUT)		+= input/
+ obj-$(CONFIG_NUBUS)		+= nubus/
+ obj-$(CONFIG_ATM)		+= atm/
+ obj-y				+= macintosh/
+@@ -56,9 +60,6 @@ obj-$(CONFIG_TC)		+= tc/
+ obj-$(CONFIG_USB)		+= usb/
+ obj-$(CONFIG_PCI)		+= usb/
+ obj-$(CONFIG_USB_GADGET)	+= usb/gadget/
+-obj-$(CONFIG_SERIO)		+= input/serio/
+-obj-$(CONFIG_GAMEPORT)		+= input/gameport/
+-obj-$(CONFIG_INPUT)		+= input/
+ obj-$(CONFIG_I2O)		+= message/
+ obj-$(CONFIG_RTC_LIB)		+= rtc/
+ obj-y				+= i2c/
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index 07304d5..5e873db 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -97,6 +97,7 @@ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
+ obj-$(CONFIG_GPIO_TB0219)	+= tb0219.o
+ obj-$(CONFIG_TELCLOCK)		+= tlclk.o
+ 
++obj-$(CONFIG_SPEAKUP)         += speakup/
+ obj-$(CONFIG_MWAVE)		+= mwave/
+ obj-$(CONFIG_AGP)		+= agp/
+ obj-$(CONFIG_DRM)		+= drm/
 diff --git a/drivers/char/consolemap.c b/drivers/char/consolemap.c
-index 4b3916f..37c7980 100644
+index 6b104e4..4246b8e 100644
 --- a/drivers/char/consolemap.c
 +++ b/drivers/char/consolemap.c
-@@ -277,6 +277,7 @@
+@@ -277,6 +277,7 @@ u16 inverse_translate(struct vc_data *conp, int glyph, int use_unicode)
  			return p->inverse_translations[m][glyph];
  	}
  }
@@ -10,9 +60,11 @@ index 4b3916f..37c7980 100644
  
  static void update_user_maps(void)
  {
+diff --git a/drivers/char/keyboard.c b/drivers/char/keyboard.c
+index fc54d23..be10d95 100644
 --- a/drivers/char/keyboard.c
 +++ b/drivers/char/keyboard.c
-@@ -104,7 +104,7 @@
+@@ -104,13 +104,15 @@ static fn_handler_fn *fn_handler[] = { FN_HANDLERS };
  const int max_vals[] = {
  	255, ARRAY_SIZE(func_table) - 1, ARRAY_SIZE(fn_handler) - 1, NR_PAD - 1,
  	NR_DEAD - 1, 255, 3, NR_SHIFT - 1, 255, NR_ASCII - 1, NR_LOCK - 1,
@@ -21,8 +73,7 @@ index 4b3916f..37c7980 100644
  };
  
  const int NR_TYPES = ARRAY_SIZE(max_vals);
-@@ -111,6 +111,8 @@
-  
+ 
  struct kbd_struct kbd_table[MAX_NR_CONSOLES];
 -static struct kbd_struct *kbd = kbd_table;
 +struct kbd_struct *kbd = kbd_table;
@@ -31,9 +82,11 @@ index 4b3916f..37c7980 100644
  
  struct vt_spawn_console vt_spawn_con = {
  	.lock = __SPIN_LOCK_UNLOCKED(vt_spawn_con.lock),
+diff --git a/drivers/char/vt.c b/drivers/char/vt.c
+index 7a5badf..ba2878e 100644
 --- a/drivers/char/vt.c
 +++ b/drivers/char/vt.c
-@@ -3934,6 +3934,7 @@
+@@ -3982,6 +3982,7 @@ u16 screen_glyph(struct vc_data *vc, int offset)
  		c |= 0x100;
  	return c;
  }
@@ -41,9 +94,11 @@ index 4b3916f..37c7980 100644
  
  /* used by vcs - note the word offset */
  unsigned short *screen_pos(struct vc_data *vc, int w_offset, int viewed)
+diff --git a/include/linux/keyboard.h b/include/linux/keyboard.h
+index 65c2d70..2aa5180 100644
 --- a/include/linux/keyboard.h
 +++ b/include/linux/keyboard.h
-@@ -45,6 +45,7 @@
+@@ -56,6 +56,7 @@ extern int unregister_keyboard_notifier(struct notifier_block *nb);
  #define KT_LOCK		10
  #define KT_SLOCK	12
  #define KT_BRL		14
@@ -51,7 +106,7 @@ index 4b3916f..37c7980 100644
  
  #define K(t,v)		(((t)<<8)|(v))
  #define KTYP(x)		((x) >> 8)
-@@ -442,5 +443,7 @@
+@@ -455,5 +456,7 @@ extern int unregister_keyboard_notifier(struct notifier_block *nb);
  
  #define NR_BRL		11
  

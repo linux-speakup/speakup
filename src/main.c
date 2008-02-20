@@ -55,6 +55,7 @@
 #include <asm/uaccess.h> /* copy_from|to|user() and others */
 
 #include "spk_priv.h"
+#include "speakup.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24)
 #define USE_NOTIFIERS
@@ -90,9 +91,6 @@ extern struct kbd_struct *kbd;
 extern short punc_masks[];
 
 special_func special_handler;
-EXPORT_SYMBOL_GPL(special_handler);
-special_func help_handler;
-EXPORT_SYMBOL_GPL(help_handler);
 
 short pitch_shift, synth_flags;
 static char buf[256];
@@ -116,7 +114,6 @@ static const struct st_bits_data punc_info[] = {
 static char mark_cut_flag;
 #define MAX_KEY 160
 u_char *our_keys[MAX_KEY], *shift_table;
-EXPORT_SYMBOL_GPL(our_keys);
 static u_char key_buf[600];
 static const u_char key_defaults[] = {
 #include "speakupmap.h"
@@ -2847,32 +2844,9 @@ speakup_goto(struct vc_data *vc)
 	return;
 }
 
-static void
-load_help(struct work_struct *work)
+static void speakup_help(struct vc_data *vc)
 {
-	unsigned long flags;
-	request_module("speakup_keyhelp");
-	spk_lock(flags);
-	if (help_handler)
-		(*help_handler)(0, KT_SPKUP, SPEAKUP_HELP, 0);
-	else
-		synth_write_string("help module not found");
-	spk_unlock(flags);
-}
-
-static DECLARE_WORK(ld_help, load_help);
-#define schedule_help schedule_work
-
-static void
-speakup_help(struct vc_data *vc)
-{
-	if (help_handler == NULL) {
-/* we can't call request_module from this context so schedule it*/
-/* **** note kernel hangs and my wrath will be on you */
-		schedule_help(&ld_help);
-		return;
-	}
-	(*help_handler)(vc, KT_SPKUP, SPEAKUP_HELP, 0);
+	handle_help(vc, KT_SPKUP, SPEAKUP_HELP, 0);
 }
 
 static void
