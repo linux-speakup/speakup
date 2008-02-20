@@ -3177,7 +3177,7 @@ static int __init speakup_init(void)
 #ifndef USE_NOTIFIERS
 	spkglue_register("speakup v" SPEAKUP_VERSION, &glue_funcs);
 #endif
-	speakup_dev_init();
+	speakup_dev_init(synth_name);
 	return 0;
 }
 

@@ -53,9 +53,10 @@ static struct serial_state rs_table[] = {
 	SERIAL_PORT_DFNS
 };
 
-static struct spk_synth *synths[16];
 
 #define synthBufferSize 8192	/* currently 8K bytes */
+#define MAXSYNTHS       16      /* Max number of synths in array. */
+static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
 EXPORT_SYMBOL_GPL(synth);
 int synth_port_tts;
@@ -536,6 +537,7 @@ static struct spk_synth *do_load_synth(const char *synth_name)
 	return NULL;
 }
 
+/* called by: speakup_dev_init() */
 int synth_init(char *synth_name)
 {
 	int i;
@@ -554,13 +556,14 @@ int synth_init(char *synth_name)
 
 	mutex_lock(&spk_mutex);
 	/* First, check if we already have it loaded. */
-	for (i = 0; synths[i] != NULL; i++)
+	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
 		if (strcmp(synths[i]->name, synth_name) == 0)
 			synth = synths[i];
 
 	/* No synth loaded matching this one, try loading it. */
 	if (!synth)
-		synth = do_load_synth(synth_name);
+		pr_warn("Warning: no synths in array, i = %d\n", i);
+		/*synth = do_load_synth(synth_name);*/
 
 	/* If we got one, initialize it now. */
 	if (synth)
@@ -579,6 +582,7 @@ static void synth_catch_up(u_long data)
 	spk_unlock(flags);
 }
 
+/* called by: synth_add() */
 static int do_synth_init(struct spk_synth *in_synth)
 {
 	struct st_num_var *n_var;
@@ -642,23 +646,29 @@ synth_release(void)
 	synth = NULL;
 }
 
+/* called by: all_driver_init() */
 int synth_add(struct spk_synth *in_synth)
 {
 	int i;
 	int status;
 	mutex_lock(&spk_mutex);
-	status = do_synth_init(in_synth);
+/*	status = do_synth_init(in_synth);
 	if (status != 0) {
 		mutex_unlock(&spk_mutex);
 		return status;
-	}
-	for (i = 0; synths[i] != NULL; i++)
+	} */
+	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
+		/* synth_remove() is responsible for rotating the array down */
 		if (in_synth == synths[i]) {
 			mutex_unlock(&spk_mutex);
 			return 0;
 		}
-	BUG_ON(i == ARRAY_SIZE(synths) - 1);
-	synths[i++] = in_synth;
+	if (i == MAXSYNTHS) {
+		pr_warn("Error: attempting to add a synth past end of array\n");
+		mutex_unlock(&spk_mutex);
+		return -1;
+	}
+		synths[i++] = in_synth;
 	synths[i] = NULL;
 	mutex_unlock(&spk_mutex);
 	return 0;
@@ -1021,15 +1031,14 @@ static void speakup_unregister_var(short var_id)
 #endif
 }
 
-extern char synth_name[];
-
-int speakup_dev_init(void)
+/* called by: speakup_init() */
+int speakup_dev_init(char *synth_name)
 {
 	int i;
 	struct st_var_header *p_header;
 	struct st_proc_var *pv = spk_proc_vars;
 
-	/*pr_warn("synth name on entry is: %s\n", synth_name); */
+	pr_warn("synth name on entry is: %s\n", synth_name); 
 	synth_init(synth_name);
 	speakup_register_devsynth();
 #ifdef CONFIG_PROC_FS

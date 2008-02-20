@@ -284,7 +284,7 @@ void synth_printf(const char *buf, ...);
 void synth_write_string(const char *buf);
 void synth_write_msg(const char *buf);
 int synth_supports_indexing(void);
-int speakup_dev_init(void);
+int speakup_dev_init(char *);
 
 #ifndef pr_warn
 #define pr_warn(fmt, arg...) printk(KERN_WARNING fmt, ##arg)
