@@ -2,12 +2,17 @@ menu "Speakup console speech"
 config SPEAKUP
 	bool "Speakup console speech"
 	---help---
-		This is the base code for speakup, the Linux kernel
+		This enables configuring speakup, the Linux kernel based
 		screen review system. speakup supports a variety of
 		hardware speech synthesizers and can also drive
 		userspace speech software synthesizers.
 
 		For more info, see http://www.linux-speakup.org
+
+		This option alone doesn't affect your kernel; it just
+		enables the options below so you can configure speakup.
+
+		If you are not sure you need this, say n.
 
 config SPEAKUP_CORE
 	depends on SPEAKUP
@@ -212,6 +217,10 @@ config SPEAKUP_SYNTH_DUMMY
 		the kernel, or m to build it as a module.  See the
 		configuration help on the Speakup choice above for more info.
 
-
+config SPEAKUP_DEFAULT
+        string "Choose Default synthesizer for Speakup"
+        depends on SPEAKUP_CORE
+        default "none"
+ 
 endmenu
 

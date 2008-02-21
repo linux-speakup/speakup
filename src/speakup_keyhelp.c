@@ -23,10 +23,8 @@
 #include <linux/version.h>
 #include <linux/keyboard.h>
 #include "spk_priv.h"
+#include "speakup.h"
 
-extern u_char *our_keys[];
-extern special_func special_handler;
-extern special_func help_handler;
 #define MAXFUNCS 130
 #define MAXKEYS 256
 static u_short key_offsets[MAXFUNCS], key_buf[MAXKEYS];
@@ -77,7 +75,11 @@ static char *keynames[] = {
 	"edit", "scroll up", "scroll down", "keypad left paren", "keypad right paren",
 };
 
-static short letter_offsets[26];
+static short letter_offsets[26] =
+{ -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1 };
 
 static u_char funcvals[] = {
 	ATTRIB_BLEEP_DEC, ATTRIB_BLEEP_INC, BLEEPS_DEC, BLEEPS_INC,
@@ -199,12 +201,29 @@ static void say_key(int key)
 	synth_printf(" %s\n", keynames[--key]);
 }
 
-static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
+static int help_init(void)
+{
+	char start = SPACE;
+	int i;
+state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
+	for (i = 0; funcnames[i]; i++) {
+		if (start == *funcnames[i])
+			continue;
+		start = *funcnames[i];
+		letter_offsets[(start&31)-1] = i;
+	}
+	return 0;
+}
+
+int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 {
 	int i, n;
 	char *name;
 	u_char func, *kp;
 	u_short *p_keys, val;
+	if (letter_offsets[0] == -1) {
+		help_init();
+	}
 	if (type == KT_LATIN) {
 		if (ch == SPACE) {
 			special_handler = NULL;
@@ -227,7 +246,7 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		else
 			return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
-		special_handler = help_handler;
+		special_handler = handle_help;
 		synth_write_msg(help_info);
 		build_key_data(); /* rebuild each time in case new mapping */
 		return 1;
@@ -269,30 +288,3 @@ static int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	}
 	return 1;
 }
-
-static void __exit mod_help_exit(void)
-{
-	help_handler = 0;
-}
-
-static int __init mod_help_init(void)
-{
-	char start = SPACE;
-	int i;
-state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
-	for (i = 0; i < 26; i++) letter_offsets[i] = -1;
-	for (i = 0; funcnames[i]; i++) {
-		if (start == *funcnames[i])
-			continue;
-		start = *funcnames[i];
-		letter_offsets[(start&31)-1] = i;
-	}
-	help_handler = handle_help;
-	return 0;
-}
-
-module_init(mod_help_init);
-module_exit(mod_help_exit);
-MODULE_AUTHOR("David Borowski");
-MODULE_DESCRIPTION("Speakup keyboard help MODULE");
-MODULE_LICENSE("GPL");

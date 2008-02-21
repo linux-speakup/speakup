@@ -39,7 +39,7 @@
 #include <linux/proc_fs.h>
 #endif
 #include <asm/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
-#include "keyinfo.h"
+#include "spk_priv_keyinfo.h"
 
 #define SHIFT_TBL_SIZE 64
 /* proc permissions */
