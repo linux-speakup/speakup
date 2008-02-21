@@ -1608,7 +1608,7 @@ static int keys_write_proc(struct file *file, const char *buffer, u_long count,
 	i += 2; /* 0 and last map ver */
 	if (cp1[-3] != KEY_MAP_VER || cp1[-1] > 10 ||
 			i+SHIFT_TBL_SIZE+4 >= sizeof(key_buf)) {
-pr_warn("i %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
+		pr_warn("i %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
 		ret = -EINVAL;
 		goto out;
 	}
@@ -1620,12 +1620,12 @@ pr_warn("i %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
 	}
 	if (i != 0 || cp1[-1] != KEY_MAP_VER || cp1[-2] != 0) {
 		ret = -EINVAL;
-pr_warn("end %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
+		pr_warn("end %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
 	} else {
 		if (set_key_info(in_buff, key_buf)) {
 			set_key_info(key_defaults, key_buf);
-		ret = -EINVAL;
-pr_warn("set key failed\n");
+			ret = -EINVAL;
+			pr_warn("set key failed\n");
 		}
 	}
 out:
@@ -2933,7 +2933,7 @@ static void do_spkup(struct vc_data *vc, u_char value)
 	}
 }
 
-	static const char *pad_chars = "0123456789+-*/\015,.?()";
+static const char *pad_chars = "0123456789+-*/\015,.?()";
 
 int
 speakup_key(struct vc_data *vc, int shift_state, int keycode, u_short keysym,
