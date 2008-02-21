@@ -86,7 +86,6 @@ static int param_port;
 module_param_named(port, param_port, int, S_IRUGO);
 
 /* these are globals from the kernel code */
-extern struct kbd_struct *kbd;
 extern short punc_masks[];
 
 special_func special_handler;
@@ -2631,15 +2630,15 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	switch (value) {
 	case KVAL(K_CAPS):
 		label = "caps lock";
-		on_off = (vc_kbd_led(kbd , VC_CAPSLOCK));
+		on_off = (vc_kbd_led(kbd_table + fg_console, VC_CAPSLOCK));
 		break;
 	case KVAL(K_NUM):
 		label = "num lock";
-		on_off = (vc_kbd_led(kbd , VC_NUMLOCK));
+		on_off = (vc_kbd_led(kbd_table + fg_console, VC_NUMLOCK));
 		break;
 	case KVAL(K_HOLD):
 		label = "scroll lock";
-		on_off = (vc_kbd_led(kbd , VC_SCROLLOCK));
+		on_off = (vc_kbd_led(kbd_table + fg_console, VC_SCROLLOCK));
 		break;
 	default:
 		spk_parked &= 0xfe;
@@ -2952,7 +2951,7 @@ speakup_key(struct vc_data *vc, int shift_state, int keycode, u_short keysym,
 	tty = vc->vc_tty;
 	if (type >= 0xf0)
 		type -= 0xf0;
-	if (type == KT_PAD && (vc_kbd_led(kbd , VC_NUMLOCK))) {
+	if (type == KT_PAD && (vc_kbd_led(kbd_table + fg_console, VC_NUMLOCK))) {
 		if (up_flag) {
 			spk_keydown = 0;
 			goto out;
