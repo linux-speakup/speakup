@@ -30,6 +30,7 @@
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntsa
+#define DRV_VERSION "1.2"
 #define synth_full() (inb_p(synth_port_tts) == 'F')
 #define PROCSPEECH '\r'
 
@@ -187,11 +188,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_acntsa = { "acntsa", "1.1", "Accent-SA",
+struct spk_synth synth_acntsa = { "acntsa", DRV_VERSION, "Accent-SA",
 	init_string, 400, 5, 30, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init acntsa_init(void)
 {

@@ -29,6 +29,7 @@
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntpc
+#define DRV_VERSION "1.2"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(synth_port_tts) == 'F')
@@ -159,11 +160,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_acntpc = {"acntpc", "1.1", "Accent PC",
+struct spk_synth synth_acntpc = {"acntpc", DRV_VERSION, "Accent PC",
 	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, accent_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init acntpc_init(void)
 {

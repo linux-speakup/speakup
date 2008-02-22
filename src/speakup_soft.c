@@ -27,6 +27,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_sftsyn
+#define DRV_VERSION "0.4"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -208,11 +209,14 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_sftsyn = { "sftsyn", "0.3", "software synth",
+struct spk_synth synth_sftsyn = { "sftsyn", DRV_VERSION, "software synth",
 	init_string, 0, 0, 0, 0, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
 	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
 	get_index, {"\x01%di", 1, 5, 1} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+
 
 static int __init soft_init(void)
 {

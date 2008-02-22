@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_txprt
-#define DRV_VERSION "1.2"
+#define DRV_VERSION "1.3"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
@@ -206,6 +206,8 @@ struct spk_synth synth_txprt = {"txprt", DRV_VERSION, "Transport",
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init txprt_init(void)
 {

@@ -28,6 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_spkout
+#define DRV_VERSION "1.2"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -203,11 +204,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_spkout = {"spkout", "1.1", "Speakout",
+struct spk_synth synth_spkout = {"spkout", DRV_VERSION, "Speakout",
 	 init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL,
 	get_index, {"\x05[%c", 1, 5, 1} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init spkout_init(void)
 {

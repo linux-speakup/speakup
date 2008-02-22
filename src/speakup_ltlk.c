@@ -29,6 +29,7 @@
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
 #define MY_SYNTH synth_ltlk
+#define DRV_VERSION "1.2"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(synth_port_tts + UART_MSR) & UART_MSR_CTS))
 
@@ -233,11 +234,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_ltlk = { "ltlk", "1.1", "LiteTalk",
+struct spk_synth synth_ltlk = { "ltlk", DRV_VERSION, "LiteTalk",
 	init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
 	{"\x01%di", 1, 5, 1} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init ltlk_init(void)
 {

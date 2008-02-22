@@ -519,21 +519,6 @@ static struct st_num_var synth_time_vars[] = {
 	V_LAST_NUM
 };
 
-static struct spk_synth *do_load_synth(const char *synth_name)
-{
-	int i;
-
-	if (request_module("speakup_%s", synth_name))
-		return NULL;
-
-	for (i = 0; synths[i] != NULL; i++) {
-		if (strcmp(synths[i]->name, synth_name) == 0)
-			return synths[i];
-	}
-
-	return NULL;
-}
-
 /* called by: speakup_dev_init() */
 int synth_init(char *synth_name)
 {
@@ -556,11 +541,6 @@ int synth_init(char *synth_name)
 	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
 		if (strcmp(synths[i]->name, synth_name) == 0)
 			synth = synths[i];
-
-	/* No synth loaded matching this one, try loading it. */
-	if (!synth)
-		pr_warn("Warning: no synths in array, i = %d\n", i);
-		/*synth = do_load_synth(synth_name);*/
 
 	/* If we got one, initialize it now. */
 	if (synth)
@@ -647,13 +627,8 @@ synth_release(void)
 int synth_add(struct spk_synth *in_synth)
 {
 	int i;
-	int status;
+	int status=0;
 	mutex_lock(&spk_mutex);
-/*	status = do_synth_init(in_synth);
-	if (status != 0) {
-		mutex_unlock(&spk_mutex);
-		return status;
-	} */
 	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
 		/* synth_remove() is responsible for rotating the array down */
 		if (in_synth == synths[i]) {
@@ -665,10 +640,12 @@ int synth_add(struct spk_synth *in_synth)
 		mutex_unlock(&spk_mutex);
 		return -1;
 	}
-		synths[i++] = in_synth;
+	synths[i++] = in_synth;
 	synths[i] = NULL;
+	if (in_synth->flags) 
+		status = do_synth_init(in_synth);
 	mutex_unlock(&spk_mutex);
-	return 0;
+	return status;
 }
 EXPORT_SYMBOL_GPL(synth_add);
 

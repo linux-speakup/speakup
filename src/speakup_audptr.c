@@ -28,6 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_audptr
+#define DRV_VERSION "1.2"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
@@ -206,11 +207,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_audptr = {"audptr", "1.1", "Audapter",
+struct spk_synth synth_audptr = {"audptr", DRV_VERSION, "Audapter",
 	 init_string, 400, 5, 30, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init audptr_init(void)
 {

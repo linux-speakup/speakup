@@ -25,6 +25,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_keypc
+#define DRV_VERSION "1.2"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -188,11 +189,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_keypc = {"keypc", "1.1", "Keynote PC",
+struct spk_synth synth_keypc = {"keypc", DRV_VERSION, "Keynote PC",
 	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, keynote_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init keypc_init(void)
 {

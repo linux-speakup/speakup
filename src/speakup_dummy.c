@@ -28,6 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dummy
+#define DRV_VERSION "1.2"
 
 static int wait_for_xmitr(void)
 {
@@ -169,11 +170,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dummy = {"dummy", "1.1", "Dummy",
+struct spk_synth synth_dummy = {"dummy", DRV_VERSION, "Dummy",
 	init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init dummy_init(void)
 {

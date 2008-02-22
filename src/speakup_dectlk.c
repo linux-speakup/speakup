@@ -29,6 +29,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dectlk
+#define DRV_VERSION "1.4"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(synth_port_tts) == 0x13)
@@ -281,11 +282,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dectlk = { "dectlk", "1.3", "Dectalk Express",
-	init_string, 500, 50, 50, 1000, 0, SF_DEC, SYNTH_CHECK,
+struct spk_synth synth_dectlk = { "dectlk", DRV_VERSION, "Dectalk Express",
+	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, read_buff_add,
 	get_index, {"[:in re %d] ", 1, 8, 1} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init dectlk_init(void)
 {

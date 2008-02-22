@@ -29,6 +29,7 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
 #define MY_SYNTH synth_dtlk
+#define DRV_VERSION "1.2"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(synth_port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(synth_port_tts)) & TTS_ALMOST_FULL)
@@ -233,11 +234,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dtlk = {"dtlk", "1.1", "DoubleTalk PC",
+struct spk_synth synth_dtlk = {"dtlk", DRV_VERSION, "DoubleTalk PC",
 	init_string, 500, 30, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
 	{"\x01%di", 1, 5, 1} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init dtlk_init(void)
 {

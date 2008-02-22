@@ -28,6 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_decext
+#define DRV_VERSION "1.2"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(synth_port_tts) == 0x13)
@@ -210,11 +211,13 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_decext = {"decext", "1.1", "Dectalk External",
-	 init_string, 500, 50, 50, 1000, 0, SF_DEC, SYNTH_CHECK,
+struct spk_synth synth_decext = {"decext", DRV_VERSION, "Dectalk External",
+	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
+
+module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init decext_init(void)
 {
