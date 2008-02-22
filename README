@@ -5,10 +5,10 @@ speakup is a kernel-based speech synthesizer driver suite for Linux. It drives
 various serial-based and ISA-based synthesizer hardware, as well as providing
 an interface for driving software-based synthesizers in userspace.
 
-For installation instructions, see INSTALL.
+For installation instructions, see INSTALLATION.
 For usage documentation, see the files in the doc/ subdirectory.
 
-This release is intended to apply against Linux 2.6.19. Other kernels are
+This release is intended to apply against Linux 2.6.24. Other kernels are
 probably not supported by this release.
 
 Homepage: http://www.linux-speakup.org
@@ -40,67 +40,4 @@ the early boot messages, kernel crash dumps, etc.
 The long term plan is for kernel inclusion, but the kernel developers may
 decide that this kind of functionality should be kept out of the kernel for
 purely technical reasons.
-
-speakup requires hooks into the keyboard and vt (console) drivers already
-present in the Linux kernel. In order to provide modularization, a small glue
-layer is provided: spkglue.
-
-spkglue is the component which hooks into vt.c and keyboard.c. spkglue must
-either be built into the kernel or not built at all, it cannot be built as
-a module. Having spkglue built into your kernel is a prerequisite for using
-speakup.
-
-spkglue must therefore be installed to your kernel sources - kernel patching
-is required. A script is provided to automate this for you.
-
-spkglue provides a simple interface for a 'client' to register. In this case,
-speakup is the client. spkglue's hooks do nothing until a client has registered,
-and at that point, all invocations of the hooks are passed up to the client 
-(speakup).
-
-Examples of the events which speakup is interested in include key presses and
-characters being printed to the console. These events are passed from core
-kernel to spkglue through to speakup.
-
-speakup is then built as a standard kernel module, and does the necessary
-event processing and also includes some library code. speakup doesn't actually
-drive any hardware though - that is left up to a set of additional kernel
-modules: the synth drivers. synth drivers drive specialised synthesizer
-hardware, except from the soft driver which provides a simple text interface
-to a software-based synthesizer which runs in userspace.
-
-The hierachy looks something like:
-
-	vt+keyboard <---> spkglue <---> speakup <---> synth drivers
-
-speakup and the synth drivers can actually be built outside the kernel,
-provided that you have read access to spkglue-patched kernel sources of your
-currently running kernel, and your running kernel has spkglue compiled in.
-
-Alternatively, speakup can be patched into your kernel alongside spkglue.
-This gives you the option of compiling speakup and synth modules directly
-into your kernel, which gives you the added functionality of being able to
-hear early boot messages.
-
-
-Index
-=====
-
-README - this file
-
-INSTALL - installation instructions
-
-spkglue/ - spkglue sources and integration patch
-
-src/ - speakup and synth sources
-
-doc/ - Usage documentation
-
-install-spkglue - patches spkglue into some kernel sources
-
-install-speakup - patches speakup into some spkglue-patched kernel sources
-
-install - runs install-spkglue then install-speakup on a kernel
-
-makepatch - creates a patch to add spkglue+speakup to a vanilla kernel
 

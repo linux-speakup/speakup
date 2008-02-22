@@ -75,9 +75,8 @@ index fc54d23..be10d95 100644
  const int NR_TYPES = ARRAY_SIZE(max_vals);
  
  struct kbd_struct kbd_table[MAX_NR_CONSOLES];
--static struct kbd_struct *kbd = kbd_table;
-+struct kbd_struct *kbd = kbd_table;
-+EXPORT_SYMBOL_GPL(kbd);
++EXPORT_SYMBOL_GPL(kbd_table);
+ static struct kbd_struct *kbd = kbd_table;
 +EXPORT_SYMBOL_GPL(kd_mksound);
  
  struct vt_spawn_console vt_spawn_con = {
