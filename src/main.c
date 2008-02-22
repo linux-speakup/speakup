@@ -3064,7 +3064,7 @@ static int __init speakup_init(void)
 	speakup_open(vc_cons[fg_console].d, first_console);
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);
-	speakup_dev_init();
+	speakup_dev_init(synth_name);
 	return 0;
 }
 
