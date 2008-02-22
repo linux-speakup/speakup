@@ -57,12 +57,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24)
-#define USE_NOTIFIERS
 #define inverse_translate(vc, c) inverse_translate(vc, c, 0)
-#else
-#include <linux/spkglue.h>
-#endif
 
 #define SPEAKUP_VERSION "3.0.0"
 #define MAX_DELAY ((500 * HZ) / 1000)
@@ -136,9 +131,6 @@ static struct tty_struct *tty;
 typedef void (*k_handler_fn)(struct vc_data *vc, unsigned char value,
 			     char up_flag);
 extern k_handler_fn k_handler[16];
-#ifndef USE_NOTIFIERS
-static k_handler_fn do_shift, do_spec, do_latin, do_cursor;
-#endif
 
 static void spkup_write(const char *in_buf, int count);
 static int set_mask_bits(const char *input, const int which, const int how);
@@ -276,7 +268,6 @@ spinlock_t spk_spinlock;
 EXPORT_SYMBOL_GPL(spk_spinlock);
 DEFINE_MUTEX(spk_mutex);
 
-#ifdef USE_NOTIFIERS
 static int keyboard_notifier_call(struct notifier_block *,
 				  unsigned long code, void *param);
 
@@ -290,7 +281,6 @@ static int vt_notifier_call(struct notifier_block *,
 struct notifier_block vt_notifier_block = {
 	.notifier_call = vt_notifier_call,
 };
-#endif
 
 static unsigned char get_attributes(u16 *pos)
 {
@@ -1313,14 +1303,6 @@ static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	spk_unlock(flags);
 }
 
-#ifndef USE_NOTIFIERS
-static void handle_shift(struct vc_data *vc, u_char value, char up_flag)
-{
-	(*do_shift)(vc, value, up_flag);
-	do_handle_shift(vc, value, up_flag);
-}
-#endif
-
 static void do_handle_latin(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
@@ -1342,14 +1324,6 @@ static void do_handle_latin(struct vc_data *vc, u_char value, char up_flag)
 		speak_char(value);
 	spk_unlock(flags);
 }
-
-#ifndef USE_NOTIFIERS
-static void handle_latin(struct vc_data *vc, u_char value, char up_flag)
-{
-	(*do_latin)(vc, value, up_flag);
-	do_handle_latin(vc, value, up_flag);
-}
-#endif
 
 static int set_key_info(const u_char *key_info, u_char *k_buffer)
 {
@@ -1438,10 +1412,6 @@ static void reset_default_chartab(void)
 	memcpy(spk_chartab, default_chartab, sizeof(default_chartab));
 }
 
-#ifndef USE_NOTIFIERS
-static void handle_cursor(struct vc_data *vc, u_char value, char up_flag);
-static void handle_spec(struct vc_data *vc, u_char value, char up_flag);
-#endif
 static void cursor_done(u_long data);
 
 static declare_timer(cursor_timer);
@@ -1477,19 +1447,8 @@ static void __init speakup_open(struct vc_data *vc,
 		speakup_register_var(n_var);
 	for (i = 1; punc_info[i].mask != 0; i++)
 		set_mask_bits(0, i, 2);
-#ifdef USE_NOTIFIERS
 	register_keyboard_notifier(&keyboard_notifier_block);
 	register_vt_notifier(&vt_notifier_block);
-#else
-	do_latin = k_handler[KT_LATIN];
-	k_handler[KT_LATIN] = handle_latin;
-	do_spec = k_handler[KT_SPEC];
-	k_handler[KT_SPEC] = handle_spec;
-	do_cursor = k_handler[KT_CUR];
-	k_handler[KT_CUR] = handle_cursor;
-	do_shift = k_handler[KT_SHIFT];
-	k_handler[KT_SHIFT] = handle_shift;
-#endif
 	set_key_info(key_defaults, key_buf);
 	if (quiet_boot)
 		spk_shut_up |= 0x01;
@@ -2201,13 +2160,8 @@ static void
 kbd_fakekey2(struct vc_data *vc, int v, int command)
 {
 	cursor_stop_timer();
-#ifdef USE_NOTIFIERS
 	k_handler[KT_CUR](vc, v, 0);
 	k_handler[KT_CUR](vc, v, 1);
-#else
-	(*do_cursor)(vc, v, 0);
-	(*do_cursor)(vc, v, 1);
-#endif
 	start_read_all_timer(vc, command);
 }
 
@@ -2373,15 +2327,6 @@ static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	cursor_timer_active++;
 	spk_unlock(flags);
 }
-
-#ifndef USE_NOTIFIERS
-static void handle_cursor(struct vc_data *vc, u_char value, char up_flag)
-{
-	if (pre_handle_cursor(vc, value, up_flag) != NOTIFY_STOP)
-		(*do_cursor)(vc, value, up_flag);
-	do_handle_cursor(vc, value, up_flag);
-}
-#endif
 
 static void
 update_color_buffer(struct vc_data *vc , const char *ic , int len)
@@ -2641,14 +2586,6 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	synth_printf("%s %s\n", label, lock_status[on_off]);
 	spk_unlock(flags);
 }
-
-#ifndef USE_NOTIFIERS
-static void handle_spec(struct vc_data *vc, u_char value, char up_flag)
-{
-	(*do_spec)(vc, value, up_flag);
-	do_handle_spec(vc, value, up_flag);
-}
-#endif
 
 static int
 inc_dec_var(u_char value)
@@ -3016,7 +2953,6 @@ out:
 	return ret;
 }
 
-#ifdef USE_NOTIFIERS
 static int keyboard_notifier_call(struct notifier_block *nb,
 		unsigned long code, void *_param)
 {
@@ -3095,35 +3031,16 @@ static int vt_notifier_call(struct notifier_block *nb,
 	}
 	return NOTIFY_OK;
 }
-#endif
 
 extern void speakup_remove(void);
-
-#ifndef USE_NOTIFIERS
-static const struct spkglue_funcs glue_funcs = {
-	.allocate = speakup_allocate,
-	.key = speakup_key,
-	.bs = speakup_bs,
-	.con_write = speakup_con_write,
-	.con_update = speakup_con_update,
-};
-#endif
 
 /* called by: module_exit() */
 static void __exit speakup_exit(void)
 {
 	int i;
 
-#ifdef USE_NOTIFIERS
 	unregister_keyboard_notifier(&keyboard_notifier_block);
 	unregister_vt_notifier(&vt_notifier_block);
-#else
-	k_handler[KT_LATIN] = do_latin;
-	k_handler[KT_SPEC] = do_spec;
-	k_handler[KT_CUR] = do_cursor;
-	k_handler[KT_SHIFT] = do_shift;
-	spkglue_unregister();
-#endif
 	mutex_lock(&spk_mutex);
 	synth_release();
 	mutex_unlock(&spk_mutex);
@@ -3148,9 +3065,6 @@ static int __init speakup_init(void)
 	speakup_open(vc_cons[fg_console].d, first_console);
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);
-#ifndef USE_NOTIFIERS
-	spkglue_register("speakup v" SPEAKUP_VERSION, &glue_funcs);
-#endif
 	speakup_dev_init();
 	return 0;
 }
