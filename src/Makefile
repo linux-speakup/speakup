@@ -17,5 +17,5 @@ obj-$(CONFIG_SPEAKUP_SYNTH_DUMMY) += speakup_dummy.o
 obj-$(CONFIG_SPEAKUP_CORE) += speakup.o
 speakup-objs := \
 	main.o \
-	speakup_keyhelp.o \
+	keyhelp.o \
 	synth.o

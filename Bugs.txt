@@ -15,3 +15,6 @@ screens cursor position.  I am not sure how long this has been an
 issue but I know it is a problem in my 2.6.19.1 system so it's been
 around for a while.  This should be fixed in the -mm tree since 22th
 Feb 2008.
+
+Speakup's Key Echo does not always raise the pitch when upper case characters
+are typed.
