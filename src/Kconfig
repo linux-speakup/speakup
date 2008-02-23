@@ -180,7 +180,7 @@ config SPEAKUP_SYNTH_SOFT
 	---help---
 
 		This is the software synthesizer device node.  It will
-		register a device /dev/sftsyn which midware programs
+		register a device /dev/softsynth which midware programs
 		and speech daemons may open and read to provide kernel
 		output to software synths such as espeak, festival,
 		flite and so forth.  You can select 'y' or 'm' to have

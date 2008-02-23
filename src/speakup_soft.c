@@ -1,4 +1,4 @@
-/* speakup_sftsynth.c - speakup driver to register and make available
+/* speakup_soft.c - speakup driver to register and make available
  * a user space device for software synthesizers.  written by: Kirk
  * Reiser <kirk@braille.uwo.ca>
 
@@ -26,8 +26,8 @@
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
-#define MY_SYNTH synth_sftsyn
-#define DRV_VERSION "0.4"
+#define MY_SYNTH synth_soft
+#define DRV_VERSION "0.5"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -209,7 +209,7 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_sftsyn = { "sftsyn", DRV_VERSION, "software synth",
+struct spk_synth synth_soft = { "soft", DRV_VERSION, "software synth",
 	init_string, 0, 0, 0, 0, 0, 0, SYNTH_CHECK,
 	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
 	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,

@@ -88,7 +88,7 @@ their related software is loaded, and so are not available at boot up.
 These are as follows:
 
 decpc -- DecTalk PC (not available at boot up)
-sftsyn -- One of several software synthesizers (not available at boot up)
+soft -- One of several software synthesizers (not available at boot up)
 
 See the sections on loading modules and software synthesizers later in
 this manual for further details.  It should be noted here that the
@@ -604,9 +604,9 @@ issue the following command as root:
 mknod synth c 10 25
 
 Now you can begin using your software synthesizer.  In order to do so,
-echo the sftsyn keyword to the synth_name proc entry like this:
+echo the soft keyword to the synth_name proc entry like this:
 
-echo sftsyn >/proc/speakup/synth_name
+echo soft >/proc/speakup/synth_name
 
 Next run the speechd_up command like this:
 
@@ -616,7 +616,7 @@ Your synth should now start talking, and you should be able to adjust
 the pitch, rate, etc.
 
 In this section, we have assumed that your copy of Speakup was compiled
-with the speakup_sftsyn component either built into the kernel, or
+with the speakup_soft component either built into the kernel, or
 compiled as a module.
 
 9.  Using The DecTalk PC Card
