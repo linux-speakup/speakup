@@ -1,14 +1,17 @@
 #!/bin/bash
 # Makes a tarball release
 
+DIRS="doc patches src"
+DOCS="Bugs.txt INSTALLATION README To-Do UPGRADING"
+FILES="install version"
 SPKVER=$(./version)
 RELDIR=speakup-${SPKVER}
 REL=${RELDIR}.tar.bz2
 
 mkdir -p ${RELDIR}
-make -C src clean
-cp -R spkglue src install* INSTALL README makepatch version ${RELDIR}
-rm -f ${RELDIR}/makedist ${RELDIR}/*.tar.bz2
+cp -R ${DIRS} ${DOCS} ${FILES} ${RELDIR}
+
+rm -rf ${RELDIR}/src/*.ko ${RELDIR}/src/*.o ${RELDIR}/src/*.mod.c
 
 tar -cjf ${REL} ${RELDIR}
 echo "Produced ${REL}"
