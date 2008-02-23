@@ -44,7 +44,7 @@ if [ SPEAKUP_INSTALLED ]; then
 	rm -rf ${KDIR}/drivers/char/speakup ${KDIR}/Documentation/speakup
 fi
 
-apply $SPKDIR/spkglue/kernel-integration-2.6.24.patch ${KDIR}
+apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
 
 cp -R ${SPKDIR}/src ${KDIR}/drivers/char/speakup
 cp -R ${SPKDIR}/doc ${KDIR}/Documentation/speakup
