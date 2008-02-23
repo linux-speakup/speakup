@@ -326,7 +326,6 @@ synth_write(const char *buf, size_t count)
 		synth_buffer_add(*buf++);
 	synth_start();
 }
-EXPORT_SYMBOL_GPL(synth_write);
 
 void
 synth_putc(char ch)
