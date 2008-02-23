@@ -227,7 +227,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	if (type == KT_LATIN) {
 		if (ch == SPACE) {
 			special_handler = NULL;
-			synth_write_msg("leaving help");
+			synth_printf("%s\n","leaving help");
 			return 1;
 		}
 		ch |= 32; /* lower case */
@@ -247,13 +247,13 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
 		special_handler = handle_help;
-		synth_write_msg(help_info);
+		synth_printf("%s\n",help_info);
 		build_key_data(); /* rebuild each time in case new mapping */
 		return 1;
 	} else {
 		name = NULL;
 		if (type != KT_SPKUP) {
-			synth_write_msg(keynames[key-1]);
+			synth_printf("%s\n",keynames[key-1]);
 			return 1;
 		}
 		for (i = 0; funcvals[i] != 0 && !name; i++) {
@@ -276,7 +276,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	func = funcvals[cur_item];
 	synth_write_string(name);
 	if (key_offsets[func] == 0) {
-		synth_write_msg(" is unassigned");
+		synth_printf("%s\n"," is unassigned");
 		return 1;
 	}
 	p_keys = key_buf + key_offsets[func];

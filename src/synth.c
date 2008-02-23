@@ -364,16 +364,6 @@ synth_write_string(const char *buf)
 }
 EXPORT_SYMBOL_GPL(synth_write_string);
 
-void
-synth_write_msg(const char *buf)
-{
-	while (*buf)
-		synth_buffer_add(*buf++);
-	synth_buffer_add('\n');
-	synth_start();
-}
-EXPORT_SYMBOL_GPL(synth_write_msg);
-
 static int index_count = 0;
 static int sentence_count = 0;
 

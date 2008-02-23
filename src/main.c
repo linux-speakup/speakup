@@ -340,9 +340,9 @@ static void speech_kill(struct vc_data *vc)
 	if (val == 2 || spk_killed) {
 		/* dead */
 		spk_shut_up &= ~0x40;
-		synth_write_msg("Eyem a Lighve!");
+		synth_printf("%s\n","Eyem a Lighve!");
 	} else {
-		synth_write_msg("You killed speak up!");
+		synth_printf("%s\n","You killed speak up!");
 		spk_shut_up |= 0x40;
 	}
 }
@@ -351,10 +351,10 @@ static void speakup_off(struct vc_data *vc)
 {
 	if (spk_shut_up & 0x80) {
 		spk_shut_up &= 0x7f;
-		synth_write_msg("hey. That's better!");
+		synth_printf("%s\n","hey. That's better!");
 	} else {
 		spk_shut_up |= 0x80;
-		synth_write_msg("You turned me off!");
+		synth_printf("%s\n","You turned me off!");
 	}
 	speakup_date(vc);
 }
@@ -363,10 +363,10 @@ static void speakup_parked(struct vc_data *vc)
 {
 	if (spk_parked & 0x80) {
 		spk_parked = 0;
-		synth_write_msg("unparked!");
+		synth_printf("%s\n","unparked!");
 	} else {
 		spk_parked |= 0x80;
-		synth_write_msg("parked!");
+		synth_printf("%s\n","parked!");
 	}
 }
 
@@ -532,13 +532,13 @@ static void speakup_cut(struct vc_data *vc)
 		xs = spk_x;
 		ys = spk_y;
 		spk_sel_cons = vc;
-		synth_write_msg("mark");
+		synth_printf("%s\n","mark");
 		return;
 	}
 	xe = (u_short) spk_x;
 	ye = (u_short) spk_y;
 	mark_cut_flag = 0;
-	synth_write_msg("cut");
+	synth_printf("%s\n","cut");
 
 	speakup_clear_selection();
 	ret = speakup_set_selection(tty);
@@ -562,9 +562,9 @@ static void speakup_paste(struct vc_data *vc)
 {
 	if (mark_cut_flag) {
 		mark_cut_flag = 0;
-		synth_write_msg("mark, cleared");
+		synth_printf("%s\n","mark, cleared");
 	} else {
-		synth_write_msg("paste");
+		synth_printf("%s\n","paste");
 		speakup_paste_selection(tty);
 	}
 }
@@ -583,7 +583,7 @@ static void say_attributes(struct vc_data *vc)
 		bg -= 8;
 	} else
 		synth_write_string(" on ");
-	synth_write_msg(colors[bg]);
+	synth_printf("%s\n",colors[bg]);
 }
 
 static char *blank_msg = "blank";
@@ -601,7 +601,7 @@ static void announce_edge(struct vc_data *vc, int msg_id)
 	if (bleeps & 1)
 		bleep(spk_y);
 	if (bleeps & 2)
-		synth_write_msg(edges[msg_id-1]);
+		synth_printf("%s\n",edges[msg_id-1]);
 }
 
 static void speak_char(u_char ch)
@@ -650,7 +650,7 @@ static void say_phonetic_char(struct vc_data *vc)
 	spk_attr = ((ch & 0xff00) >> 8);
 	if (IS_CHAR(ch, B_ALPHA)) {
 		ch &= 0x1f;
-		synth_write_msg(phonetic[--ch]);
+		synth_printf("%s\n",phonetic[--ch]);
 	} else {
 		if (IS_CHAR(ch, B_NUM))
 			synth_write_string("number ");
@@ -701,7 +701,7 @@ static u_long get_word(struct vc_data *vc)
 /* decided to take out the sayword if on a space (mis-information */
 	if (say_word_ctl && ch == SPACE) {
 		*buf = '\0';
-		synth_write_msg("space");
+		synth_printf("%s\n","space");
 		return 0;
 	} else if ((tmpx < vc->vc_cols - 2)
 		   && (ch == SPACE || IS_WDLM(ch))
@@ -896,7 +896,7 @@ static void say_line(struct vc_data *vc)
 	char *cp;
 	u_short saved_punc_mask = punc_mask;
 	if (i == 0) {
-		synth_write_msg(blank_msg);
+		synth_printf("%s\n",blank_msg);
 		return;
 	}
 	buf[i++] = '\n';
@@ -970,7 +970,7 @@ static void say_line_from_to(struct vc_data *vc, u_long from, u_long to,
 	start += from * 2;
 	if (say_from_to(vc, start, end, read_punc) <= 0)
 		if (cursor_track != read_all_mode)
-			synth_write_msg(blank_msg);
+			synth_printf("%s\n",blank_msg);
 }
 
 /* Sentence Reading Commands */
@@ -1070,7 +1070,7 @@ static void speakup_win_say(struct vc_data *vc)
 {
 	u_long start, end, from, to;
 	if (win_start < 2) {
-		synth_write_msg("no window");
+		synth_printf("%s\n","no window");
 		return;
 	}
 	start = vc->vc_origin + (win_top * vc->vc_size_row);
@@ -1121,7 +1121,7 @@ static void say_first_char(struct vc_data *vc)
 	u_char ch;
 	spk_parked |= 0x01;
 	if (len == 0) {
-		synth_write_msg(blank_msg);
+		synth_printf("%s\n",blank_msg);
 		return;
 	}
 	for (i = 0; i < len; i++)
@@ -1140,7 +1140,7 @@ static void say_last_char(struct vc_data *vc)
 	u_char ch;
 	spk_parked |= 0x01;
 	if (len == 0) {
-		synth_write_msg(blank_msg);
+		synth_printf("%s\n",blank_msg);
 		return;
 	}
 	ch = buf[--len];
@@ -1389,7 +1389,7 @@ static void toggle_cursoring(struct vc_data *vc)
 		cursor_track = prev_cursor_track;
 	if (++cursor_track >= CT_Max)
 		cursor_track = 0;
-	synth_write_msg(cursor_msgs[cursor_track]);
+	synth_printf("%s\n",cursor_msgs[cursor_track]);
 }
 
 static void reset_default_chars(void)
@@ -1995,7 +1995,7 @@ static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	if (type != KT_LATIN || (ch_type&B_NUM) || ch < SPACE)
 		return -1;
 	if (ch == SPACE) {
-		synth_write_msg("edit done");
+		synth_printf("%s\n","edit done");
 		special_handler = NULL;
 		return 1;
 	}
@@ -2003,7 +2003,7 @@ static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		return -1;
 	spk_chartab[ch] ^= mask;
 	speak_char(ch);
-	synth_write_msg((spk_chartab[ch]&mask) ? " on" : " off");
+	synth_printf("%s\n",(spk_chartab[ch]&mask) ? " on" : " off");
 	return 1;
 }
 
@@ -2623,11 +2623,11 @@ speakup_win_set(struct vc_data *vc)
 {
 	char info[40];
 	if (win_start > 1) {
-		synth_write_msg("window already set, clear then reset");
+		synth_printf("%s\n","window already set, clear then reset");
 		return;
 	}
 	if (spk_x < win_left || spk_y < win_top) {
-		synth_write_msg("error end before start");
+		synth_printf("%s\n","error end before start");
 		return;
 	}
 	if (win_start && spk_x == win_left && spk_y == win_top) {
@@ -2648,7 +2648,7 @@ speakup_win_set(struct vc_data *vc)
 			(win_start) ? "end" : "start",
 			(int)spk_y+1, (int)spk_x+1);
 	}
-	synth_write_msg(info);
+	synth_printf("%s\n",info);
 	win_start++;
 }
 
@@ -2658,21 +2658,21 @@ speakup_win_clear(struct vc_data *vc)
 	win_top = win_bottom = 0;
 	win_left = win_right = 0;
 	win_start = 0;
-	synth_write_msg("window cleared");
+	synth_printf("%s\n","window cleared");
 }
 
 static void
 speakup_win_enable(struct vc_data *vc)
 {
 	if (win_start < 2) {
-		synth_write_msg("no window");
+		synth_printf("%s\n","no window");
 		return;
 	}
 	win_enabled ^= 1;
 	if (win_enabled)
-		synth_write_msg("window silenced");
+		synth_printf("%s\n","window silenced");
 	else
-		synth_write_msg("window silence disabled");
+		synth_printf("%s\n","window silence disabled");
 }
 
 static void
@@ -2680,7 +2680,7 @@ speakup_bits(struct vc_data *vc)
 {
 	int val = this_speakup_key - (FIRST_EDIT_BITS - 1);
 	if (special_handler != NULL || val < 1 || val > 6) {
-		synth_write_msg("error");
+		synth_printf("%s\n","error");
 		return;
 	}
 	pb_edit = &punc_info[val];
@@ -2723,7 +2723,7 @@ static int handle_goto(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	if (ch < 'x' || ch > 'y') {
 oops:
 		if (!spk_killed)
-			synth_write_msg(" goto canceled");
+			synth_printf("%s\n"," goto canceled");
 		goto_buf[num = 0] = '\0';
 		special_handler = NULL;
 		return 1;
@@ -2772,10 +2772,10 @@ static void
 speakup_goto(struct vc_data *vc)
 {
 	if (special_handler != NULL) {
-		synth_write_msg("error");
+		synth_printf("%s\n","error");
 		return;
 	}
-	synth_write_msg("go to?");
+	synth_printf("%s\n","go to?");
 	special_handler = handle_goto;
 	return;
 }
