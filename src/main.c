@@ -574,15 +574,15 @@ static void say_attributes(struct vc_data *vc)
 	int fg = spk_attr & 0x0f;
 	int bg = spk_attr >> 4;
 	if (fg > 8) {
-		synth_write_string("bright ");
+		synth_printf("%s","bright ");
 		fg -= 8;
 	}
-	synth_write_string(colors[fg]);
+	synth_printf("%s",colors[fg]);
 	if (bg > 7) {
-		synth_write_string(" on blinking ");
+		synth_printf("%s"," on blinking ");
 		bg -= 8;
 	} else
-		synth_write_string(" on ");
+		synth_printf("%s"," on ");
 	synth_printf("%s\n",colors[bg]);
 }
 
@@ -614,15 +614,15 @@ static void speak_char(u_char ch)
 	synth_buffer_add(SPACE);
 	if (IS_CHAR(ch, B_CAP)) {
 		pitch_shift++;
-		synth_write_string(str_caps_start);
-		synth_write_string(cp);
-		synth_write_string(str_caps_stop);
+		synth_printf("%s",str_caps_start);
+		synth_printf("%s",cp);
+		synth_printf("%s",str_caps_stop);
 	} else {
 		if (*cp == '^') {
-			synth_write_string(str_ctl);
+			synth_printf("%s",str_ctl);
 			cp++;
 		}
-		synth_write_string(cp);
+		synth_printf("%s",cp);
 	}
 	synth_buffer_add(SPACE);
 }
@@ -653,7 +653,7 @@ static void say_phonetic_char(struct vc_data *vc)
 		synth_printf("%s\n",phonetic[--ch]);
 	} else {
 		if (IS_CHAR(ch, B_NUM))
-			synth_write_string("number ");
+			synth_printf("%s","number ");
 		speak_char(ch);
 	}
 }
@@ -843,7 +843,7 @@ static void spell_word(struct vc_data *vc)
 		return;
 	while ((ch = (u_char) *cp)) {
 		if (cp != buf)
-			synth_write_string(delay_str[spell_delay]);
+			synth_printf("%s",delay_str[spell_delay]);
 		if (IS_CHAR(ch, B_CAP)) {
 			str_cap = str_caps_start;
 			if (*str_caps_stop)
@@ -853,7 +853,7 @@ static void spell_word(struct vc_data *vc)
 		} else
 			str_cap = str_caps_stop;
 		if (str_cap != last_cap) {
-			synth_write_string(str_cap);
+			synth_printf("%s",str_cap);
 			last_cap = str_cap;
 		}
 		if (this_speakup_key == SPELL_PHONETIC
@@ -863,15 +863,15 @@ static void spell_word(struct vc_data *vc)
 		} else {
 			cp1 = characters[ch];
 			if (*cp1 == '^') {
-				synth_write_string(str_ctl);
+				synth_printf("%s",str_ctl);
 				cp1++;
 			}
 		}
-		synth_write_string(cp1);
+		synth_printf("%s",cp1);
 		cp++;
 	}
 	if (str_cap != str_caps_stop)
-		synth_write_string(str_caps_stop);
+		synth_printf("%s",str_caps_stop);
 }
 
 static int get_line(struct vc_data *vc)
@@ -1298,7 +1298,7 @@ static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 		do_flush();
 	}
 	if (say_ctrl && value < NUM_CTL_LABELS)
-		synth_write_string(ctl_key_ids[value]);
+		synth_printf("%s",ctl_key_ids[value]);
 	spk_unlock(flags);
 }
 
@@ -2614,7 +2614,7 @@ inc_dec_var(u_char value)
 	}
 	snprintf(cp, sizeof(num_buf) - (cp - num_buf), " %d ",
 			(int)var_data->value);
-	synth_write_string(num_buf);
+	synth_printf("%s",num_buf);
 	return 0;
 }
 

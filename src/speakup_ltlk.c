@@ -208,7 +208,7 @@ static int synth_is_alive(void)
 	if (!synth_alive && wait_for_xmitr() > 0) {
 		/* restart */
 		synth_alive = 1;
-		synth_write_string(synth->init);
+		synth_printf("%s",synth->init);
 		return 2;
 	} else
 		pr_warn("%s: can't restart synth\n", synth->long_name);

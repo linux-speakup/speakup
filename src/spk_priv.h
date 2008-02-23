@@ -281,7 +281,6 @@ void synth_buffer_add(char ch);
 void synth_write(const char *buf, size_t count);
 void synth_putc(char buf);
 void synth_printf(const char *buf, ...);
-void synth_write_string(const char *buf);
 int synth_supports_indexing(void);
 int speakup_dev_init(char *);
 

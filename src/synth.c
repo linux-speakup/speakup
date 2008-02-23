@@ -298,7 +298,7 @@ void do_flush(void)
 		if (synth->flush_wait)
 			synth_delay((synth->flush_wait * HZ) / 1000);
 		if (pitch_shift) {
-			synth_write_string(pitch_buff);
+			synth_printf("%s",pitch_buff);
 			pitch_shift = 0;
 		}
 	}
@@ -354,15 +354,6 @@ synth_printf(const char *fmt, ...)
 	synth_start();
 }
 EXPORT_SYMBOL_GPL(synth_printf);
-
-void
-synth_write_string(const char *buf)
-{
-	while (*buf)
-		synth_buffer_add(*buf++);
-	synth_start();
-}
-EXPORT_SYMBOL_GPL(synth_write_string);
 
 static int index_count = 0;
 static int sentence_count = 0;
@@ -466,7 +457,7 @@ static int spk_direct_write_proc(struct file *file, const char *buffer,
 			return -EFAULT;
 		buf[bytes] = '\0';
 		xlate(buf);
-		synth_write_string(buf);
+		synth_printf("%s",buf);
 		ptr += bytes;
 		count -= bytes;
 	}
@@ -551,7 +542,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	for (n_var = synth_time_vars; n_var->var_id >= 0; n_var++)
 		speakup_register_var(n_var);
 	synth_alive = 1;
-	synth_write_string(synth->init);
+	synth_printf("%s",synth->init);
 	for (s_var = synth->string_vars; s_var->var_id >= 0; s_var++)
 		speakup_register_var((struct st_num_var *) s_var);
 	for (n_var = synth->num_vars; n_var->var_id >= 0; n_var++)
@@ -756,7 +747,7 @@ int set_num_var(short input, struct st_var_header *var, int how)
 		l = sprintf(cp, var_data->synth_fmt, (int)val);
 	else
 		l = sprintf(cp, var_data->synth_fmt, var_data->out_str[val]);
-	synth_write_string(cp);
+	synth_printf("%s",cp);
 	return ret;
 }
 

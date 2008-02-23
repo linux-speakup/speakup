@@ -196,7 +196,7 @@ static void say_key(int key)
 	key &= 0xff;
 	for (i = 0; i < 6; i++) {
 		if (state & masks[i])
-			synth_write_string(statenames[i]);
+			synth_printf("%s",statenames[i]);
 	}
 	synth_printf(" %s\n", keynames[--key]);
 }
@@ -274,7 +274,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	}
 	name = funcnames[cur_item];
 	func = funcvals[cur_item];
-	synth_write_string(name);
+	synth_printf("%s",name);
 	if (key_offsets[func] == 0) {
 		synth_printf("%s\n"," is unassigned");
 		return 1;
@@ -283,7 +283,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
 		if (n > 0)
-			synth_write_string("or ");
+			synth_printf("%s","or ");
 		say_key(val);
 	}
 	return 1;
