@@ -29,14 +29,14 @@ if [ ! -e ${KDIR}/MAINTAINERS ]; then
 	die "${KDIR} is not a kernel dir"
 fi
 
-SPEAKUP_INSTALLED=0
+SPEAKUP_INSTALLED=1
 for FILE in $PATCHFILES; do
 	if [ ! -f ${KDIR}${FILE}.orig ]; then
-		SPEAKUP_INSTALLED=1
+		SPEAKUP_INSTALLED=0
 	fi
 done
 
-if [ ${SPEAKUP_INSTALLED} ]; then
+if [ ${SPEAKUP_INSTALLED} -eq 1 ]; then
 	echo Re-installing speakup to ${KDIR}
 	for FILE in $PATCHFILES; do
 		mv -f ${KDIR}${FILE}.orig ${KDIR}${FILE}
