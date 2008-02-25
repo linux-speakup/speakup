@@ -203,7 +203,7 @@ static int serprobe(int index)
 {
 	struct serial_state *ser = spk_serial_init(index);
 	/*u_char test, timeout = 10000; */
-	int timeout = 1000000;
+	int test=0, timeout = 1000000;
 	if (ser == NULL)
 		return -1;
 	outb(0x0d, ser->port);
