@@ -29,7 +29,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dectlk
-#define DRV_VERSION "1.4"
+#define DRV_VERSION "1.5"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(synth_port_tts) == 0x13)
@@ -210,22 +210,14 @@ static int serprobe(int index)
 	/* ignore any error results, if port was forced */
 	if (synth_port_forced)
 		return 0;
-	/* check for dectalk express now... */
 
-	atomic_set(&dectest, 5);
-	if (!synth_immediate("\x03")) {
-		/*do {
+	/* check for dectalk express now... */
+	if (!synth_immediate("\x03\x03")) {
+		do {
 			test = spk_serial_in();
 			if (test == 0x01)
 				return 0;
-		} while (--timeout > 0);*/
-
-		do {
-			if (atomic_read(&dectest) == 0)
-				return 0;
-			outb('a', 0x80); /* Sleep about a microsecond */
 		} while (--timeout > 0);
-
 	}
 	spk_serial_release();
 	timeouts = synth_alive = synth_port_tts = 0;	/* not ignoring */
@@ -266,7 +258,7 @@ synth_is_alive(void)
 	return 0;
 }
 
-static const char init_string[] = "[:pe -380][:dv ap 100][:error sp]";
+static const char init_string[] = "[:dv ap 100][:error sp]";
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[:dv ap 200]" },
