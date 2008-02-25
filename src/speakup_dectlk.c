@@ -79,8 +79,7 @@ static int spk_serial_out(const char ch)
 	return 0;
 }
 
-/*static u_char
-spk_serial_in(void)
+static u_char spk_serial_in(void)
 {
 	int c = 0;
 
@@ -88,7 +87,7 @@ spk_serial_in(void)
 		c = inb_p(synth_port_tts+UART_RX);
 	}
 	return (u_char) c;
-}*/
+}
 
 static int is_indnum(u_char *ch)
 {
