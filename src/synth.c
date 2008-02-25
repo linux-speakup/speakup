@@ -21,6 +21,7 @@
 #endif
 
 #include "spk_priv.h"
+#include "speakup.h"
 #include "serialio.h"
 
 static struct serial_state rs_table[] = {
