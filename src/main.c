@@ -2961,6 +2961,8 @@ static int keyboard_notifier_call(struct notifier_block *nb,
 	int ret = NOTIFY_OK;
 	static int keycode; /* to hold the current keycode */
 
+	if (vc->vc_mode == KD_GRAPHICS)
+		return ret;
 	switch (code) {
 	case KBD_KEYCODE:
 		/* speakup requires keycode and keysym currently */
@@ -3010,7 +3012,8 @@ static int vt_notifier_call(struct notifier_block *nb,
 	struct vc_data *vc = param->vc;
 	switch (code) {
 	case VT_ALLOCATE:
-		speakup_allocate(vc);
+		if (vc->vc_mode == KD_TEXT)
+			speakup_allocate(vc);
 		break;
 	case VT_DEALLOCATE:
 		speakup_deallocate(vc);
