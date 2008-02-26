@@ -15,6 +15,7 @@ config SPEAKUP
 		If you are not sure you need this, say n.
 
 config SPEAKUP_CORE
+	depends on VT
 	depends on SPEAKUP
 	tristate "Speakup engine"
 	---help---
