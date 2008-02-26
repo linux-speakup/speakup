@@ -45,6 +45,6 @@ fi
 
 apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
 
-cp -Ru ${SPKDIR}/src ${KDIR}/drivers/char/speakup
-cp -Ru ${SPKDIR}/doc ${KDIR}/Documentation/speakup
+cp -Ru ${SPKDIR}/src/* ${KDIR}/drivers/char/speakup
+cp -Ru ${SPKDIR}/doc/* ${KDIR}/Documentation/speakup
 echo "speakup has been installed  to ${KDIR}"
