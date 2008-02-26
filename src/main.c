@@ -59,7 +59,7 @@
 
 #define inverse_translate(vc, c) inverse_translate(vc, c, 0)
 
-#define SPEAKUP_VERSION "3.0.0"
+#define SPEAKUP_VERSION "3.0.1"
 #define MAX_DELAY ((500 * HZ) / 1000)
 #define KEY_MAP_VER 119
 #define MINECHOCHAR SPACE
