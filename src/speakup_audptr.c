@@ -28,11 +28,39 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_audptr
-#define DRV_VERSION "1.2"
+#define DRV_VERSION "1.3"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
+static int synth_probe(void);
+static const char *synth_immediate(const char *buf);
+static void do_catch_up(unsigned long data);
+static void synth_flush(void);
+static int synth_is_alive(void);
+
 static int timeouts;	/* sequential number of timeouts */
+static const char init_string[] = "\x05[D1]\x05[Ol]";
+
+static struct st_string_var stringvars[] = {
+	{ CAPS_START, "\x05[f99]" },
+	{ CAPS_STOP, "\x05[f80]" },
+	V_LAST_STRING
+};
+static struct st_num_var numvars[] = {
+	{ RATE, "\x05[r%d]", 10, 0, 20, -100, 10, 0 },
+	{ PITCH, "\x05[f%d]", 80, 39, 4500, 0, 0, 0 },
+	{ VOL, "\x05[g%d]", 21, 0, 40, 0, 0, 0 },
+	{ TONE, "\x05[s%d]", 9, 0, 63, 0, 0, 0 },
+	{ PUNCT, "\x05[A%c]", 0, 0, 3, 0, 0, "nmsa" },
+	V_LAST_NUM
+};
+
+struct spk_synth synth_audptr = {"audptr", DRV_VERSION, "Audapter",
+	 init_string, 400, 5, 30, 5000, 0, 0, SYNTH_CHECK,
+	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
+	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
+	{NULL, 0, 0, 0} };
+
 
 static int wait_for_xmitr(void)
 {
@@ -46,7 +74,7 @@ static int wait_for_xmitr(void)
 		/* holding register empty? */
 		check = inb(synth_port_tts + UART_LSR);
 		if (--tmout == 0) {
-			pr_warn("%s: timed out\n", synth->long_name);
+			pr_warn("%s: timed out\n", MY_SYNTH.long_name);
 			timeouts++;
 			return 0;
 		}
@@ -161,20 +189,20 @@ static int serprobe(int index)
 static int synth_probe(void)
 {
 	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", synth->long_name);
+	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
 	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
 		failed = serprobe(i);
 		if (failed == 0)
 			break; /* found it */
 	}
 	if (failed) {
-		pr_info("%s: not found\n", synth->long_name);
+		pr_info("%s: not found\n", MY_SYNTH.long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, Driver %s,\n", synth->long_name,
-	 synth_port_tts, synth_port_tts + 7, synth->version);
+	pr_info("%s: %03x-%03x, Driver %s,\n", MY_SYNTH.long_name,
+	 synth_port_tts, synth_port_tts + 7, MY_SYNTH.version);
 	if (synth_id[0] == 'A')
-		pr_info("%s version: %s", synth->long_name, synth_id);
+		pr_info("%s version: %s", MY_SYNTH.long_name, synth_id);
 		return 0;
 }
 
@@ -185,33 +213,11 @@ static int synth_is_alive(void)
 	if (!synth_alive && wait_for_xmitr() > 0) {
 		/* restart */
 		synth_alive = 1;
-		synth_printf("%s",synth->init);
+		synth_printf("%s",MY_SYNTH.init);
 		return 2;
 	}
 	return 0;
 }
-
-static const char init_string[] = "\x05[D1]\x05[Ol]";
-
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\x05[f99]" },
-	{ CAPS_STOP, "\x05[f80]" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\x05[r%d]", 10, 0, 20, -100, 10, 0 },
-	{ PITCH, "\x05[f%d]", 80, 39, 4500, 0, 0, 0 },
-	{ VOL, "\x05[g%d]", 21, 0, 40, 0, 0, 0 },
-	{ TONE, "\x05[s%d]", 9, 0, 63, 0, 0, 0 },
-	{ PUNCT, "\x05[A%c]", 0, 0, 3, 0, 0, "nmsa" },
-	V_LAST_NUM
-};
-
-struct spk_synth synth_audptr = {"audptr", DRV_VERSION, "Audapter",
-	 init_string, 400, 5, 30, 5000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL, 0, 0, 0} };
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 

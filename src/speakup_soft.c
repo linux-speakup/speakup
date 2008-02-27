@@ -27,15 +27,46 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_soft
-#define DRV_VERSION "0.5"
+#define DRV_VERSION "0.6"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
+
+static int softsynth_probe(void);
+static void softsynth_release(void);
+static void softsynth_start(void);
+static void softsynth_flush(void);
+static int softsynth_is_alive(void);
+static unsigned char get_index(void);
 
 static struct miscdevice synth_device;
 static int misc_registered;
 static int dev_opened;
 DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
+
+static const char init_string[] = "\01@\x01\x31y\n";
+
+static struct st_string_var stringvars[] = {
+	{ CAPS_START, "\x01+3p" },
+	{ CAPS_STOP, "\x01-3p" },
+	V_LAST_STRING
+};
+static struct st_num_var numvars[] = {
+	{ RATE, "\x01%ds", 5, 0, 9, 0, 0, 0 },
+	{ PITCH, "\x01%dp", 5, 0, 9, 0, 0, 0 },
+	{ VOL, "\x01%dv", 5, 0, 9, 0, 0, 0 },
+	{ TONE, "\x01%dx", 1, 0, 2, 0, 0, 0 },
+	{ PUNCT, "\x01%db", 7, 0, 15, 0, 0, 0 },
+	{ VOICE, "\x01%do", 0, 0, 7, 0, 0, 0 },
+	{ FREQ, "\x01%df", 5, 0, 9, 0, 0, 0 },
+	V_LAST_NUM
+};
+
+struct spk_synth synth_soft = { "soft", DRV_VERSION, "software synth",
+	init_string, 0, 0, 0, 0, 0, 0, SYNTH_CHECK,
+	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
+	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
+	get_index, {"\x01%di", 1, 5, 1} };
 
 
 static int softsynth_open(struct inode *inode, struct file *fp)
@@ -190,30 +221,6 @@ softsynth_is_alive(void)
 		return 1;
 	return 0;
 }
-
-static const char init_string[] = "\01@\x01\x31y\n";
-
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\x01+3p" },
-	{ CAPS_STOP, "\x01-3p" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\x01%ds", 5, 0, 9, 0, 0, 0 },
-	{ PITCH, "\x01%dp", 5, 0, 9, 0, 0, 0 },
-	{ VOL, "\x01%dv", 5, 0, 9, 0, 0, 0 },
-	{ TONE, "\x01%dx", 1, 0, 2, 0, 0, 0 },
-	{ PUNCT, "\x01%db", 7, 0, 15, 0, 0, 0 },
-	{ VOICE, "\x01%do", 0, 0, 7, 0, 0, 0 },
-	{ FREQ, "\x01%df", 5, 0, 9, 0, 0, 0 },
-	V_LAST_NUM
-};
-
-struct spk_synth synth_soft = { "soft", DRV_VERSION, "software synth",
-	init_string, 0, 0, 0, 0, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
-	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
-	get_index, {"\x01%di", 1, 5, 1} };
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 

@@ -131,13 +131,42 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync_char		0x07
 
 #define MY_SYNTH synth_dec_pc
-#define DRV_VERSION "1.2"
+#define DRV_VERSION "1.3"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
+
+static int synth_probe(void);
+static void dtpc_release(void);
+static const char *synth_immediate(const char *buf);
+static void do_catch_up(unsigned long data);
+static void synth_flush(void);
+static int synth_is_alive(void);
 
 static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
 static int in_escape, is_flushing;
 static int dt_stat, dma_state;
+static const char init_string[] = "[:pe -380]";
+
+static struct st_string_var stringvars[] = {
+	{ CAPS_START, "[:dv ap 200]" },
+	{ CAPS_STOP, "[:dv ap 100]" },
+	V_LAST_STRING
+};
+static struct st_num_var numvars[] = {
+	{ RATE, "[:ra %d]", 9, 0, 18, 150, 25, 0 },
+	{ PITCH, "[:dv ap %d]", 80, 0, 100, 20, 0, 0 },
+	{ VOL, "[:vo se %d]", 5, 0, 9, 5, 10, 0 },
+	{ PUNCT, "[:pu %c]", 0, 0, 2, 0, 0, "nsa" },
+	{ VOICE, "[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" },
+	V_LAST_NUM
+};
+
+struct spk_synth synth_dec_pc = { "decpc", DRV_VERSION, "Dectalk PC",
+	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
+	stringvars, numvars, synth_probe, dtpc_release, synth_immediate,
+	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
+	{NULL, 0, 0, 0} };
+
 
 static int dt_getstatus(void)
 {
@@ -309,7 +338,7 @@ static const char *synth_immediate(const char *buf)
 static int synth_probe(void)
 {
 	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", synth->long_name);
+	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
 	for (i = 0; synth_portlist[i]; i++) {
 		if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
 			pr_warn("request_region: failed with 0x%x, %d\n",
@@ -322,11 +351,11 @@ static int synth_probe(void)
 			break;
 	}
 	if (failed) {
-		pr_info("%s: not found\n", synth->long_name);
+		pr_info("%s: not found\n", MY_SYNTH.long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
-		synth_port_tts, synth_port_tts + 7, synth->version);
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
+		synth_port_tts, synth_port_tts + 7, MY_SYNTH.version);
 	return 0;
 }
 
@@ -342,28 +371,6 @@ static int synth_is_alive(void)
 	synth_alive = 1;
 	return 1;
 }
-
-static const char init_string[] = "[:pe -380]";
-
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "[:dv ap 200]" },
-	{ CAPS_STOP, "[:dv ap 100]" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "[:ra %d]", 9, 0, 18, 150, 25, 0 },
-	{ PITCH, "[:dv ap %d]", 80, 0, 100, 20, 0, 0 },
-	{ VOL, "[:vo se %d]", 5, 0, 9, 5, 10, 0 },
-	{ PUNCT, "[:pu %c]", 0, 0, 2, 0, 0, "nsa" },
-	{ VOICE, "[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" },
-	V_LAST_NUM
-};
-
-struct spk_synth synth_dec_pc = { "decpc", DRV_VERSION, "Dectalk PC",
-	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, dtpc_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL, 0, 0, 0} };
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 

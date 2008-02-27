@@ -64,6 +64,7 @@ extern declare_sleeper(synth_sleeping_list);
 
 /* Protect speakup synthesizer list */
 extern struct mutex spk_mutex;
+extern struct spk_synth *synth;
 extern struct st_proc_var spk_proc_vars[];
 extern u_char *our_keys[];
 extern char str_caps_start[], str_caps_stop[];

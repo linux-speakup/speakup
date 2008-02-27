@@ -70,7 +70,6 @@ extern spinlock_t spk_spinlock;
 #define spk_unlock(flags) do { (void) flags; preempt_enable(); } while (0)
 #endif
 
-extern struct spk_synth *synth;
 extern short synth_jiffy_delta, synth_delay_time;
 extern short synth_full_time;
 extern int synth_alive;

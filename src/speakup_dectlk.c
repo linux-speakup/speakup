@@ -29,14 +29,44 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dectlk
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(synth_port_tts) == 0x13)
 
+static int synth_probe(void);
+static const char *synth_immediate(const char *buf);
+static void do_catch_up(unsigned long data);
+static void synth_flush(void);
+static int synth_is_alive(void);
+void read_buff_add(u_char c);
+static unsigned char get_index(void);
+
 static int timeouts;
 static int in_escape, is_flushing;
 atomic_t dectest = ATOMIC_INIT(0);
+static const char init_string[] = "[:dv ap 100][:error sp]";
+
+static struct st_string_var stringvars[] = {
+	{ CAPS_START, "[:dv ap 200]" },
+	{ CAPS_STOP, "[:dv ap 100]" },
+	V_LAST_STRING
+};
+static struct st_num_var numvars[] = {
+	{ RATE, "[:ra %d]", 9, 0, 18, 150, 25, 0 },
+	{ PITCH, "[:dv ap %d]", 80, 0, 200, 20, 0, 0 },
+	{ VOL, "[:dv gv %d]", 13, 0, 14, 0, 5, 0 },
+	{ PUNCT, "[:pu %c]", 0, 0, 2, 0, 0, "nsa" },
+	{ VOICE, "[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" },
+	V_LAST_NUM
+};
+
+struct spk_synth synth_dectlk = { "dectlk", DRV_VERSION, "Dectalk Express",
+	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
+	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
+	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, read_buff_add,
+	get_index, {"[:in re %d] ", 1, 8, 1} };
+
 
 static int wait_for_xmitr(void)
 {
@@ -50,7 +80,7 @@ static int wait_for_xmitr(void)
 		/* holding register empty? */
 		check = inb_p(synth_port_tts + UART_LSR);
 		if (--tmout == 0) {
-			pr_warn("%s: timed out\n", synth->long_name);
+			pr_warn("%s: timed out\n", MY_SYNTH.long_name);
 			timeouts++;
 			return 0;
 		}
@@ -97,8 +127,6 @@ static int is_indnum(u_char *ch)
 	}
 	return 0;
 }
-
-static const char *synth_immediate(const char *);
 
 static u_char lastind = 0;
 
@@ -226,7 +254,7 @@ static int serprobe(int index)
 static int synth_probe(void)
 {
 	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", synth->long_name);
+	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
 	/* check ttyS0-ttyS3 */
 	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
 		failed = serprobe(i);
@@ -234,11 +262,11 @@ static int synth_probe(void)
 			break; /* found it */
 	}
 	if (failed) {
-		pr_info("%s: not found\n", synth->long_name);
+		pr_info("%s: not found\n", MY_SYNTH.long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
-		synth_port_tts, synth_port_tts + 7, synth->version);
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
+		synth_port_tts, synth_port_tts + 7, MY_SYNTH.version);
 	return 0;
 }
 
@@ -250,34 +278,12 @@ synth_is_alive(void)
 	if (!synth_alive && wait_for_xmitr() > 0) {
 		/* restart */
 		synth_alive = 1;
-		synth_printf("%s",synth->init);
+		synth_printf("%s",MY_SYNTH.init);
 		return 2;
 	} else
-		pr_warn("%s: can't restart synth\n", synth->long_name);
+		pr_warn("%s: can't restart synth\n", MY_SYNTH.long_name);
 	return 0;
 }
-
-static const char init_string[] = "[:dv ap 100][:error sp]";
-
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "[:dv ap 200]" },
-	{ CAPS_STOP, "[:dv ap 100]" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "[:ra %d]", 9, 0, 18, 150, 25, 0 },
-	{ PITCH, "[:dv ap %d]", 80, 0, 200, 20, 0, 0 },
-	{ VOL, "[:dv gv %d]", 13, 0, 14, 0, 5, 0 },
-	{ PUNCT, "[:pu %c]", 0, 0, 2, 0, 0, "nsa" },
-	{ VOICE, "[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" },
-	V_LAST_NUM
-};
-
-struct spk_synth synth_dectlk = { "dectlk", DRV_VERSION, "Dectalk Express",
-	init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, read_buff_add,
-	get_index, {"[:in re %d] ", 1, 8, 1} };
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 

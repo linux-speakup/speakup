@@ -33,7 +33,6 @@ static struct serial_state rs_table[] = {
 #define MAXSYNTHS       16      /* Max number of synths in array. */
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
-EXPORT_SYMBOL_GPL(synth);
 int synth_port_tts;
 EXPORT_SYMBOL_GPL(synth_port_tts);
 int synth_port_forced;

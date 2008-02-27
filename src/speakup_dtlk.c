@@ -29,15 +29,47 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
 #define MY_SYNTH synth_dtlk
-#define DRV_VERSION "1.2"
+#define DRV_VERSION "1.3"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(synth_port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(synth_port_tts)) & TTS_ALMOST_FULL)
+
+static int synth_probe(void);
+static void dtlk_release(void);
+static const char *synth_immediate(const char *buf);
+static void do_catch_up(unsigned long data);
+static void synth_flush(void);
+static int synth_is_alive(void);
+static unsigned char get_index(void);
 
 static int synth_lpc;
 static unsigned int synth_portlist[] =
 		{ 0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0 };
 static u_char synth_status;
+
+static const char init_string[] = "\x01@\x01\x31y";
+
+static struct st_string_var stringvars[] = {
+	{ CAPS_START, "\x01+35p" },
+	{ CAPS_STOP, "\x01-35p" },
+	V_LAST_STRING
+};
+static struct st_num_var numvars[] = {
+	{ RATE, "\x01%ds", 8, 0, 9, 0, 0, 0 },
+	{ PITCH, "\x01%dp", 50, 0, 99, 0, 0, 0 },
+	{ VOL, "\x01%dv", 5, 0, 9, 0, 0, 0 },
+	{ TONE, "\x01%dx", 1, 0, 2, 0, 0, 0 },
+	{ PUNCT, "\x01%db", 7, 0, 15, 0, 0, 0 },
+	{ VOICE, "\x01%do", 0, 0, 7, 0, 0, 0 },
+	{ FREQ, "\x01%df", 5, 0, 9, 0, 0, 0 },
+	V_LAST_NUM
+};
+
+struct spk_synth synth_dtlk = {"dtlk", DRV_VERSION, "DoubleTalk PC",
+	init_string, 500, 30, 50, 1000, 0, 0, SYNTH_CHECK,
+	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
+	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
+	{"\x01%di", 1, 5, 1} };
 
 static void spk_out(const char ch)
 {
@@ -197,8 +229,8 @@ static int synth_probe(void)
 	while (inw_p(synth_lpc) != 0x147f); /* wait until it's ready */
 	sp = synth_interrogate();
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
-		synth->long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
-	 sp->rom_version, sp->serial_number, synth->version);
+		MY_SYNTH.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
+	 sp->rom_version, sp->serial_number, MY_SYNTH.version);
 	/*	synth_alive = 1; */
 	return 0;
 }
@@ -215,30 +247,6 @@ dtlk_release(void)
 		synth_release_region(synth_port_tts-1, SYNTH_IO_EXTENT);
 	synth_port_tts = 0;
 }
-
-static const char init_string[] = "\x01@\x01\x31y";
-
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\x01+35p" },
-	{ CAPS_STOP, "\x01-35p" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\x01%ds", 8, 0, 9, 0, 0, 0 },
-	{ PITCH, "\x01%dp", 50, 0, 99, 0, 0, 0 },
-	{ VOL, "\x01%dv", 5, 0, 9, 0, 0, 0 },
-	{ TONE, "\x01%dx", 1, 0, 2, 0, 0, 0 },
-	{ PUNCT, "\x01%db", 7, 0, 15, 0, 0, 0 },
-	{ VOICE, "\x01%do", 0, 0, 7, 0, 0, 0 },
-	{ FREQ, "\x01%df", 5, 0, 9, 0, 0, 0 },
-	V_LAST_NUM
-};
-
-struct spk_synth synth_dtlk = {"dtlk", DRV_VERSION, "DoubleTalk PC",
-	init_string, 500, 30, 50, 1000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
-	{"\x01%di", 1, 5, 1} };
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 

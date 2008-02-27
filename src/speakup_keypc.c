@@ -25,7 +25,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_keypc
-#define DRV_VERSION "1.2"
+#define DRV_VERSION "1.3"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -34,8 +34,34 @@
 #define PROCSPEECH 0x1f
 #define SYNTH_CLEAR 0x03
 
+static int synth_probe(void);
+static void keynote_release(void);
+static const char *synth_immediate(const char *buf);
+static void do_catch_up(unsigned long data);
+static void synth_flush(void);
+static int synth_is_alive(void);
+
 static int synth_port;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
+static const char init_string[] = "[t][n7,1][n8,0]";
+
+static struct st_string_var stringvars[] = {
+	{ CAPS_START, "[f130]" },
+	{ CAPS_STOP, "[f90]" },
+	V_LAST_STRING
+};
+static struct st_num_var numvars[] = {
+	{ RATE, "\04%c ", 8, 0, 10, 81, -8, 0 },
+	{ PITCH, "[f%d]", 5, 0, 9, 40, 10, 0 },
+	V_LAST_NUM
+};
+
+struct spk_synth synth_keypc = {"keypc", DRV_VERSION, "Keynote PC",
+	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
+	stringvars, numvars, synth_probe, keynote_release, synth_immediate,
+	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
+	{NULL, 0, 0, 0} };
+
 
 static int
 oops(void)
@@ -127,7 +153,7 @@ static int synth_probe(void)
 {
 	unsigned int port_val = 0;
 	int i = 0;
-	pr_info("Probing for %s.\n", synth->long_name);
+	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
 	if (synth_port_forced) {
 		synth_port = synth_port_forced;
 		pr_info("probe forced to %x by kernel command line\n", synth_port);
@@ -152,14 +178,14 @@ static int synth_probe(void)
 		}
 	}
 	if (port_val != 0x80) {
-		pr_info("%s: not found\n", synth->long_name);
+		pr_info("%s: not found\n", MY_SYNTH.long_name);
 		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port = 0;
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, driver version %s,\n", synth->long_name,
+	pr_info("%s: %03x-%03x, driver version %s,\n", MY_SYNTH.long_name,
 		synth_port, synth_port+SYNTH_IO_EXTENT-1,
-		synth->version);
+		MY_SYNTH.version);
 	return 0;
 }
 
@@ -175,25 +201,6 @@ static int synth_is_alive(void)
 	synth_alive = 1;
 	return 1;
 }
-
-static const char init_string[] = "[t][n7,1][n8,0]";
-
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "[f130]" },
-	{ CAPS_STOP, "[f90]" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\04%c ", 8, 0, 10, 81, -8, 0 },
-	{ PITCH, "[f%d]", 5, 0, 9, 40, 10, 0 },
-	V_LAST_NUM
-};
-
-struct spk_synth synth_keypc = {"keypc", DRV_VERSION, "Keynote PC",
-	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, keynote_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL, 0, 0, 0} };
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
