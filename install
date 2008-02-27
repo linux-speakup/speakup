@@ -41,10 +41,13 @@ if [ ${SPEAKUP_INSTALLED} -eq 1 ]; then
 	for FILE in $PATCHFILES; do
 		mv -f ${KDIR}${FILE}.orig ${KDIR}${FILE}
 	done
+	apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
+	cp -Ru ${SPKDIR}/src/* ${KDIR}/drivers/char/speakup
+	cp -Ru ${SPKDIR}/doc/* ${KDIR}/Documentation/speakup
+	echo "speakup has been updated in ${KDIR}"
+else
+	apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
+	cp -R ${SPKDIR}/src ${KDIR}/drivers/char/speakup
+	cp -R ${SPKDIR}/doc ${KDIR}/Documentation/speakup
+	echo "speakup has been installed to ${KDIR}"
 fi
-
-apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
-
-cp -Ru ${SPKDIR}/src/* ${KDIR}/drivers/char/speakup
-cp -Ru ${SPKDIR}/doc/* ${KDIR}/Documentation/speakup
-echo "speakup has been installed  to ${KDIR}"
