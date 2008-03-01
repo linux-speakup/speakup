@@ -43,7 +43,6 @@ extern void spk_serial_release(void);
 extern void synth_delay(int ms);
 extern void synth_stop_timer(void);
 extern int synth_done(void);
-extern void synth_putc(char buf);
 extern void synth_printf(const char *buf, ...);
 extern int synth_request_region(u_long, u_long);
 extern int synth_release_region(u_long, u_long);

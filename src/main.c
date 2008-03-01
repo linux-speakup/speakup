@@ -1222,7 +1222,7 @@ static void spkup_write(const char *in_buf, int count)
 		} else if (char_type & B_ALPHA) {
 			if ((synth_flags & SF_DEC) && (last_type & PUNC))
 				synth_buffer_add(SPACE);
-			synth_putc(ch);
+			synth_printf("%c",ch);
 		} else if (char_type & B_NUM) {
 			rep_count = 0;
 			if ((last_type & B_EXNUM) &&
@@ -1231,7 +1231,7 @@ static void spkup_write(const char *in_buf, int count)
 				synth_buffer_add(old_ch);
 				exn_ptr = NULL;
 			}
-			synth_putc(ch);
+			synth_printf("%c",ch);
 		} else if (char_type&punc_mask) {
 			speak_char(ch);
 			char_type &= ~PUNC; /* for dec nospell processing */
@@ -1240,7 +1240,7 @@ static void spkup_write(const char *in_buf, int count)
  * suppress multiple to get rid of long pausesand clear repeat count so if
  *someone has repeats on you don't get nothing repeated count */
 			if (ch != old_ch)
-				synth_putc(ch);
+				synth_printf("%c",ch);
 			else
 				rep_count = 0;
 		} else {

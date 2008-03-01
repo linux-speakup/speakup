@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_soft
-#define DRV_VERSION "0.6"
+#define DRV_VERSION "0.7"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -160,7 +160,7 @@ static unsigned int softsynth_poll(struct file *fp,
 static void
 softsynth_flush(void)
 {
-	synth_putc('\x18');
+	synth_printf("%c",'\x18');
 }
 
 static unsigned char get_index(void)

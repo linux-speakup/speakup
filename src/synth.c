@@ -328,14 +328,6 @@ synth_write(const char *buf, size_t count)
 }
 
 void
-synth_putc(char ch)
-{
-	synth_buffer_add(ch);
-	synth_start();
-}
-EXPORT_SYMBOL_GPL(synth_putc);
-
-void
 synth_printf(const char *fmt, ...)
 {
 	va_list args;
