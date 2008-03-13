@@ -13,7 +13,7 @@ When switching between consoles with the alt-function keys or
 alt-left/right arrows speakup is not getting updated to the new
 screens cursor position.  I am not sure how long this has been an
 issue but I know it is a problem in my 2.6.19.1 system so it's been
-around for a while.  This should be fixed in 2.6.25 (since -rc4).
+around for a while.  This should be fixed in 2.6.24.4 and 2.6.25 (since -rc4).
 
 Speakup's Key Echo does not always raise the pitch when upper case characters
 are typed.
