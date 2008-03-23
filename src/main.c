@@ -83,6 +83,7 @@ module_param_named(port, param_port, int, S_IRUGO);
 
 /* these are globals from the kernel code */
 extern short punc_masks[];
+extern struct speakup_info_t speakup_info;
 
 special_func special_handler;
 
@@ -1226,8 +1227,8 @@ static void spkup_write(const char *in_buf, int count)
 		} else if (char_type & B_NUM) {
 			rep_count = 0;
 			if ((last_type & B_EXNUM) &&
-					synth_buff_in == exn_ptr+1) {
-				synth_buff_in--;
+					speakup_info.synth_buff_in == exn_ptr+1) {
+				speakup_info.synth_buff_in--;
 				synth_buffer_add(old_ch);
 				exn_ptr = NULL;
 			}
@@ -1245,7 +1246,7 @@ static void spkup_write(const char *in_buf, int count)
 				rep_count = 0;
 		} else {
 			if (char_type&B_EXNUM)
-					exn_ptr = (u_char *)synth_buff_in;
+					exn_ptr = (u_char *)speakup_info.synth_buff_in;
 /* send space and record position, if next is num overwrite space */
 			if (old_ch != ch)
 				synth_buffer_add(SPACE);
@@ -1424,9 +1425,9 @@ static void __init speakup_open(struct vc_data *vc,
 	const int ser_lookup[] = { 0x3f8, 0x2f8, 0x3e8, 0x2e8 };
 
 	if (param_ser > 0 && param_ser <= ARRAY_SIZE(ser_lookup))
-		synth_port_forced = ser_lookup[param_ser - 1];
+		speakup_info.synth_port_forced = ser_lookup[param_ser - 1];
 	if (param_port)
-		synth_port_forced = param_port;
+		speakup_info.synth_port_forced = param_port;
 
 	reset_default_chars();
 	reset_default_chartab();

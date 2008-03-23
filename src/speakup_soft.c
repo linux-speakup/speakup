@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_soft
-#define DRV_VERSION "0.7"
+#define DRV_VERSION "0.8"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -67,6 +67,7 @@ struct spk_synth synth_soft = { "soft", DRV_VERSION, "software synth",
 	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
 	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
 	get_index, {"\x01%di", 1, 5, 1} };
+struct speakup_info_t *speakup_info;
 
 
 static int softsynth_open(struct inode *inode, struct file *fp)
@@ -94,7 +95,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	DEFINE_WAIT(wait);
 
 	spk_lock(flags);
-	while (synth_buff_in == synth_buff_out) {
+	while (speakup_info->synth_buff_in == speakup_info->synth_buff_out) {
 		prepare_to_wait(&wait_on_output, &wait, TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (fp->f_flags & O_NONBLOCK) {
@@ -110,15 +111,15 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	}
 	finish_wait(&wait_on_output, &wait);
 
-	chars_sent = (count > synth_buff_in-synth_buff_out)
-		? synth_buff_in-synth_buff_out : count;
-	if (copy_to_user(buf, (char *) synth_buff_out, chars_sent)) {
+	chars_sent = (count > speakup_info->synth_buff_in-speakup_info->synth_buff_out)
+		? speakup_info->synth_buff_in-speakup_info->synth_buff_out : count;
+	if (copy_to_user(buf, (char *) speakup_info->synth_buff_out, chars_sent)) {
 		spk_unlock(flags);
 		return -EFAULT;
 	}
-	synth_buff_out += chars_sent;
+	speakup_info->synth_buff_out += chars_sent;
 	*pos += chars_sent;
-	if (synth_buff_out >= synth_buff_in) {
+	if (speakup_info->synth_buff_out >= speakup_info->synth_buff_in) {
 		synth_done();
 		*pos = 0;
 	}
@@ -151,7 +152,7 @@ static unsigned int softsynth_poll(struct file *fp,
 	poll_wait(fp, &wait_on_output, wait);
 
 	spk_lock(flags);
-	if (synth_buff_out < synth_buff_in)
+	if (speakup_info->synth_buff_out < speakup_info->synth_buff_in)
 		ret = POLLIN | POLLRDNORM;
 	spk_unlock(flags);
 	return ret;
@@ -217,7 +218,7 @@ softsynth_start(void)
 static int
 softsynth_is_alive(void)
 {
-	if (synth_alive)
+	if (speakup_info->synth_alive)
 		return 1;
 	return 0;
 }
@@ -227,7 +228,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init soft_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&MY_SYNTH, &speakup_info);
 }
 
 static void __exit soft_exit(void)

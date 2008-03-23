@@ -46,10 +46,8 @@ extern int synth_done(void);
 extern void synth_printf(const char *buf, ...);
 extern int synth_request_region(u_long, u_long);
 extern int synth_release_region(u_long, u_long);
-extern int synth_add(struct spk_synth *in_synth);
+extern int synth_add(struct spk_synth *in_synth, struct speakup_info_t **info);
 extern void synth_remove(struct spk_synth *in_synth);
-
-extern int synth_port_tts, synth_port_forced;
 
 /* Protect the whole speakup machinery, must be taken at each kernel->speakup
  * transition and released at all corresponding speakup->kernel transitions
@@ -68,11 +66,5 @@ extern spinlock_t spk_spinlock;
 #define spk_trylock(flags) ({ (void) flags; preempt_disable(); 1; })
 #define spk_unlock(flags) do { (void) flags; preempt_enable(); } while (0)
 #endif
-
-extern short synth_jiffy_delta, synth_delay_time;
-extern short synth_full_time;
-extern int synth_alive;
-extern u_char synth_buffer[]; /* guess what this is for! */
-extern volatile u_char *synth_buff_in, *synth_buff_out;
 
 #endif

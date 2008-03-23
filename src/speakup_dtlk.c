@@ -29,10 +29,10 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
 #define MY_SYNTH synth_dtlk
-#define DRV_VERSION "1.3"
+#define DRV_VERSION "1.4"
 #define PROCSPEECH 0x00
-#define synth_readable() ((synth_status = inb_p(synth_port_tts)) & TTS_READABLE)
-#define synth_full() ((synth_status = inb_p(synth_port_tts)) & TTS_ALMOST_FULL)
+#define synth_readable() ((synth_status = inb_p(speakup_info->synth_port_tts)) & TTS_READABLE)
+#define synth_full() ((synth_status = inb_p(speakup_info->synth_port_tts)) & TTS_ALMOST_FULL)
 
 static int synth_probe(void);
 static void dtlk_release(void);
@@ -70,34 +70,35 @@ struct spk_synth synth_dtlk = {"dtlk", DRV_VERSION, "DoubleTalk PC",
 	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
 	{"\x01%di", 1, 5, 1} };
+struct speakup_info_t *speakup_info;
 
 static void spk_out(const char ch)
 {
 	int tmout = 100000;
-	while (((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) == 0);
-	outb_p(ch, synth_port_tts);
-	while ((((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) != 0)
+	while (((synth_status = inb_p(speakup_info->synth_port_tts)) & TTS_WRITABLE) == 0);
+	outb_p(ch, speakup_info->synth_port_tts);
+	while ((((synth_status = inb_p(speakup_info->synth_port_tts)) & TTS_WRITABLE) != 0)
 		&& (--tmout != 0));
 }
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
 	u_char ch;
 	synth_stop_timer();
-	synth_status = inb_p(synth_port_tts);
-	while (synth_buff_out < synth_buff_in) {
+	synth_status = inb_p(speakup_info->synth_port_tts);
+	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
 		if (synth_status & TTS_ALMOST_FULL) {
-			synth_delay(synth_full_time);
+			synth_delay(speakup_info->synth_full_time);
 			return;
 		}
-		ch = *synth_buff_out++;
+		ch = *speakup_info->synth_buff_out++;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		spk_out(ch);
 		if (jiffies >= jiff_max && ch == SPACE) {
 			spk_out(PROCSPEECH);
-			synth_delay(synth_delay_time);
+			synth_delay(speakup_info->synth_delay_time);
 			return;
 		}
 	}
@@ -108,7 +109,7 @@ static void do_catch_up(unsigned long data)
 static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
-	synth_status = inb_p(synth_port_tts);
+	synth_status = inb_p(speakup_info->synth_port_tts);
 	while ((ch = (u_char)*buf)) {
 		if (synth_status & TTS_ALMOST_FULL)
 			return buf;
@@ -123,9 +124,9 @@ static const char *synth_immediate(const char *buf)
 static unsigned char get_index(void)
 {
 	int c, lsr;/*, tmout = SPK_SERIAL_TIMEOUT; */
-	lsr = inb_p(synth_port_tts + UART_LSR);
+	lsr = inb_p(speakup_info->synth_port_tts + UART_LSR);
 	if ((lsr & UART_LSR_DR) == UART_LSR_DR) {
-		c = inb_p(synth_port_tts + UART_RX);
+		c = inb_p(speakup_info->synth_port_tts + UART_RX);
 		return (unsigned char) c;
 	}
 	return 0;
@@ -133,17 +134,17 @@ static unsigned char get_index(void)
 
 static void synth_flush(void)
 {
-	outb_p(SYNTH_CLEAR, synth_port_tts);
-	while (((synth_status = inb_p(synth_port_tts)) & TTS_WRITABLE) != 0);
+	outb_p(SYNTH_CLEAR, speakup_info->synth_port_tts);
+	while (((synth_status = inb_p(speakup_info->synth_port_tts)) & TTS_WRITABLE) != 0);
 }
 
 static char synth_read_tts(void)
 {
 	u_char ch;
-	while (((synth_status = inb_p(synth_port_tts)) & TTS_READABLE) == 0);
+	while (((synth_status = inb_p(speakup_info->synth_port_tts)) & TTS_READABLE) == 0);
 	ch = synth_status & 0x7f;
-	outb_p(ch, synth_port_tts);
-	while ((inb_p(synth_port_tts) & TTS_READABLE) != 0);
+	outb_p(ch, speakup_info->synth_port_tts);
+	while ((inb_p(speakup_info->synth_port_tts) & TTS_READABLE) != 0);
 	return (char) ch;
 }
 
@@ -196,16 +197,16 @@ static int synth_probe(void)
 	int i = 0;
 	struct synth_settings *sp;
 	pr_info("Probing for DoubleTalk.\n");
-	if (synth_port_forced) {
-		synth_port_tts = synth_port_forced;
+	if (speakup_info->synth_port_forced) {
+		speakup_info->synth_port_tts = speakup_info->synth_port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
-				synth_port_tts);
-		if (synth_request_region(synth_port_tts-1, SYNTH_IO_EXTENT)) {
+				speakup_info->synth_port_tts);
+		if (synth_request_region(speakup_info->synth_port_tts-1, SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
-		port_val = inw(synth_port_tts-1);
-		synth_lpc = synth_port_tts-1;
+		port_val = inw(speakup_info->synth_port_tts-1);
+		synth_lpc = speakup_info->synth_port_tts-1;
 	} else {
 		for (i = 0; synth_portlist[i]; i++) {
 			if (synth_request_region(synth_portlist[i],
@@ -214,7 +215,7 @@ static int synth_probe(void)
 			port_val = inw(synth_portlist[i]) & 0xfbff;
 			if (port_val == 0x107f) {
 				synth_lpc = synth_portlist[i];
-				synth_port_tts = synth_lpc+1;
+				speakup_info->synth_port_tts = synth_lpc+1;
 				break;
 			}
 			synth_release_region(synth_portlist[i],
@@ -231,7 +232,7 @@ static int synth_probe(void)
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
 		MY_SYNTH.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
 	 sp->rom_version, sp->serial_number, MY_SYNTH.version);
-	/*	synth_alive = 1; */
+	/*	speakup_info->synth_alive = 1; */
 	return 0;
 }
 
@@ -243,16 +244,16 @@ static int synth_is_alive(void)
 static void
 dtlk_release(void)
 {
-	if (synth_port_tts)
-		synth_release_region(synth_port_tts-1, SYNTH_IO_EXTENT);
-	synth_port_tts = 0;
+	if (speakup_info->synth_port_tts)
+		synth_release_region(speakup_info->synth_port_tts-1, SYNTH_IO_EXTENT);
+	speakup_info->synth_port_tts = 0;
 }
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init dtlk_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&MY_SYNTH, &speakup_info);
 }
 
 static void __exit dtlk_exit(void)

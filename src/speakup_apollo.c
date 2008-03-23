@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_apollo
-#define DRV_VERSION "1.4"
+#define DRV_VERSION "1.5"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -61,18 +61,18 @@ struct spk_synth synth_apollo = {"apollo", DRV_VERSION, "Apollo",
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-
+struct speakup_info_t *speakup_info;
 
 static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ((synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		synth_alive = 0;
+	if ((speakup_info->synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+		speakup_info->synth_alive = 0;
 		timeouts = 0;
 		return 0;
 	}
 	do {
-		check = inb(synth_port_tts + UART_LSR);
+		check = inb(speakup_info->synth_port_tts + UART_LSR);
 		if (--tmout == 0) {
 			pr_warn("APOLLO: timed out\n");
 			timeouts++;
@@ -81,7 +81,7 @@ static int wait_for_xmitr(void)
 	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
 	do {
-		check = inb(synth_port_tts + UART_MSR);
+		check = inb(speakup_info->synth_port_tts + UART_MSR);
 		if (--tmout == 0) {
 			timeouts++;
 			return 0;
@@ -94,12 +94,12 @@ static int wait_for_xmitr(void)
 static int spk_serial_out(const char ch)
 {
  /* int timer = 9000000; */
-	if (synth_alive && wait_for_xmitr()) {
-		outb(ch, synth_port_tts);
-		/*while (inb(synth_port_tts+UART_MSR) & UART_MSR_CTS)
+	if (speakup_info->synth_alive && wait_for_xmitr()) {
+		outb(ch, speakup_info->synth_port_tts);
+		/*while (inb(speakup_info->synth_port_tts+UART_MSR) & UART_MSR_CTS)
 		 *	if (--timer == 0)
 		 *		break;*/
-		/*	outb(UART_MCR_DTR, synth_port_tts + UART_MCR);*/
+		/*	outb(UART_MCR_DTR, speakup_info->synth_port_tts + UART_MCR);*/
 		return 1;
 	}
 	return 0;
@@ -110,33 +110,33 @@ static unsigned char spk_serial_in(void)
 {
 	int c, lsr, tmout = SPK_SERIAL_TIMEOUT;
 	do {
-		lsr = inb(synth_port_tts + UART_LSR);
+		lsr = inb(speakup_info->synth_port_tts + UART_LSR);
 		if (--tmout == 0)
 			return 0xff;
 	} while (!(lsr & UART_LSR_DR));
-	c = inb(synth_port_tts + UART_RX);
+	c = inb(speakup_info->synth_port_tts + UART_RX);
 	return (unsigned char) c;
 }
 */
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
 	u_char ch;
 	synth_stop_timer();
-	while (synth_buff_out < synth_buff_in) {
-		ch = *synth_buff_out;
+	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
+		ch = *speakup_info->synth_buff_out;
 		if (!spk_serial_out(ch)) {
-			outb(UART_MCR_DTR, synth_port_tts + UART_MCR);
+			outb(UART_MCR_DTR, speakup_info->synth_port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
-					synth_port_tts + UART_MCR);
-			synth_delay(synth_full_time);
+					speakup_info->synth_port_tts + UART_MCR);
+			synth_delay(speakup_info->synth_full_time);
 			return;
 		}
-		synth_buff_out++;
+		speakup_info->synth_buff_out++;
 		if (jiffies >= jiff_max && ch == SPACE) {
 			spk_serial_out(PROCSPEECH);
-			synth_delay(synth_delay_time);
+			synth_delay(speakup_info->synth_delay_time);
 			return;
 		}
 	}
@@ -151,7 +151,7 @@ static const char *synth_immediate(const char *buf)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		if (wait_for_xmitr())
-			outb(ch, synth_port_tts);
+			outb(ch, speakup_info->synth_port_tts);
 		else
 			return buf;
 		buf++;
@@ -171,15 +171,15 @@ static int serprobe(int index)
 		return -1;
 	outb(0x0d, ser->port); /* wake it up if older BIOS */
 	mdelay(1);
-	synth_port_tts = ser->port;
-	if (synth_port_forced)
+	speakup_info->synth_port_tts = ser->port;
+	if (speakup_info->synth_port_forced)
 		return 0;
 	/* check for apollo now... */
 	if (!synth_immediate("\x18"))
 		return 0;
-	pr_warn("port %x failed\n", synth_port_tts);
+	pr_warn("port %x failed\n", speakup_info->synth_port_tts);
 	spk_serial_release();
-	timeouts = synth_alive = synth_port_tts = 0;
+	timeouts = speakup_info->synth_alive = speakup_info->synth_port_tts = 0;
 	return -1;
 }
 
@@ -197,17 +197,17 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, Driver version %s,\n", MY_SYNTH.long_name,
-	 synth_port_tts, synth_port_tts + 7, MY_SYNTH.version);
+	 speakup_info->synth_port_tts, speakup_info->synth_port_tts + 7, MY_SYNTH.version);
 	return 0;
 }
 
 static int synth_is_alive(void)
 {
-	if (synth_alive)
+	if (speakup_info->synth_alive)
 		return 1;
-	if (!synth_alive && wait_for_xmitr() > 0) {
+	if (!speakup_info->synth_alive && wait_for_xmitr() > 0) {
 		/* restart */
-		synth_alive = 1;
+		speakup_info->synth_alive = 1;
 		synth_printf("%s",MY_SYNTH.init);
 		return 2; /* reenabled */
 	} else
@@ -219,7 +219,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init apollo_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&MY_SYNTH, &speakup_info);
 }
 
 static void __exit apollo_exit(void)

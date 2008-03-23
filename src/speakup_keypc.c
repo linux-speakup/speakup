@@ -25,7 +25,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_keypc
-#define DRV_VERSION "1.3"
+#define DRV_VERSION "1.4"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -61,7 +61,7 @@ struct spk_synth synth_keypc = {"keypc", DRV_VERSION, "Keynote PC",
 	stringvars, numvars, synth_probe, keynote_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-
+struct speakup_info_t *speakup_info;
 
 static int
 oops(void)
@@ -97,13 +97,13 @@ static const char *synth_immediate(const char *buf)
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
 	u_char ch;
 	int timeout;
 	synth_stop_timer();
-	while (synth_buff_out < synth_buff_in) {
+	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
 		if (synth_full()) {
-			synth_delay(synth_full_time);
+			synth_delay(speakup_info->synth_full_time);
 			return;
 		}
 		timeout = 1000;
@@ -114,7 +114,7 @@ static void do_catch_up(unsigned long data)
 			oops();
 			break;
 		}
-		ch = *synth_buff_out++;
+		ch = *speakup_info->synth_buff_out++;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
@@ -129,7 +129,7 @@ static void do_catch_up(unsigned long data)
 				break;
 			}
 			outb_p(PROCSPEECH, synth_port);
-			synth_delay(synth_delay_time);
+			synth_delay(speakup_info->synth_delay_time);
 			return;
 		}
 	}
@@ -154,8 +154,8 @@ static int synth_probe(void)
 	unsigned int port_val = 0;
 	int i = 0;
 	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	if (synth_port_forced) {
-		synth_port = synth_port_forced;
+	if (speakup_info->synth_port_forced) {
+		synth_port = speakup_info->synth_port_forced;
 		pr_info("probe forced to %x by kernel command line\n", synth_port);
 		if (synth_request_region(synth_port-1, SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
@@ -198,7 +198,7 @@ static void keynote_release(void)
 
 static int synth_is_alive(void)
 {
-	synth_alive = 1;
+	speakup_info->synth_alive = 1;
 	return 1;
 }
 
@@ -206,7 +206,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init keypc_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&MY_SYNTH, &speakup_info);
 }
 
 static void __exit keypc_exit(void)

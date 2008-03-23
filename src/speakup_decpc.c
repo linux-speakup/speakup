@@ -131,7 +131,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync_char		0x07
 
 #define MY_SYNTH synth_dec_pc
-#define DRV_VERSION "1.3"
+#define DRV_VERSION "1.4"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -166,18 +166,18 @@ struct spk_synth synth_dec_pc = { "decpc", DRV_VERSION, "Dectalk PC",
 	stringvars, numvars, synth_probe, dtpc_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-
+struct speakup_info_t *speakup_info;
 
 static int dt_getstatus(void)
 {
-	dt_stat = inb_p(synth_port_tts) | (inb_p(synth_port_tts + 1) << 8);
+	dt_stat = inb_p(speakup_info->synth_port_tts) | (inb_p(speakup_info->synth_port_tts + 1) << 8);
 	return dt_stat;
 }
 
 static void dt_sendcmd(u_int cmd)
 {
-	outb_p(cmd & 0xFF, synth_port_tts);
-	outb_p((cmd >> 8) & 0xFF, synth_port_tts+1);
+	outb_p(cmd & 0xFF, speakup_info->synth_port_tts);
+	outb_p((cmd >> 8) & 0xFF, speakup_info->synth_port_tts+1);
 }
 
 static int dt_waitbit(int bit)
@@ -210,11 +210,11 @@ static int dt_ctrl(u_int cmd)
 	int timeout = 10;
 	if (!dt_waitbit(STAT_cmd_ready))
 		return -1;
-	outb_p(0, synth_port_tts+2);
-	outb_p(0, synth_port_tts+3);
+	outb_p(0, speakup_info->synth_port_tts+2);
+	outb_p(0, speakup_info->synth_port_tts+3);
 	dt_getstatus();
 	dt_sendcmd(CMD_control|cmd);
-	outb_p(0, synth_port_tts+6);
+	outb_p(0, speakup_info->synth_port_tts+6);
 	while (dt_getstatus() & STAT_cmd_ready) {
 		udelay(20);
 		if (--timeout == 0)
@@ -241,8 +241,8 @@ udelay(50);
 			break;
 udelay(50);
 	}
-	outb_p(DMA_sync, synth_port_tts+4);
-	outb_p(0, synth_port_tts+4);
+	outb_p(DMA_sync, speakup_info->synth_port_tts+4);
+	outb_p(0, speakup_info->synth_port_tts+4);
 	udelay(100);
 	for (timeout = 0; timeout < 10; timeout++) {
 		if (!(dt_getstatus() & STAT_flushing))
@@ -260,8 +260,8 @@ static int dt_sendchar(char ch)
 		return -1;
 	if (!(dt_stat & STAT_rr_char))
 		return -2;
-	outb_p(DMA_single_in, synth_port_tts+4);
-	outb_p(ch, synth_port_tts+4);
+	outb_p(DMA_single_in, speakup_info->synth_port_tts+4);
+	outb_p(ch, speakup_info->synth_port_tts+4);
 	dma_state ^= STAT_dma_state;
 	return 0;
 }
@@ -280,28 +280,28 @@ static int testkernel(void)
 		return 0;
 	else if (dt_stat == 0x0dec)
 		pr_warn("dec_pc at 0x%x, software not loaded\n",
-				synth_port_tts);
+				speakup_info->synth_port_tts);
 	status = -3;
-oops:	synth_release_region(synth_port_tts, SYNTH_IO_EXTENT);
-	synth_port_tts = 0;
+oops:	synth_release_region(speakup_info->synth_port_tts, SYNTH_IO_EXTENT);
+	speakup_info->synth_port_tts = 0;
 	return status;
 }
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
 	u_char ch;
 	static u_char last = '\0';
 	synth_stop_timer();
-	while (synth_buff_out < synth_buff_in) {
-		ch = *synth_buff_out;
+	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
+		ch = *speakup_info->synth_buff_out;
 		if (ch == '\n')
 			ch = 0x0D;
 		if (dt_sendchar(ch)) {
-			synth_delay(synth_full_time);
+			synth_delay(speakup_info->synth_full_time);
 			return;
 		}
-		synth_buff_out++;
+		speakup_info->synth_buff_out++;
 		if (ch == '[')
 			in_escape = 1;
 		else if (ch == ']')
@@ -312,7 +312,7 @@ static void do_catch_up(unsigned long data)
 			if (jiffies >= jiff_max) {
 				if (!in_escape)
 					dt_sendchar(PROCSPEECH);
-				synth_delay(synth_delay_time);
+				synth_delay(speakup_info->synth_delay_time);
 				return;
 			}
 		}
@@ -345,7 +345,7 @@ static int synth_probe(void)
 				synth_portlist[i], SYNTH_IO_EXTENT);
 			continue;
 		}
-		synth_port_tts = synth_portlist[i];
+		speakup_info->synth_port_tts = synth_portlist[i];
 		failed = testkernel();
 		if (failed == 0)
 			break;
@@ -355,20 +355,20 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
-		synth_port_tts, synth_port_tts + 7, MY_SYNTH.version);
+		speakup_info->synth_port_tts, speakup_info->synth_port_tts + 7, MY_SYNTH.version);
 	return 0;
 }
 
 static void dtpc_release(void)
 {
-	if (synth_port_tts)
-		synth_release_region(synth_port_tts, SYNTH_IO_EXTENT);
-	synth_port_tts = 0;
+	if (speakup_info->synth_port_tts)
+		synth_release_region(speakup_info->synth_port_tts, SYNTH_IO_EXTENT);
+	speakup_info->synth_port_tts = 0;
 }
 
 static int synth_is_alive(void)
 {
-	synth_alive = 1;
+	speakup_info->synth_alive = 1;
 	return 1;
 }
 
@@ -376,7 +376,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init decpc_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&MY_SYNTH, &speakup_info);
 }
 
 static void __exit decpc_exit(void)

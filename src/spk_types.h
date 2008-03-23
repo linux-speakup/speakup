@@ -152,6 +152,17 @@ struct spk_synth {
 	struct synth_indexing indexing;
 };
 
+struct speakup_info_t {
+	int synth_port_tts;
+	int synth_port_forced;
+	short synth_delay_time;
+	short synth_jiffy_delta;
+	short synth_full_time;
+	int synth_alive;
+	volatile u_char *synth_buff_in;
+	volatile u_char *synth_buff_out;
+};
+
 /* FIXME: for mainline inclusion, just make the source code use proper names. */
 #define declare_timer(name) struct timer_list name;
 /* FIXME: couldn't this just be mod_timer? */
