@@ -31,13 +31,3 @@ index 4b3916f..37c7980 100644
  
  /* used by vcs - note the word offset */
  unsigned short *screen_pos(struct vc_data *vc, int w_offset, int viewed)
---- a/include/linux/keyboard.h
-+++ b/include/linux/keyboard.h
-@@ -45,6 +45,7 @@
- #define KT_LOCK		10
- #define KT_SLOCK	12
- #define KT_BRL		14
-+#define KT_SPKUP	15
- 
- #define K(t,v)		(((t)<<8)|(v))
- #define KTYP(x)		((x) >> 8)

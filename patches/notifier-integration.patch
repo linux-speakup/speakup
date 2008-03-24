@@ -316,14 +316,6 @@ index 7ddbc30..2c2b105 100644
  #endif
  
  #define MAX_NR_FUNC	256	/* max nr of strings assigned to keys */
-@@ -45,6 +56,7 @@ extern unsigned short plain_map[NR_KEYS];
- #define KT_LOCK		10
- #define KT_SLOCK	12
- #define KT_BRL		14
-+#define KT_SPKUP	15
- 
- #define K(t,v)		(((t)<<8)|(v))
- #define KTYP(x)		((x) >> 8)
 diff --git a/include/linux/notifier.h b/include/linux/notifier.h
 index fad7ff1..fb88436 100644
 --- a/include/linux/notifier.h

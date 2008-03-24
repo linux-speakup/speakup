@@ -38,6 +38,8 @@
 /* synth flags, for odd synths */
 #define SF_DEC 1 /* to fiddle puncs in alpha strings so it doesn't spell */
 
+#define KT_SPKUP 15
+
 extern struct serial_state *spk_serial_init(int index);
 extern void spk_serial_release(void);
 extern void synth_delay(int ms);
