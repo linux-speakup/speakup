@@ -12,15 +12,6 @@ index 4b3916f..37c7980 100644
  {
 --- a/drivers/char/keyboard.c
 +++ b/drivers/char/keyboard.c
-@@ -104,7 +104,7 @@
- const int max_vals[] = {
- 	255, ARRAY_SIZE(func_table) - 1, ARRAY_SIZE(fn_handler) - 1, NR_PAD - 1,
- 	NR_DEAD - 1, 255, 3, NR_SHIFT - 1, 255, NR_ASCII - 1, NR_LOCK - 1,
--	255, NR_LOCK - 1, 255, NR_BRL - 1
-+	255, NR_LOCK - 1, 255, NR_BRL - 1, NR_SPKUP - 1
- };
- 
- const int NR_TYPES = ARRAY_SIZE(max_vals);
 @@ -111,6 +111,8 @@
   
  struct kbd_struct kbd_table[MAX_NR_CONSOLES];
@@ -50,11 +41,3 @@ index 4b3916f..37c7980 100644
  
  #define K(t,v)		(((t)<<8)|(v))
  #define KTYP(x)		((x) >> 8)
-@@ -442,5 +443,7 @@
- 
- #define NR_BRL		11
- 
-+#define NR_SPKUP	0x56
-+
- #define MAX_DIACR	256
- #endif

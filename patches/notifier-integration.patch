@@ -32,15 +32,6 @@ index 2ce0af1..bc59c5c 100644
  
  #define FN_HANDLERS\
  	fn_null,	fn_enter,	fn_show_ptregs,	fn_show_mem,\
-@@ -101,7 +103,7 @@ static fn_handler_fn *fn_handler[] = { FN_HANDLERS };
- const int max_vals[] = {
- 	255, ARRAY_SIZE(func_table) - 1, ARRAY_SIZE(fn_handler) - 1, NR_PAD - 1,
- 	NR_DEAD - 1, 255, 3, NR_SHIFT - 1, 255, NR_ASCII - 1, NR_LOCK - 1,
--	255, NR_LOCK - 1, 255, NR_BRL - 1
-+	255, NR_LOCK - 1, 255, NR_BRL - 1, NR_SPKUP - 1
- };
- 
- const int NR_TYPES = ARRAY_SIZE(max_vals);
 @@ -159,6 +161,23 @@ static int sysrq_alt_use;
  static int sysrq_alt;
  
@@ -333,14 +324,6 @@ index 7ddbc30..2c2b105 100644
  
  #define K(t,v)		(((t)<<8)|(v))
  #define KTYP(x)		((x) >> 8)
-@@ -442,5 +454,7 @@ extern unsigned short plain_map[NR_KEYS];
- 
- #define NR_BRL		11
- 
-+#define NR_SPKUP	0x45
-+
- #define MAX_DIACR	256
- #endif
 diff --git a/include/linux/notifier.h b/include/linux/notifier.h
 index fad7ff1..fb88436 100644
 --- a/include/linux/notifier.h
