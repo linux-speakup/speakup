@@ -49,12 +49,13 @@ static struct serial_state *serstate;
 
 short synth_trigger_time = 50;
 struct speakup_info_t speakup_info = {
-	.synth_delay_time = 500,
-	.synth_jiffy_delta = 50,
-	.synth_full_time = 1000,
-	.synth_buff_in = synth_buffer,
-	.synth_buff_out = synth_buffer,
+	.delay_time = 500,
+	.jiffy_delta = 50,
+	.full_time = 1000,
+	.buff_in = synth_buffer,
+	.buff_out = synth_buffer,
 };
+EXPORT_SYMBOL_GPL(speakup_info);
 
 static void speakup_unregister_var(short var_id);
 static void start_serial_interrupt(int irq);
@@ -113,13 +114,13 @@ struct serial_state *spk_serial_init(int index)
 	int i, cflag = CREAD | HUPCL | CLOCAL | B9600 | CS8;
 	struct serial_state *ser = NULL;
 
-	if (speakup_info.synth_port_forced) {
+	if (speakup_info.port_forced) {
 		if (index > 0)
 			return NULL;
 		pr_info("probe forced to 0x%x by kernel command line\n",
-			speakup_info.synth_port_forced);
+			speakup_info.port_forced);
 		for (i = 0; i <= SPK_HI_TTY; i++)
-			if ((rs_table+i)->port == speakup_info.synth_port_forced) {
+			if ((rs_table+i)->port == speakup_info.port_forced) {
 				ser = rs_table+i;
 				break;
 			}
@@ -163,7 +164,7 @@ struct serial_state *spk_serial_init(int index)
 	}
 
 	mdelay(1);
-	speakup_info.synth_port_tts = ser->port;
+	speakup_info.port_tts = ser->port;
 	serstate = ser;
 
 	start_serial_interrupt(ser->irq);
@@ -186,37 +187,37 @@ static void start_serial_interrupt(int irq)
 		printk(KERN_ERR "Unable to request Speakup serial I R Q\n");
 	/* Set MCR */
 	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2,
-			speakup_info.synth_port_tts + UART_MCR);
+			speakup_info.port_tts + UART_MCR);
 	/* Turn on Interrupts */
 	outb(UART_IER_MSI|UART_IER_RLSI|UART_IER_RDI,
-			speakup_info.synth_port_tts + UART_IER);
-	inb(speakup_info.synth_port_tts+UART_LSR);
-	inb(speakup_info.synth_port_tts+UART_RX);
-	inb(speakup_info.synth_port_tts+UART_IIR);
-	inb(speakup_info.synth_port_tts+UART_MSR);
-	outb(1, speakup_info.synth_port_tts + UART_FCR);	/* Turn FIFO On */
+			speakup_info.port_tts + UART_IER);
+	inb(speakup_info.port_tts+UART_LSR);
+	inb(speakup_info.port_tts+UART_RX);
+	inb(speakup_info.port_tts+UART_IIR);
+	inb(speakup_info.port_tts+UART_MSR);
+	outb(1, speakup_info.port_tts + UART_FCR);	/* Turn FIFO On */
 }
 
 static void stop_serial_interrupt(void)
 {
-	if (speakup_info.synth_port_tts == 0)
+	if (speakup_info.port_tts == 0)
 		return;
 
 	if (synth->read_buff_add == NULL)
 		return;
 
 	/* Turn off interrupts */
-	outb(0, speakup_info.synth_port_tts+UART_IER);
+	outb(0, speakup_info.port_tts+UART_IER);
 	/* Free IRQ */
 	free_irq(serstate->irq, (void *) synth_readbuf_handler);
 }
 
 void spk_serial_release(void)
 {
-	if (speakup_info.synth_port_tts == 0)
+	if (speakup_info.port_tts == 0)
 		return;
-	synth_release_region(speakup_info.synth_port_tts, 8);
-	speakup_info.synth_port_tts = 0;
+	synth_release_region(speakup_info.port_tts, 8);
+	speakup_info.port_tts = 0;
 }
 EXPORT_SYMBOL_GPL(spk_serial_release);
 
@@ -225,9 +226,9 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 /*printk(KERN_ERR "in irq\n"); */
 /*pr_warn("in IRQ\n"); */
 	int c;
-	while (inb_p(speakup_info.synth_port_tts + UART_LSR) & UART_LSR_DR) {
+	while (inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR) {
 
-		c = inb_p(speakup_info.synth_port_tts+UART_RX);
+		c = inb_p(speakup_info.port_tts+UART_RX);
 		synth->read_buff_add((u_char) c);
 /*printk(KERN_ERR "c = %d\n", c); */
 /*pr_warn("C = %d\n", c); */
@@ -264,7 +265,7 @@ EXPORT_SYMBOL_GPL(synth_stop_timer);
 
 int synth_done(void)
 {
-	speakup_info.synth_buff_out = speakup_info.synth_buff_in = synth_buffer;
+	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
 	if (waitqueue_active(&synth_sleeping_list)) {
 		wake_up_interruptible(&synth_sleeping_list);
 		return 0;
@@ -275,7 +276,7 @@ EXPORT_SYMBOL_GPL(synth_done);
 
 static void synth_start(void)
 {
-	if (!speakup_info.synth_alive)
+	if (!speakup_info.alive)
 		synth_done();
 	else if (synth->start)
 		synth->start();
@@ -286,8 +287,8 @@ static void synth_start(void)
 void do_flush(void)
 {
 	synth_stop_timer();
-	speakup_info.synth_buff_out = speakup_info.synth_buff_in = synth_buffer;
-	if (speakup_info.synth_alive) {
+	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
+	if (speakup_info.alive) {
 		synth->flush();
 		if (synth->flush_wait)
 			synth_delay((synth->flush_wait * HZ) / 1000);
@@ -303,14 +304,14 @@ void do_flush(void)
 void
 synth_buffer_add(char ch)
 {
-	if (speakup_info.synth_buff_in >= buffer_highwater) {
+	if (speakup_info.buff_in >= buffer_highwater) {
 		synth_start();
 		if (!waitqueue_active(&synth_sleeping_list))
 			interruptible_sleep_on(&synth_sleeping_list);
-		if (speakup_info.synth_buff_in >= buffer_end)
+		if (speakup_info.buff_in >= buffer_end)
 			return;
 	}
-	*speakup_info.synth_buff_in++ = ch;
+	*speakup_info.buff_in++ = ch;
 }
 
 void
@@ -368,7 +369,7 @@ void
 synth_insert_next_index(int sent_num)
 {
 	int out;
-	if (speakup_info.synth_alive) {
+	if (speakup_info.alive) {
 		if (sent_num == 0) {
 			synth->indexing.currindex++;
 			index_count++;
@@ -527,7 +528,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	init_timer(&synth_timer);
 	for (n_var = synth_time_vars; n_var->var_id >= 0; n_var++)
 		speakup_register_var(n_var);
-	speakup_info.synth_alive = 1;
+	speakup_info.alive = 1;
 	synth_printf("%s",synth->init);
 	for (s_var = synth->string_vars; s_var->var_id >= 0; s_var++)
 		speakup_register_var((struct st_num_var *) s_var);
@@ -567,11 +568,10 @@ synth_release(void)
 }
 
 /* called by: all_driver_init() */
-int synth_add(struct spk_synth *in_synth, struct speakup_info_t **info)
+int synth_add(struct spk_synth *in_synth)
 {
 	int i;
 	int status=0;
-	*info = NULL;
 	mutex_lock(&spk_mutex);
 	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
 		/* synth_remove() is responsible for rotating the array down */
@@ -586,7 +586,6 @@ int synth_add(struct spk_synth *in_synth, struct speakup_info_t **info)
 	}
 	synths[i++] = in_synth;
 	synths[i] = NULL;
-	*info = &speakup_info;
 	if (in_synth->flags) 
 		status = do_synth_init(in_synth);
 	mutex_unlock(&spk_mutex);
@@ -626,10 +625,10 @@ static struct st_var_header var_headers[] = {
   { "synth_direct", SYNTH_DIRECT, VAR_PROC, USER_W, 0, 0, 0 },
   { "caps_start", CAPS_START, VAR_STRING, USER_RW, 0, str_caps_start, 0 },
   { "caps_stop", CAPS_STOP, VAR_STRING, USER_RW, 0, str_caps_stop, 0 },
-  { "delay_time", DELAY, VAR_TIME, ROOT_W, 0, &speakup_info.synth_delay_time, 0 },
+  { "delay_time", DELAY, VAR_TIME, ROOT_W, 0, &speakup_info.delay_time, 0 },
   { "trigger_time", TRIGGER, VAR_TIME, ROOT_W, 0, &synth_trigger_time, 0 },
-  { "jiffy_delta", JIFFY, VAR_TIME, ROOT_W, 0, &speakup_info.synth_jiffy_delta, 0 },
-  { "full_time", FULL, VAR_TIME, ROOT_W, 0, &speakup_info.synth_full_time, 0 },
+  { "jiffy_delta", JIFFY, VAR_TIME, ROOT_W, 0, &speakup_info.jiffy_delta, 0 },
+  { "full_time", FULL, VAR_TIME, ROOT_W, 0, &speakup_info.full_time, 0 },
   { "spell_delay", SPELL_DELAY, VAR_NUM, USER_RW, 0, &spell_delay, 0 },
   { "bleeps", BLEEPS, VAR_NUM, USER_RW, 0, &bleeps, 0 },
   { "attrib_bleep", ATTRIB_BLEEP, VAR_NUM, USER_RW, 0, &attrib_bleep, 0 },

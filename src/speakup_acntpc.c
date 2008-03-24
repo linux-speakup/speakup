@@ -29,10 +29,10 @@
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntpc
-#define DRV_VERSION "1.4"
+#define DRV_VERSION "1.5"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
-#define synth_full() (inb_p(speakup_info->synth_port_tts) == 'F')
+#define synth_full() (inb_p(speakup_info.port_tts) == 'F')
 #define PROCSPEECH '\r'
 
 static int synth_probe(void);
@@ -65,7 +65,6 @@ struct spk_synth synth_acntpc = {"acntpc", DRV_VERSION, "Accent PC",
 	stringvars, numvars, synth_probe, accent_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-struct speakup_info_t *speakup_info;
 
 static const char *synth_immediate(const char *buf)
 {
@@ -76,7 +75,7 @@ static const char *synth_immediate(const char *buf)
 		if (synth_full())
 			return buf;
 		while (synth_writable());
-		outb_p(ch, speakup_info->synth_port_tts);
+		outb_p(ch, speakup_info.port_tts);
 		buf++;
 	}
 	return 0;
@@ -84,34 +83,34 @@ static const char *synth_immediate(const char *buf)
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
 	synth_stop_timer();
-	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
+	while (speakup_info.buff_out < speakup_info.buff_in) {
 		if (synth_full()) {
-			synth_delay(speakup_info->synth_full_time);
+			synth_delay(speakup_info.full_time);
 			return;
 		}
 		while (synth_writable());
-		ch = *speakup_info->synth_buff_out++;
+		ch = *speakup_info.buff_out++;
 		if (ch == '\n')
 			ch = PROCSPEECH;
-		outb_p(ch, speakup_info->synth_port_tts);
+		outb_p(ch, speakup_info.port_tts);
 		if (jiffies >= jiff_max && ch == SPACE) {
 			while (synth_writable());
-			outb_p(PROCSPEECH, speakup_info->synth_port_tts);
-			synth_delay(speakup_info->synth_delay_time);
+			outb_p(PROCSPEECH, speakup_info.port_tts);
+			synth_delay(speakup_info.delay_time);
 			return;
 		}
 	}
 	while (synth_writable());
-	outb_p(PROCSPEECH, speakup_info->synth_port_tts);
+	outb_p(PROCSPEECH, speakup_info.port_tts);
 	synth_done();
 }
 
 static void synth_flush(void)
 {
-	outb_p(SYNTH_CLEAR, speakup_info->synth_port_tts);
+	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
 }
 
 static int synth_probe(void)
@@ -119,16 +118,16 @@ static int synth_probe(void)
 	unsigned int port_val = 0;
 	int i = 0;
 	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	if (speakup_info->synth_port_forced) {
-		speakup_info->synth_port_tts = speakup_info->synth_port_forced;
+	if (speakup_info.port_forced) {
+		speakup_info.port_tts = speakup_info.port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
-				speakup_info->synth_port_tts);
-		if (synth_request_region(speakup_info->synth_port_tts-1, SYNTH_IO_EXTENT)) {
+				speakup_info.port_tts);
+		if (synth_request_region(speakup_info.port_tts-1, SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
-		port_val = inw(speakup_info->synth_port_tts-1);
-		synth_port_control = speakup_info->synth_port_tts-1;
+		port_val = inw(speakup_info.port_tts-1);
+		synth_port_control = speakup_info.port_tts-1;
 	} else {
 		for (i = 0; synth_portlist[i]; i++) {
 			if (synth_request_region(synth_portlist[i],
@@ -141,7 +140,7 @@ static int synth_probe(void)
 			if (port_val == 0x53fc) {
 				/* 'S' and out&input bits */
 				synth_port_control = synth_portlist[i];
-				speakup_info->synth_port_tts = synth_port_control+1;
+				speakup_info.port_tts = synth_port_control+1;
 				break;
 			}
 		}
@@ -162,14 +161,14 @@ static int synth_probe(void)
 
 static void accent_release(void)
 {
-	if (speakup_info->synth_port_tts)
-		synth_release_region(speakup_info->synth_port_tts-1, SYNTH_IO_EXTENT);
-	speakup_info->synth_port_tts = 0;
+	if (speakup_info.port_tts)
+		synth_release_region(speakup_info.port_tts-1, SYNTH_IO_EXTENT);
+	speakup_info.port_tts = 0;
 }
 
 static int synth_is_alive(void)
 {
-	speakup_info->synth_alive = 1;
+	speakup_info.alive = 1;
 	return 1;
 }
 
@@ -177,7 +176,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init acntpc_init(void)
 {
-	return synth_add(&MY_SYNTH, &speakup_info);
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit acntpc_exit(void)

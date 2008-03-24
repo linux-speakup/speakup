@@ -46,18 +46,19 @@ extern int synth_done(void);
 extern void synth_printf(const char *buf, ...);
 extern int synth_request_region(u_long, u_long);
 extern int synth_release_region(u_long, u_long);
-extern int synth_add(struct spk_synth *in_synth, struct speakup_info_t **info);
+extern int synth_add(struct spk_synth *in_synth);
 extern void synth_remove(struct spk_synth *in_synth);
+
+extern struct speakup_info_t speakup_info;
 
 /* Protect the whole speakup machinery, must be taken at each kernel->speakup
  * transition and released at all corresponding speakup->kernel transitions
  * (flags must be the same variable between lock/trylock and unlock). */
-extern spinlock_t spk_spinlock;
 #if 0
 /* Speakup needs to disable the keyboard IRQ, hence _irqsave/restore */
-#define spk_lock(flags) spin_lock_irqsave(&spk_spinlock, flags)
-#define spk_trylock(flags) spin_trylock_irqsave(&spk_spinlock, flags)
-#define spk_unlock(flags) spin_unlock_irqrestore(&spk_spinlock, flags)
+#define spk_lock(flags) spin_lock_irqsave(&speakup_info.spinlock, flags)
+#define spk_trylock(flags) spin_trylock_irqsave(&speakup_info.spinlock, flags)
+#define spk_unlock(flags) spin_unlock_irqrestore(&speakup_info.spinlock, flags)
 #else
 /* For now, we can't just disable IRQs because Speakup may have to wait for the
  * completion of the talk, so for now just be IRQ and SMP -unsafe (but at least

@@ -28,10 +28,10 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_decext
-#define DRV_VERSION "1.4"
+#define DRV_VERSION "1.5"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-#define synth_full() (inb_p(speakup_info->synth_port_tts) == 0x13)
+#define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
 
 static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
@@ -62,19 +62,18 @@ struct spk_synth synth_decext = {"decext", DRV_VERSION, "Dectalk External",
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-struct speakup_info_t *speakup_info;
 
 static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ((speakup_info->synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		speakup_info->synth_alive = 0;
+	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+		speakup_info.alive = 0;
 		timeouts = 0;
 		return 0;
 	}
 	do {
 		/* holding register empty? */
-		check = inb_p(speakup_info->synth_port_tts + UART_LSR);
+		check = inb_p(speakup_info.port_tts + UART_LSR);
 		if (--tmout == 0) {
 			pr_warn("%s: timed out\n", MY_SYNTH.long_name);
 			timeouts++;
@@ -84,7 +83,7 @@ static int wait_for_xmitr(void)
 	tmout = SPK_XMITR_TIMEOUT;
 	do {
 		/* CTS */
-		check = inb_p(speakup_info->synth_port_tts + UART_MSR);
+		check = inb_p(speakup_info.port_tts + UART_MSR);
 		if (--tmout == 0) {
 			timeouts++;
 			return 0;
@@ -96,8 +95,8 @@ static int wait_for_xmitr(void)
 
 static int spk_serial_out(const char ch)
 {
-	if (speakup_info->synth_alive && wait_for_xmitr()) {
-		outb_p(ch, speakup_info->synth_port_tts);
+	if (speakup_info.alive && wait_for_xmitr()) {
+		outb_p(ch, speakup_info.port_tts);
 		return 1;
 	}
 	return 0;
@@ -108,29 +107,29 @@ spk_serial_in(void)
 {
 	int lsr, tmout = SPK_SERIAL_TIMEOUT, c;
 	do {
-		lsr = inb_p(speakup_info->synth_port_tts + UART_LSR);
+		lsr = inb_p(speakup_info.port_tts + UART_LSR);
 		if (--tmout == 0)
 			return 0xff;
 	} while (!(lsr & UART_LSR_DR));
-	c = inb_p(speakup_info->synth_port_tts + UART_RX);
+	c = inb_p(speakup_info.port_tts + UART_RX);
 	return (u_char) c;
 }
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
 	static u_char last = '\0';
 	synth_stop_timer();
-	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
-		ch = *speakup_info->synth_buff_out;
+	while (speakup_info.buff_out < speakup_info.buff_in) {
+		ch = *speakup_info.buff_out;
 		if (ch == '\n')
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
-			synth_delay(speakup_info->synth_full_time);
+			synth_delay(speakup_info.full_time);
 			return;
 		}
-		speakup_info->synth_buff_out++;
+		speakup_info.buff_out++;
 		if (ch == '[')
 			in_escape = 1;
 		else if (ch == ']')
@@ -141,7 +140,7 @@ static void do_catch_up(unsigned long data)
 			if (jiffies >= jiff_max) {
 				if (!in_escape)
 					spk_serial_out(PROCSPEECH);
-				synth_delay(speakup_info->synth_delay_time);
+				synth_delay(speakup_info.delay_time);
 				return;
 			}
 		}
@@ -158,7 +157,7 @@ static const char *synth_immediate(const char *buf)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		if (wait_for_xmitr())
-			outb(ch, speakup_info->synth_port_tts);
+			outb(ch, speakup_info.port_tts);
 		else
 			return buf;
 		buf++;
@@ -179,14 +178,14 @@ static int serprobe(int index)
 	if (ser == NULL)
 		return -1;
 	/* ignore any error results, if port was forced */
-	if (speakup_info->synth_port_forced)
+	if (speakup_info.port_forced)
 		return 0;
 	synth_immediate("\033[;5n\033\\");
 	test = spk_serial_in();
 	if (test == '\033')
 		return 0;
 	spk_serial_release();
-	timeouts = speakup_info->synth_alive = speakup_info->synth_port_tts = 0; /* not ignoring */
+	timeouts = speakup_info.alive = speakup_info.port_tts = 0; /* not ignoring */
 	return -1;
 }
 
@@ -205,17 +204,17 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
-		speakup_info->synth_port_tts, speakup_info->synth_port_tts+7, MY_SYNTH.version);
+		speakup_info.port_tts, speakup_info.port_tts+7, MY_SYNTH.version);
 	return 0;
 }
 
 static int synth_is_alive(void)
 {
-	if (speakup_info->synth_alive)
+	if (speakup_info.alive)
 		return 1;
-	if (!speakup_info->synth_alive && wait_for_xmitr() > 0) {
+	if (!speakup_info.alive && wait_for_xmitr() > 0) {
 		/* restart */
-		speakup_info->synth_alive = 1;
+		speakup_info.alive = 1;
 		synth_printf("%s",MY_SYNTH.init);
 		return 2;
 	}
@@ -227,7 +226,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init decext_init(void)
 {
-	return synth_add(&MY_SYNTH, &speakup_info);
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit decext_exit(void)

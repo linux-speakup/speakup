@@ -264,8 +264,6 @@ static u_long last_spk_jiffy;
 
 static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
-spinlock_t spk_spinlock;
-EXPORT_SYMBOL_GPL(spk_spinlock);
 DEFINE_MUTEX(spk_mutex);
 
 static int keyboard_notifier_call(struct notifier_block *,
@@ -1227,8 +1225,8 @@ static void spkup_write(const char *in_buf, int count)
 		} else if (char_type & B_NUM) {
 			rep_count = 0;
 			if ((last_type & B_EXNUM) &&
-					speakup_info.synth_buff_in == exn_ptr+1) {
-				speakup_info.synth_buff_in--;
+					speakup_info.buff_in == exn_ptr+1) {
+				speakup_info.buff_in--;
 				synth_buffer_add(old_ch);
 				exn_ptr = NULL;
 			}
@@ -1246,7 +1244,7 @@ static void spkup_write(const char *in_buf, int count)
 				rep_count = 0;
 		} else {
 			if (char_type&B_EXNUM)
-					exn_ptr = (u_char *)speakup_info.synth_buff_in;
+					exn_ptr = (u_char *)speakup_info.buff_in;
 /* send space and record position, if next is num overwrite space */
 			if (old_ch != ch)
 				synth_buffer_add(SPACE);
@@ -1425,9 +1423,9 @@ static void __init speakup_open(struct vc_data *vc,
 	const int ser_lookup[] = { 0x3f8, 0x2f8, 0x3e8, 0x2e8 };
 
 	if (param_ser > 0 && param_ser <= ARRAY_SIZE(ser_lookup))
-		speakup_info.synth_port_forced = ser_lookup[param_ser - 1];
+		speakup_info.port_forced = ser_lookup[param_ser - 1];
 	if (param_port)
-		speakup_info.synth_port_forced = param_port;
+		speakup_info.port_forced = param_port;
 
 	reset_default_chars();
 	reset_default_chartab();
@@ -3064,7 +3062,7 @@ static int __init speakup_init(void)
 	int i;
 	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
 		GFP_KERNEL);
-	spin_lock_init(&spk_spinlock);
+	spin_lock_init(&speakup_info.spinlock);
 	speakup_open(vc_cons[fg_console].d, first_console);
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);

@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dummy
-#define DRV_VERSION "1.4"
+#define DRV_VERSION "1.5"
 
 static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
@@ -56,19 +56,18 @@ struct spk_synth synth_dummy = {"dummy", DRV_VERSION, "Dummy",
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-struct speakup_info_t *speakup_info;
 
 static int wait_for_xmitr(void)
 {
 	static int timeouts = 0;	/* sequential number of timeouts */
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ((speakup_info->synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		speakup_info->synth_alive = 0;
+	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+		speakup_info.alive = 0;
 		timeouts = 0;
 		return 0;
 	}
 	do {
-		check = inb(speakup_info->synth_port_tts + UART_LSR);
+		check = inb(speakup_info.port_tts + UART_LSR);
 		if (--tmout == 0) {
 			pr_warn("DUMMY: timed out\n");
 			timeouts++;
@@ -77,7 +76,7 @@ static int wait_for_xmitr(void)
 	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
 	do {
-		check = inb(speakup_info->synth_port_tts + UART_MSR);
+		check = inb(speakup_info.port_tts + UART_MSR);
 		if (--tmout == 0) {
 			timeouts++;
 			return 0;
@@ -89,8 +88,8 @@ static int wait_for_xmitr(void)
 
 static int spk_serial_out(const char ch)
 {
-	if (speakup_info->synth_alive && wait_for_xmitr()) {
-		outb(ch, speakup_info->synth_port_tts);
+	if (speakup_info.alive && wait_for_xmitr()) {
+		outb(ch, speakup_info.port_tts);
 		return 1;
 	}
 	return 0;
@@ -98,19 +97,19 @@ static int spk_serial_out(const char ch)
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
 	synth_stop_timer();
-	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
-		ch = *speakup_info->synth_buff_out;
+	while (speakup_info.buff_out < speakup_info.buff_in) {
+		ch = *speakup_info.buff_out;
 		if (!spk_serial_out(ch)) {
-			synth_delay(speakup_info->synth_full_time);
+			synth_delay(speakup_info.full_time);
 			return;
 		}
-		speakup_info->synth_buff_out++;
+		speakup_info.buff_out++;
 		if (jiffies >= jiff_max && ch == ' ') {
 			spk_serial_out(' ');
-			synth_delay(speakup_info->synth_delay_time);
+			synth_delay(speakup_info.delay_time);
 			return;
 		}
 	}
@@ -123,7 +122,7 @@ static const char *synth_immediate(const char *buf)
 	u_char ch;
 	while ((ch = *buf)) {
 		if (wait_for_xmitr())
-			outb(ch, speakup_info->synth_port_tts);
+			outb(ch, speakup_info.port_tts);
 		else
 			return buf;
 		buf++;
@@ -141,13 +140,13 @@ static int serprobe(int index)
 	if (ser == NULL)
 		return -1;
 	outb('\r', ser->port);
-	if (speakup_info->synth_port_forced)
+	if (speakup_info.port_forced)
 		return 0;
 	/* check for serial console now... */
 	if (!synth_immediate("probing\n"))
 		return 0;
 	spk_serial_release();
-	speakup_info->synth_alive = 0;
+	speakup_info.alive = 0;
 	return -1;
 }
 
@@ -165,17 +164,17 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, Driver version %s,\n", MY_SYNTH.long_name,
-		speakup_info->synth_port_tts, speakup_info->synth_port_tts + 7, MY_SYNTH.version);
+		speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
 	return 0;
 }
 
 static int synth_is_alive(void)
 {
-	if (speakup_info->synth_alive)
+	if (speakup_info.alive)
 		return 1;
-	if (!speakup_info->synth_alive && wait_for_xmitr() > 0) {
+	if (!speakup_info.alive && wait_for_xmitr() > 0) {
 		/* restart */
-		speakup_info->synth_alive = 1;
+		speakup_info.alive = 1;
 		synth_printf("%s",MY_SYNTH.init);
 		return 2;
 	}
@@ -187,7 +186,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init dummy_init(void)
 {
-	return synth_add(&MY_SYNTH, &speakup_info);
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit dummy_exit(void)

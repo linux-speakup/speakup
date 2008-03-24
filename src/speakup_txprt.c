@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_txprt
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
@@ -59,18 +59,17 @@ struct spk_synth synth_txprt = {"txprt", DRV_VERSION, "Transport",
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-struct speakup_info_t *speakup_info;
 
 static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ((speakup_info->synth_alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		speakup_info->synth_alive = 0;
+	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+		speakup_info.alive = 0;
 		timeouts = 0;
 		return 0;
 	}
 	do {
-		check = inb(speakup_info->synth_port_tts + UART_LSR);
+		check = inb(speakup_info.port_tts + UART_LSR);
 		if (--tmout == 0) {
 			pr_warn("TXPRT: timed out\n");
 			timeouts++;
@@ -79,7 +78,7 @@ static int wait_for_xmitr(void)
 	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
 	tmout = SPK_XMITR_TIMEOUT;
 	do {
-		check = inb(speakup_info->synth_port_tts + UART_MSR);
+		check = inb(speakup_info.port_tts + UART_MSR);
 		if (--tmout == 0) {
 			timeouts++;
 			return 0;
@@ -91,8 +90,8 @@ static int wait_for_xmitr(void)
 
 static int spk_serial_out(const char ch)
 {
-	if (speakup_info->synth_alive && wait_for_xmitr()) {
-		outb(ch, speakup_info->synth_port_tts);
+	if (speakup_info.alive && wait_for_xmitr()) {
+		outb(ch, speakup_info.port_tts);
 		return 1;
 	}
 	return 0;
@@ -102,32 +101,32 @@ static unsigned char spk_serial_in(void)
 {
 	int c, lsr, tmout = SPK_SERIAL_TIMEOUT;
 	do {
-		lsr = inb(speakup_info->synth_port_tts + UART_LSR);
+		lsr = inb(speakup_info.port_tts + UART_LSR);
 		if (--tmout == 0)
 			return 0xff;
 	} while (!(lsr & UART_LSR_DR));
-	c = inb(speakup_info->synth_port_tts + UART_RX);
+	c = inb(speakup_info.port_tts + UART_RX);
 	return (unsigned char) c;
 }
 
 static void do_catch_up(unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info->synth_jiffy_delta;
+	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
 
 	synth_stop_timer();
-	while (speakup_info->synth_buff_out < speakup_info->synth_buff_in) {
-		ch = *speakup_info->synth_buff_out;
+	while (speakup_info.buff_out < speakup_info.buff_in) {
+		ch = *speakup_info.buff_out;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		if (!spk_serial_out(ch)) {
-			synth_delay(speakup_info->synth_full_time);
+			synth_delay(speakup_info.full_time);
 			return;
 		}
-		speakup_info->synth_buff_out++;
+		speakup_info.buff_out++;
 		if (jiffies >= jiff_max && ch == ' ') {
 			spk_serial_out(PROCSPEECH);
-			synth_delay(speakup_info->synth_delay_time);
+			synth_delay(speakup_info.delay_time);
 			return;
 		}
 	}
@@ -142,7 +141,7 @@ static const char *synth_immediate(const char *buf)
 		if (ch == 0x0a)
 			ch = PROCSPEECH;
 		if (wait_for_xmitr())
-			outb(ch, speakup_info->synth_port_tts);
+			outb(ch, speakup_info.port_tts);
 		else
 			return buf;
 		buf++;
@@ -161,7 +160,7 @@ static int serprobe(int index)
 	struct serial_state *ser = spk_serial_init(index);
 	if (ser == NULL)
 		return -1;
-	if (speakup_info->synth_port_forced)
+	if (speakup_info.port_forced)
 		return 0;
 	/* check for txprt now... */
 	if (synth_immediate("\x05$"))
@@ -176,7 +175,7 @@ static int serprobe(int index)
 	else
 		pr_warn("synth returned %x on port %03lx\n", test, ser->port);
 	synth_release_region(ser->port, 8);
-	timeouts = speakup_info->synth_alive = 0;
+	timeouts = speakup_info.alive = 0;
 	return -1;
 }
 
@@ -193,19 +192,19 @@ static int synth_probe(void)
 		pr_info("%s: not found\n", MY_SYNTH.long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x..\n", MY_SYNTH.long_name, (int) speakup_info->synth_port_tts,
-			(int) speakup_info->synth_port_tts+7);
+	pr_info("%s: %03x-%03x..\n", MY_SYNTH.long_name, (int) speakup_info.port_tts,
+			(int) speakup_info.port_tts+7);
 	pr_info("%s: driver version %s.\n", MY_SYNTH.long_name, MY_SYNTH.version);
 	return 0;
 }
 
 static int synth_is_alive(void)
 {
-	if (speakup_info->synth_alive)
+	if (speakup_info.alive)
 		return 1;
 	if (wait_for_xmitr() > 0) {
 		/* restart */
-		speakup_info->synth_alive = 1;
+		speakup_info.alive = 1;
 		synth_printf("%s",MY_SYNTH.init);
 		return 2;
 	}
@@ -217,7 +216,7 @@ module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
 static int __init txprt_init(void)
 {
-	return synth_add(&MY_SYNTH, &speakup_info);
+	return synth_add(&MY_SYNTH);
 }
 
 static void __exit txprt_exit(void)
