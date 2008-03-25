@@ -16,10 +16,6 @@
 #define SYNTH_MINOR 25
 #endif
 
-#ifdef __powerpc__
-#include <asm-ppc/pc_serial.h> /* for SERIAL_PORT_DFNS */
-#endif
-
 #include "spk_priv.h"
 #include "speakup.h"
 #include "serialio.h"
