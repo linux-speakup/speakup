@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_audptr
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
@@ -236,4 +236,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for Audapter synthesizer");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

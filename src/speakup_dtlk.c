@@ -29,7 +29,7 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
 #define MY_SYNTH synth_dtlk
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
@@ -266,4 +266,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for DoubleTalk PC synthesizers");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

@@ -29,7 +29,7 @@
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
 #define MY_SYNTH synth_ltlk
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
@@ -266,4 +266,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for DoubleTalk LT/LiteTalk synthesizers");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

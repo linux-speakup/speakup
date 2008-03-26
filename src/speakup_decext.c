@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_decext
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -240,4 +240,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for DECtalk External synthesizers");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

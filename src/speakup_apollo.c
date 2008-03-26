@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_apollo
-#define DRV_VERSION "1.6"
+#define DRV_VERSION "1.7"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -232,4 +232,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for Apollo II synthesizer");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

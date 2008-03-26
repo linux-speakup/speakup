@@ -131,7 +131,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync_char		0x07
 
 #define MY_SYNTH synth_dec_pc
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -389,4 +389,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for DECtalk PC synthesizers");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

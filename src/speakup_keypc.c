@@ -25,7 +25,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_keypc
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -218,4 +218,5 @@ module_exit(keypc_exit);
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for Keynote Gold PC synthesizers");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

@@ -29,7 +29,7 @@
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntpc
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -190,4 +190,5 @@ MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_AUTHOR("David Borowski");
 MODULE_DESCRIPTION("Speakup support for Accent PC synthesizer");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

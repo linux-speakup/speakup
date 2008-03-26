@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define MY_SYNTH synth_soft
-#define DRV_VERSION "0.9"
+#define DRV_VERSION "0.10"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -240,4 +240,5 @@ module_exit(soft_exit);
 MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
 MODULE_DESCRIPTION("Speakup userspace software synthesizer support");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 

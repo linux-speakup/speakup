@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dummy
-#define DRV_VERSION "1.5"
+#define DRV_VERSION "1.6"
 
 static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
@@ -199,4 +199,5 @@ module_exit(dummy_exit);
 MODULE_AUTHOR("Samuel Thibault <samuel.thibault@ens-lyon.org>");
 MODULE_DESCRIPTION("Speakup support for text console");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(DRV_VERSION);
 
