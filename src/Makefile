@@ -1,21 +1,21 @@
-obj-$(CONFIG_SPEAKUP_SYNTH_ACNTSA) += speakup_acntsa.o
-obj-$(CONFIG_SPEAKUP_SYNTH_ACNTPC) += speakup_acntpc.o
-obj-$(CONFIG_SPEAKUP_SYNTH_APOLLO) += speakup_apollo.o
-obj-$(CONFIG_SPEAKUP_SYNTH_AUDPTR) += speakup_audptr.o
-obj-$(CONFIG_SPEAKUP_SYNTH_BNS) += speakup_bns.o
-obj-$(CONFIG_SPEAKUP_SYNTH_DECTLK) += speakup_dectlk.o
-obj-$(CONFIG_SPEAKUP_SYNTH_DECEXT) += speakup_decext.o
-obj-$(CONFIG_SPEAKUP_SYNTH_DECPC) += speakup_decpc.o
-obj-$(CONFIG_SPEAKUP_SYNTH_DTLK) += speakup_dtlk.o
-obj-$(CONFIG_SPEAKUP_SYNTH_KEYPC) += speakup_keypc.o
-obj-$(CONFIG_SPEAKUP_SYNTH_LTLK) += speakup_ltlk.o
-obj-$(CONFIG_SPEAKUP_SYNTH_SOFT) += speakup_soft.o
-obj-$(CONFIG_SPEAKUP_SYNTH_SPKOUT) += speakup_spkout.o
-obj-$(CONFIG_SPEAKUP_SYNTH_TXPRT) += speakup_txprt.o
-obj-$(CONFIG_SPEAKUP_SYNTH_DUMMY) += speakup_dummy.o
+ifneq ($(KERNELRELEASE),)
+include Kbuild
+else
 
-obj-$(CONFIG_SPEAKUP_CORE) += speakup.o
-speakup-objs := \
-	main.o \
-	keyhelp.o \
-	synth.o
+include allmodule.mk
+
+KERNELDIR = /lib/modules/`uname -r`/build
+
+all: build
+
+build:
+	make -C $(KERNELDIR) M=`pwd`
+
+clean:
+	make -C $(KERNELDIR) M=`pwd` $@
+	rm -f Module.symvers
+
+modules_install:
+	make -C $(KERNELDIR) M=`pwd` $@
+
+endif
