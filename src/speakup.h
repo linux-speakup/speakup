@@ -67,6 +67,7 @@ extern struct mutex spk_mutex;
 extern struct spk_synth *synth;
 extern struct st_proc_var spk_proc_vars[];
 extern u_char *our_keys[];
+extern short punc_masks[];
 extern char str_caps_start[], str_caps_stop[];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
 extern short reading_punc, attrib_bleep, bleeps;

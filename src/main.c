@@ -81,10 +81,6 @@ module_param_named(ser, param_ser, int, S_IRUGO);
 static int param_port;
 module_param_named(port, param_port, int, S_IRUGO);
 
-/* these are globals from the kernel code */
-extern short punc_masks[];
-extern struct speakup_info_t speakup_info;
-
 special_func special_handler;
 
 short pitch_shift, synth_flags;
