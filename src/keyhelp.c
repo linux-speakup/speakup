@@ -27,7 +27,7 @@
 
 #define MAXFUNCS 130
 #define MAXKEYS 256
-static u_short key_offsets[MAXFUNCS], key_buf[MAXKEYS];
+static u_short key_offsets[MAXFUNCS], key_data[MAXKEYS];
 static u_short masks[] = { 32, 16, 8, 4, 2, 1 };
 static char help_info[] =
 "press space to leav help, cursor up or down to scroll, \
@@ -144,7 +144,7 @@ static int cur_item, nstates;
 static void build_key_data(void)
 {
 	u_char *kp, counters[MAXFUNCS], ch, ch1;
-	u_short *p_key = key_buf, key;
+	u_short *p_key = key_data, key;
 	int i, offset = 1;
 	nstates = (int)(state_tbl[-1]);
 	memset(counters, 0, sizeof(counters));
@@ -184,7 +184,7 @@ static void build_key_data(void)
 			offset = key_offsets[ch1];
 			if (!offset)
 				continue;
-			p_key = key_buf + offset + counters[ch1];
+			p_key = key_data + offset + counters[ch1];
 			*p_key = key;
 		}
 	}
@@ -279,7 +279,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		synth_printf("%s\n"," is unassigned");
 		return 1;
 	}
-	p_keys = key_buf + key_offsets[func];
+	p_keys = key_data + key_offsets[func];
 	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
 		if (n > 0)

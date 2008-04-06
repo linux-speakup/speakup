@@ -16,9 +16,6 @@
 #include <linux/vt_kern.h>
 #include <linux/spinlock.h>
 #include <linux/mutex.h>
-#ifdef CONFIG_PROC_FS
-#include <linux/proc_fs.h>
-#endif
 #include <asm/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
 
 enum {
@@ -88,7 +85,9 @@ struct st_spk_t {
 
 struct st_var_header {
 	char *name;
-	short var_id, var_type, proc_mode;
+	short var_id;
+	short var_type;
+	short proc_mode;
 	void *proc_entry;
 	void *p_val; /* ptr to programs variable to store value */
 	void *data; /* ptr to the vars data */

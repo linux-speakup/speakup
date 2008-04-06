@@ -11,6 +11,7 @@
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/kmod.h>
 #include <linux/jiffies.h>
+#include <asm/uaccess.h> /* for copy_from_user */
 
 #ifndef SYNTH_MINOR
 #define SYNTH_MINOR 25
@@ -32,7 +33,7 @@ struct spk_synth *synth = NULL;
 static int synth_timer_active;	/* indicates when a timer is set */
 	static struct miscdevice synth_device;
 static int misc_registered;
-static char pitch_buff[32] = "";
+char pitch_buff[32] = "";
 declare_sleeper(synth_sleeping_list);
 static int module_status;
 static declare_timer(synth_timer);
@@ -53,55 +54,9 @@ struct speakup_info_t speakup_info = {
 };
 EXPORT_SYMBOL_GPL(speakup_info);
 
-static void speakup_unregister_var(short var_id);
 static void start_serial_interrupt(int irq);
 static void speakup_register_devsynth(void);
 static int do_synth_init(struct spk_synth *in_synth);
-
-static char *xlate(char *s)
-{
-	static const char finds[] = "nrtvafe";
-	static const char subs[] = "\n\r\t\013\001\014\033";
-	static const char hx[] = "0123456789abcdefABCDEF";
-	char *p = s, *p1, *p2, c;
-	int num;
-	while ((p = strchr(p, '\\'))) {
-		p1 = p+1;
-		p2 = strchr(finds, *p1);
-		if (p2) {
-			*p++ = subs[p2-finds];
-			p1++;
-		} else if (*p1 >= '0' && *p1 <= '7') {
-			num = (*p1++)&7;
-			while (num < 256 && *p1 >= '0' && *p1 <= '7') {
-				num <<= 3;
-				num = (*p1++)&7;
-			}
-			*p++ = num;
-		} else if (*p1 == 'x' &&
-				strchr(hx, p1[1]) && strchr(hx, p1[2])) {
-			p1++;
-			c = *p1++;
-			if (c > '9')
-				c = (c - '7') & 0x0f;
-			else
-				c -= '0';
-			num = c << 4;
-			c = *p1++;
-			if (c > '9')
-				c = (c-'7')&0x0f;
-			else
-				c -= '0';
-			num += c;
-			*p++ = num;
-		} else
-			*p++ = *p1++;
-		p2 = p;
-		while (*p1) *p2++ = *p1++;
-		*p2 = '\0';
-	}
-	return s;
-}
 
 struct serial_state *spk_serial_init(int index)
 {
@@ -418,39 +373,6 @@ int synth_release_region(unsigned long start, unsigned long n)
 }
 EXPORT_SYMBOL_GPL(synth_release_region);
 
-#ifdef CONFIG_PROC_FS
-
-/* /proc/synth-specific code */
-
-#include <asm/uaccess.h>
-#include <linux/limits.h>
-
-/* this is the write handler for /proc/speakup/synth-specific/direct */
-static int spk_direct_write_proc(struct file *file, const char *buffer,
-				 u_long count, void *data)
-{
-	u_char buf[256];
-	int ret = count, bytes;
-	const char *ptr = buffer;
-	if (synth == NULL)
-		return -EPERM;
-	while (count > 0) {
-		bytes = min_t(size_t, count, 250);
-		if (copy_from_user(buf, ptr, bytes))
-			return -EFAULT;
-		buf[bytes] = '\0';
-		xlate(buf);
-		synth_printf("%s",buf);
-		ptr += bytes;
-		count -= bytes;
-	}
-	return ret;
-}
-
-struct st_proc_var synth_direct = { SYNTH_DIRECT, 0, spk_direct_write_proc, 0 };
-
-#endif
-
 static struct st_num_var synth_time_vars[] = {
 	{ DELAY, 0, 100, 100, 2000, 0, 0, 0 },
 	{ TRIGGER, 0, 20, 10, 200, 0, 0, 0 },
@@ -532,9 +454,6 @@ static int do_synth_init(struct spk_synth *in_synth)
 		speakup_register_var(n_var);
 	if (!quiet_boot)
 		synth_printf("%s found\n", synth->long_name);
-#ifdef CONFIG_PROC_FS
-	speakup_register_var((struct st_num_var *) &synth_direct);
-#endif
 	synth_flags = synth->flags;
 	return 0;
 }
@@ -553,9 +472,6 @@ synth_release(void)
 		speakup_unregister_var(n_var->var_id);
 	for (n_var = synth->num_vars; n_var->var_id >= 0; n_var++)
 		speakup_unregister_var(n_var->var_id);
-#ifdef CONFIG_PROC_FS
-	speakup_unregister_var(SYNTH_DIRECT);
-#endif
 	synth_dummy_catchup((unsigned long) NULL);
 	synth_timer.function = synth_dummy_catchup;
 	stop_serial_interrupt();
@@ -606,371 +522,14 @@ void synth_remove(struct spk_synth *in_synth)
 }
 EXPORT_SYMBOL_GPL(synth_remove);
 
-static struct st_var_header var_headers[] = {
-  { "version", VERSION, VAR_PROC, USER_R, 0, 0, 0 },
-  { "synth_name", SYNTH, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "keymap", KEYMAP, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "silent", SILENT, VAR_PROC, USER_W, 0, 0, 0 },
-  { "punc_some", PUNC_SOME, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "punc_most", PUNC_MOST, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "punc_all", PUNC_ALL, VAR_PROC, USER_R, 0, 0, 0 },
-  { "delimiters", DELIM, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "repeats", REPEATS, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "ex_num", EXNUMBER, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "characters", CHARS, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "synth_direct", SYNTH_DIRECT, VAR_PROC, USER_W, 0, 0, 0 },
-  { "caps_start", CAPS_START, VAR_STRING, USER_RW, 0, str_caps_start, 0 },
-  { "caps_stop", CAPS_STOP, VAR_STRING, USER_RW, 0, str_caps_stop, 0 },
-  { "delay_time", DELAY, VAR_TIME, ROOT_W, 0, &speakup_info.delay_time, 0 },
-  { "trigger_time", TRIGGER, VAR_TIME, ROOT_W, 0, &synth_trigger_time, 0 },
-  { "jiffy_delta", JIFFY, VAR_TIME, ROOT_W, 0, &speakup_info.jiffy_delta, 0 },
-  { "full_time", FULL, VAR_TIME, ROOT_W, 0, &speakup_info.full_time, 0 },
-  { "spell_delay", SPELL_DELAY, VAR_NUM, USER_RW, 0, &spell_delay, 0 },
-  { "bleeps", BLEEPS, VAR_NUM, USER_RW, 0, &bleeps, 0 },
-  { "attrib_bleep", ATTRIB_BLEEP, VAR_NUM, USER_RW, 0, &attrib_bleep, 0 },
-  { "bleep_time", BLEEP_TIME, VAR_TIME, USER_RW, 0, &bleep_time, 0 },
-  { "cursor_time", CURSOR_TIME, VAR_TIME, USER_RW, 0, &cursor_timeout, 0 },
-  { "punc_level", PUNC_LEVEL, VAR_NUM, USER_RW, 0, &punc_level, 0 },
-  { "reading_punc", READING_PUNC, VAR_NUM, USER_RW, 0, &reading_punc, 0 },
-  { "say_control", SAY_CONTROL, VAR_NUM, USER_RW, 0, &say_ctrl, 0 },
-  { "say_word_ctl", SAY_WORD_CTL, VAR_NUM, USER_RW, 0, &say_word_ctl, 0 },
-  { "no_interrupt", NO_INTERRUPT, VAR_NUM, USER_RW, 0, &no_intr, 0 },
-  { "key_echo", KEY_ECHO, VAR_NUM, USER_RW, 0, &key_echo, 0 },
-  { "bell_pos", BELL_POS, VAR_NUM, USER_RW, 0, &bell_pos, 0 },
-  { "rate", RATE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "pitch", PITCH, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "vol", VOL, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "tone", TONE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "punct", PUNCT, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "voice", VOICE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "freq", FREQ, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "lang", LANG, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "chartab", CHARTAB, VAR_PROC, USER_RW, 0, 0, 0 },
-};
-
-static struct st_var_header *var_ptrs[MAXVARS] = { 0, 0, 0 };
-
-char *
-speakup_s2i(char *start, short *dest)
-{
-	int val;
-	char ch = *start;
-	if (ch == '-' || ch == '+')
-		start++;
-	if (*start < '0' || *start > '9')
-		return start;
-	val = (*start) - '0';
-	start++;
-	while (*start >= '0' && *start <= '9') {
-		val *= 10;
-		val += (*start) - '0';
-		start++;
-	}
-	if (ch == '-')
-		*dest = -val;
-	else
-		*dest = val;
-	return start;
-}
-
 short punc_masks[] = { 0, SOME, MOST, PUNC, PUNC|B_SYM };
-
-/* handlers for setting vars */
-int set_num_var(short input, struct st_var_header *var, int how)
-{
-	short val, ret = 0;
-	short *p_val = var->p_val;
-	int l;
-	char buf[32], *cp;
-	struct st_num_var *var_data = var->data;
-	if (var_data == NULL)
-		return E_UNDEF;
-	if (how == E_DEFAULT) {
-		val = var_data->default_val;
-		ret = SET_DEFAULT;
-	} else {
-		if (how == E_SET)
-			val = input;
-		else
-			val = var_data->value;
-		if (how == E_INC)
-			val += input;
-		else if (how == E_DEC)
-			val -= input;
-		if (val < var_data->low || val > var_data->high)
-			return E_RANGE;
-	}
-	var_data->value = val;
-	if (var->var_type == VAR_TIME && p_val != 0) {
-		*p_val = (val * HZ + 1000 - HZ) / 1000;
-		return ret;
-	}
-	if (p_val != 0)
-		*p_val = val;
-	if (var->var_id == PUNC_LEVEL) {
-		punc_mask = punc_masks[val];
-		return ret;
-	}
-	if (var_data->multiplier != 0)
-		val *= var_data->multiplier;
-	val += var_data->offset;
-	if (var->var_id < FIRST_SYNTH_VAR || synth == NULL)
-		return ret;
-	if (synth->synth_adjust != NULL) {
-		int status = synth->synth_adjust(var);
-		return (status != 0) ? status : ret;
-	}
-	if (!var_data->synth_fmt)
-		return ret;
-	if (var->var_id == PITCH)
-		cp = pitch_buff;
-	else
-		cp = buf;
-	if (!var_data->out_str)
-		l = sprintf(cp, var_data->synth_fmt, (int)val);
-	else
-		l = sprintf(cp, var_data->synth_fmt, var_data->out_str[val]);
-	synth_printf("%s",cp);
-	return ret;
-}
-
-static int set_string_var(char *page, struct st_var_header *var, int len)
-{
-	int ret = 0;
-	struct st_string_var *var_data = var->data;
-	if (var_data == NULL)
-		return E_UNDEF;
-	if (len > MAXVARLEN)
-		return -E_TOOLONG;
-	if (!len) {
-	if (!var_data->default_val)
-		return 0;
-		ret = SET_DEFAULT;
-		if (!var->p_val)
-			var->p_val = var_data->default_val;
-		if (var->p_val != var_data->default_val)
-			strcpy((char *)var->p_val, var_data->default_val);
-		} else if (var->p_val)
-			strcpy((char *)var->p_val, page);
-	else
-		return -E_TOOLONG;
-	return ret;
-}
-
-struct st_var_header *get_var_header(short var_id)
-{
-	struct st_var_header *p_header;
-	if (var_id < 0 || var_id >= MAXVARS)
-		return NULL;
-	p_header = var_ptrs[var_id];
-	if (p_header->data == NULL)
-		return NULL;
-	return p_header;
-}
-
-#ifdef CONFIG_PROC_FS
-/* this is the write handler for /proc/speakup vars */
-static int speakup_vars_write_proc(struct file *file, const char *buffer,
-				   u_long count, void *data)
-{
-	struct st_var_header *p_header = data;
-	int len = count, ret = 0;
-	char *page = (char *) __get_free_page(GFP_KERNEL);
-	char *v_name = p_header->name, *cp;
-	struct st_num_var *var_data;
-	short value;
-	if (!page)
-		return -ENOMEM;
-	if (copy_from_user(page, buffer, count)) {
-		ret = -EFAULT;
-		goto out;
-	}
-	if (page[len - 1] == '\n')
-		--len;
-	page[len] = '\0';
-	cp = xlate(page);
-	switch (p_header->var_type) {
-	case VAR_NUM:
-	case VAR_TIME:
-		if (*cp == 'd' || *cp == 'r' || *cp == '\0')
-			len = E_DEFAULT;
-		else if (*cp == '+' || *cp == '-')
-			len = E_INC;
-		else
-			len = E_SET;
-		speakup_s2i(cp, &value);
-		ret = set_num_var(value, p_header, len);
-		if (ret != E_RANGE)
-			break;
-		var_data = p_header->data;
-		pr_warn("value for %s out of range, expect %d to %d\n",
-		v_name, (int)var_data->low, (int)var_data->high);
-		break;
-	case VAR_STRING:
-		len = strlen(page);
-		ret = set_string_var(page, p_header, len);
-		if (ret != E_TOOLONG)
-			break;
-		pr_warn("value too long for %s\n", v_name);
-		break;
-	default:
-		pr_warn("%s unknown type %d\n",
-			p_header->name, (int)p_header->var_type);
-	break;
-	}
-out:
-	if (ret == SET_DEFAULT)
-		pr_info("%s reset to default value\n", v_name);
-	free_page((unsigned long) page);
-	return count;
-}
-
-/* this is the read handler for /proc/speakup vars */
-static int speakup_vars_read_proc(char *page, char **start, off_t off,
-				  int count, int *eof, void *data)
-{
-	struct st_var_header *var = data;
-	struct st_num_var *n_var = var->data;
-	char ch, *cp, *cp1;
-	*start = 0;
-	*eof = 1;
-	switch (var->var_type) {
-	case VAR_NUM:
-	case VAR_TIME:
-		return sprintf(page, "%d\n", (int)n_var->value);
-		break;
-	case VAR_STRING:
-		cp1 = page;
-		*cp1++ = '"';
-		for (cp = (char *)var->p_val; (ch = *cp); cp++) {
-			if (ch >= ' ' && ch < '~')
-				*cp1++ = ch;
-			else
-				cp1 += sprintf(cp1, "\\""x%02x", ch);
-		}
-		*cp1++ = '"';
-		*cp1++ = '\n';
-		*cp1 = '\0';
-		return cp1-page;
-		break;
-	default:
-		return sprintf(page, "oops bad type %d\n",
-			(int)var->var_type);
-	}
-	return 0;
-}
-
-static const char spk_dir[] = "speakup";
-static struct proc_dir_entry *dir_ent;
-
-static int spk_make_proc(struct st_var_header *p_header)
-{
-	struct proc_dir_entry *ent = p_header->proc_entry;
-	char *name = p_header->name;
-	struct st_proc_var *p_var;
-	if (dir_ent == 0 || p_header->proc_mode == 0 || ent != 0)
-		return 0;
-	ent = create_proc_entry(name, p_header->proc_mode, dir_ent);
-	if (!ent) {
-		pr_warn("Unable to create /proc/%s/%s entry.\n",
-			spk_dir, name);
-		return -1;
-	}
-	if (p_header->var_type == VAR_PROC) {
-		p_var = (struct st_proc_var *) p_header->data;
-		if (p_header->proc_mode&S_IRUSR)
-			ent->read_proc = p_var->read_proc;
-		if (p_header->proc_mode&S_IWUSR)
-			ent->write_proc = p_var->write_proc;
-	} else {
-		if (p_header->proc_mode&S_IRUSR)
-			ent->read_proc = speakup_vars_read_proc;
-		if (p_header->proc_mode&S_IWUSR)
-			ent->write_proc = speakup_vars_write_proc;
-	}
-	ent->data = (void *)p_header;
-	p_header->proc_entry = (void *) ent;
-	return 0;
-}
-
-#endif
-
-int speakup_register_var(struct st_num_var *var)
-{
-	static char nothing[2] = "\0";
-	int i, var_id = var->var_id;
-	struct st_var_header *p_header;
-	struct st_string_var *s_var;
-	if (var_id < 0 || var_id >= MAXVARS)
-		return -1;
-	if (var_ptrs[0] == 0) {
-		for (i = 0; i < MAXVARS; i++) {
-			p_header = &var_headers[i];
-			var_ptrs[p_header->var_id] = p_header;
-			p_header->data = 0;
-		}
-	}
-	p_header = var_ptrs[var_id];
-	if (p_header->data != 0)
-		return 0;
-	p_header->data = var;
-	switch (p_header->var_type) {
-	case VAR_STRING:
-		s_var = (struct st_string_var *) var;
-		set_string_var(nothing, p_header, 0);
-		break;
-	case VAR_NUM:
-	case VAR_TIME:
-		set_num_var(0, p_header, E_DEFAULT);
-		break;
-	}
-#ifdef CONFIG_PROC_FS
-	return spk_make_proc(p_header);
-#else
-	return 0;
-#endif
-}
-
-static void speakup_unregister_var(short var_id)
-{
-	struct st_var_header *p_header;
-	if (var_id < 0 || var_id >= MAXVARS)
-		return;
-	p_header = var_ptrs[var_id];
-	p_header->data = 0;
-#ifdef CONFIG_PROC_FS
-	if (dir_ent != 0 && p_header->proc_entry != 0)
-		remove_proc_entry(p_header->name, dir_ent);
-	p_header->proc_entry = 0;
-#endif
-}
 
 /* called by: speakup_init() */
 int speakup_dev_init(char *synth_name)
 {
-	int i;
-	struct st_var_header *p_header;
-	struct st_proc_var *pv = spk_proc_vars;
-
 	pr_warn("synth name on entry is: %s\n", synth_name); 
 	synth_init(synth_name);
 	speakup_register_devsynth();
-#ifdef CONFIG_PROC_FS
-	dir_ent = create_proc_entry(spk_dir, S_IFDIR, 0);
-	if (!dir_ent) {
-		pr_warn("Unable to create /proc/%s entry.\n", spk_dir);
-		return -1;
-	}
-	while (pv->var_id >= 0) {
-		speakup_register_var((void *) pv);
-		pv++;
-	}
-		for (i = 0; i < MAXVARS; i++) {
-			p_header = &var_headers[i];
-		if (p_header->data != 0)
-			spk_make_proc(p_header);
-	}
-#endif
 	return 0;
 }
 
@@ -978,15 +537,12 @@ void speakup_remove(void)
 {
 	int i;
 
-	for (i = 0; i < MAXVARS; i++)
+	for (i = 0; i < MAXVARS; i++) {
 		speakup_unregister_var(i);
+}
 	pr_info("speakup: unregistering synth device /dev/synth\n");
 	misc_deregister(&synth_device);
 	misc_registered = 0;
-#ifdef CONFIG_PROC_FS
-	if (dir_ent != 0)
-		remove_proc_entry(spk_dir, NULL);
-#endif
 }
 
 /* provide a file to users, so people can send to /dev/synth */

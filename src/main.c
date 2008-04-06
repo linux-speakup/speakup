@@ -61,7 +61,6 @@
 
 #define SPEAKUP_VERSION "3.0.1"
 #define MAX_DELAY ((500 * HZ) / 1000)
-#define KEY_MAP_VER 119
 #define MINECHOCHAR SPACE
 
 MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
@@ -70,8 +69,7 @@ MODULE_DESCRIPTION("Speakup console speech");
 MODULE_LICENSE("GPL");
 MODULE_VERSION(SPEAKUP_VERSION);
 
-char *synth_name;
-module_param_named(synth, synth_name, charp, S_IRUGO);
+char synth_name[10] = "none";
 
 module_param_named(quiet, quiet_boot, bool, S_IRUGO);
 
@@ -105,8 +103,8 @@ static const struct st_bits_data punc_info[] = {
 static char mark_cut_flag;
 #define MAX_KEY 160
 u_char *our_keys[MAX_KEY], *shift_table;
-static u_char key_buf[600];
-static const u_char key_defaults[] = {
+u_char key_buf[600];
+const u_char key_defaults[] = {
 #include "speakupmap.h"
 };
 
@@ -258,7 +256,7 @@ static u_char spk_lastkey, spk_close_press, keymap_flags;
 static u_char last_keycode, this_speakup_key;
 static u_long last_spk_jiffy;
 
-static struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
+struct st_spk_t *speakup_console[MAX_NR_CONSOLES];
 
 DEFINE_MUTEX(spk_mutex);
 
@@ -288,17 +286,6 @@ static void speakup_date(struct vc_data *vc)
 	spk_pos = spk_cp = vc->vc_pos;
 	spk_old_attr = spk_attr;
 	spk_attr = get_attributes((u_short *) spk_pos);
-}
-
-static char *strlwr(char *s)
-{
-	char *p;
-	if (s == NULL)
-		return NULL;
-
-	for (p = s; *p; p++)
-		*p = tolower(*p);
-	return s;
 }
 
 static void bleep(u_short val)
@@ -1319,7 +1306,7 @@ static void do_handle_latin(struct vc_data *vc, u_char value, char up_flag)
 	spk_unlock(flags);
 }
 
-static int set_key_info(const u_char *key_info, u_char *k_buffer)
+int set_key_info(const u_char *key_info, u_char *k_buffer)
 {
 	int i = 0, states, key_data_len;
 	const u_char *cp = key_info;
@@ -1448,503 +1435,30 @@ static void __init speakup_open(struct vc_data *vc,
 		spk_shut_up |= 0x01;
 }
 
-#ifdef CONFIG_PROC_FS
+static const struct st_bits_data *pb_edit = NULL;
 
-/* speakup /proc interface code */
-
-/* Usage:
-cat /proc/speakup/version
-
-cat /proc/speakup/characters > foo
-less /proc/speakup/characters
-vi /proc/speakup/characters
-
-cat foo > /proc/speakup/characters
-cat > /proc/speakup/characters
-echo 39 apostrophe > /proc/speakup/characters
-echo 87 w > /proc/speakup/characters
-echo 119 w > /proc/speakup/characters
-echo defaults > /proc/speakup/characters
-echo reset > /proc/speakup/characters
-
-
-cat /proc/speakup/chartab > foo
-less /proc/speakup/chartab
-vi /proc/speakup/chartab
-
-cat foo > /proc/speakup/chartab
-cat > /proc/speakup/chartab
-echo 233 ALPHA > /proc/speakup/chartab
-echo 46 A_PUNC > /proc/speakup/chartab
-echo defaults > /proc/speakup/chartab
-echo reset > /proc/speakup/chartab
-*/
-
-/* keymap handlers */
-
-static int keys_read_proc(char *page, char **start, off_t off, int count,
-			  int *eof, void *data)
+static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
 {
-	char *cp = page;
-	int i, n, num_keys, nstates;
-	u_char *cp1 = key_buf + SHIFT_TBL_SIZE, ch;
-	num_keys = (int)(*cp1);
-	nstates = (int)cp1[1];
-	cp += sprintf(cp, "%d, %d, %d,\n", KEY_MAP_VER, num_keys, nstates);
-	cp1 += 2; /* now pointing at shift states */
-/* dump num_keys+1 as first row is shift states + flags,
-   each subsequent row is key + states */
-	for (n = 0; n <= num_keys; n++) {
-		for (i = 0; i <= nstates; i++) {
-			ch = *cp1++;
-			cp += sprintf(cp, "%d,", (int)ch);
-			*cp++ = (i < nstates) ? SPACE : '\n';
-		}
+	short mask = pb_edit->mask, ch_type = spk_chartab[ch];
+	if (type != KT_LATIN || (ch_type&B_NUM) || ch < SPACE)
+		return -1;
+	if (ch == SPACE) {
+		synth_printf("%s\n","edit done");
+		special_handler = NULL;
+		return 1;
 	}
-	cp += sprintf(cp, "0, %d\n", KEY_MAP_VER);
-	*start = 0;
-	*eof = 1;
-	return (int)(cp-page);
-}
-
-static char *
-s2uchar(char *start, char *dest)
-{
-	int val = 0;
-	while (*start && *start <= SPACE)
-		start++;
-	while (*start >= '0' && *start <= '9') {
-		val *= 10;
-		val += (*start) - '0';
-		start++;
-	}
-	if (*start == ',')
-		start++;
-	*dest = (u_char)val;
-	return start;
-}
-
-static int keys_write_proc(struct file *file, const char *buffer, u_long count,
-			   void *data)
-{
-	int i, ret = count;
-	char *in_buff, *cp;
-	u_char *cp1;
-	unsigned long flags;
-	if (count < 1 || count > 1800)
-		return -EINVAL;
-	in_buff = (char *) __get_free_page(GFP_KERNEL);
-	if (!in_buff)
-		return -ENOMEM;
-	spk_lock(flags);
-	if (copy_from_user(in_buff, buffer, count)) {
-		ret = -EFAULT;
-		goto out;
-	}
-	if (in_buff[count - 1] == '\n')
-		count--;
-	in_buff[count] = '\0';
-	if (count == 1 && *in_buff == 'd') {
-		set_key_info(key_defaults, key_buf);
-		goto out;
-	}
-	cp = in_buff;
-	cp1 = (u_char *)in_buff;
-	for (i = 0; i < 3; i++) {
-		cp = s2uchar(cp, cp1);
-		cp1++;
-	}
-	i = (int)cp1[-2]+1;
-	i *= (int)cp1[-1]+1;
-	i += 2; /* 0 and last map ver */
-	if (cp1[-3] != KEY_MAP_VER || cp1[-1] > 10 ||
-			i+SHIFT_TBL_SIZE+4 >= sizeof(key_buf)) {
-		pr_warn("i %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
-		ret = -EINVAL;
-		goto out;
-	}
-	while (--i >= 0) {
-		cp = s2uchar(cp, cp1);
-		cp1++;
-		if (!(*cp))
-			break;
-	}
-	if (i != 0 || cp1[-1] != KEY_MAP_VER || cp1[-2] != 0) {
-		ret = -EINVAL;
-		pr_warn("end %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
-	} else {
-		if (set_key_info(in_buff, key_buf)) {
-			set_key_info(key_defaults, key_buf);
-			ret = -EINVAL;
-			pr_warn("set key failed\n");
-		}
-	}
-out:
-	spk_unlock(flags);
-	free_page((unsigned long) in_buff);
-	return ret;
-}
-
-/* this is the handler for /proc/speakup/version */
-static int version_read_proc(char *page, char **start, off_t off, int count,
-			     int *eof, void *data)
-{
-	int len = sprintf(page, "%s\n", SPEAKUP_VERSION);
-	if (synth != NULL)
-		len += sprintf(page+len, "synth %s version %s\n", synth->name,
-			synth->version);
-	*start = 0;
-	*eof = 1;
-	return len;
-}
-
-/* this is the read handler for /proc/speakup/characters */
-static int chars_read_proc(char *page, char **start, off_t off, int count,
-			   int *eof, void *data)
-{
-	int i, len = 0;
-	off_t begin = 0;
-	char *cp;
-	for (i = 0; i < 256; i++) {
-		cp = (characters[i]) ? characters[i] : "NULL";
-		len += sprintf(page + len, "%d\t%s\n", i, cp);
-		if (len + begin > off + count)
-			break;
-		if (len + begin < off) {
-			begin += len;
-			len = 0;
-		}
-	}
-	if (i >= 256)
-		*eof = 1;
-	if (off >= len + begin)
-		return 0;
-	*start = page + (off - begin);
-	return ((count < begin + len - off) ? count : begin + len - off);
-}
-
-/* indicates when timer is set */
-static volatile int chars_timer_active;
-static declare_timer(chars_timer);
-
-static void chars_stop_timer(void)
-{
-	if (chars_timer_active)
-		stop_timer(chars_timer);
-}
-
-static int strings, rejects, updates;
-
-static void show_char_results(u_long data)
-{
-	int len;
-	char buf[80];
-	chars_stop_timer();
-	len = snprintf(buf, sizeof(buf),
-		       " updated %d of %d character descriptions\n",
-		       updates, strings);
-	if (rejects)
-		snprintf(buf + (len - 1),  sizeof(buf) - (len - 1),
-			 " with %d reject%s\n",
-			 rejects, rejects > 1 ? "s" : "");
-	printk(buf);
-}
-
-/* this is the read handler for /proc/speakup/chartab */
-static int chartab_read_proc(char *page, char **start, off_t off, int count,
-			     int *eof, void *data)
-{
-	int i, len = 0;
-	off_t begin = 0;
-	char *cp;
-	for (i = 0; i < 256; i++) {
-		cp = "0";
-		if (IS_TYPE(i, B_CTL))
-			cp = "B_CTL";
-		else if (IS_TYPE(i, WDLM))
-			cp = "WDLM";
-		else if (IS_TYPE(i, A_PUNC))
-			cp = "A_PUNC";
-		else if (IS_TYPE(i, PUNC))
-			cp = "PUNC";
-		else if (IS_TYPE(i, NUM))
-			cp = "NUM";
-		else if (IS_TYPE(i, A_CAP))
-			cp = "A_CAP";
-		else if (IS_TYPE(i, ALPHA))
-			cp = "ALPHA";
-		else if (IS_TYPE(i, B_CAPSYM))
-			cp = "B_CAPSYM";
-		else if (IS_TYPE(i, B_SYM))
-			cp = "B_SYM";
-
-		len += sprintf(page + len, "%d\t%s\n", i, cp);
-		if (len + begin > off + count)
-			break;
-		if (len + begin < off) {
-			begin += len;
-			len = 0;
-		}
-	}
-	if (i >= 256)
-		*eof = 1;
-	if (off >= len + begin)
-		return 0;
-	*start = page + (off - begin);
-	return ((count < begin + len - off) ? count : begin + len - off);
-}
-
-static int chartab_get_value(char *keyword)
-{
-	int value = 0;
-
-	if (!strcmp(keyword, "ALPHA"))
-		value = ALPHA;
-	else if (!strcmp(keyword, "B_CTL"))
-		value = B_CTL;
-	else if (!strcmp(keyword, "WDLM"))
-		value = WDLM;
-	else if (!strcmp(keyword, "A_PUNC"))
-		value = A_PUNC;
-	else if (!strcmp(keyword, "PUNC"))
-		value = PUNC;
-	else if (!strcmp(keyword, "NUM"))
-		value = NUM;
-	else if (!strcmp(keyword, "A_CAP"))
-		value = A_CAP;
-	else if (!strcmp(keyword, "B_CAPSYM"))
-		value = B_CAPSYM;
-	else if (!strcmp(keyword, "B_SYM"))
-		value = B_SYM;
-	return value;
-}
-
-/* this is the write handler for /proc/speakup/silent */
-static int silent_write_proc(struct file *file, const char *buffer,
-			     u_long count, void *data)
-{
-	struct vc_data *vc = vc_cons[fg_console].d;
-	char ch = 0, shut;
-	unsigned long flags;
-	if (count > 0 || count < 3) {
-		get_user(ch, buffer);
-		if (ch == '\n')
-			ch = '0';
-	}
-	if (ch < '0' || ch > '7') {
-		pr_warn("silent value not in range (0,7)\n");
-		return count;
-	}
-	spk_lock(flags);
-	if (ch&2) {
-		shut = 1;
-		do_flush();
-	} else
-		shut = 0;
-	if (ch&4)
-		shut |= 0x40;
-	if (ch&1)
-		spk_shut_up |= shut;
-	else
-		spk_shut_up &= ~shut;
-	spk_unlock(flags);
-	return count;
-}
-
-/* this is the write handler for /proc/speakup/characters */
-static int chars_write_proc(struct file *file, const char *buffer,
-			    u_long count, void *data)
-{
-#define max_desc_len 72
-	static int cnt = 0, state = 0;
-	static char desc[max_desc_len + 1];
-	static u_long jiff_last = 0;
-	short i = 0, num;
-	int len;
-	char ch, *cp, *p_new;
-	unsigned long flags;
-	/* reset certain vars if enough time has elapsed since last called */
-	spk_lock(flags);
-	if (jiffies - jiff_last > 10)
-		cnt = state = strings = rejects = updates = 0;
-	jiff_last = jiffies;
-get_more:
-	desc[cnt] = '\0';
-	state = 0;
-	for ( ; i < count && state < 2; i++) {
-		get_user(ch, buffer + i);
-		if (ch == '\n') {
-			desc[cnt] = '\0';
-			state = 2;
-		} else if (cnt < max_desc_len)
-			desc[cnt++] = ch;
-	}
-	if (state < 2)
-		goto out;
-	cp = desc;
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
-	if ((!cnt) || strchr("dDrR", *cp)) {
-		reset_default_chars();
-		pr_info("character descriptions reset to defaults\n");
-		cnt = 0;
-		goto out;
-	}
-	cnt = 0;
-	if (*cp == '#')
-		goto get_more;
-	num = -1;
-	cp = speakup_s2i(cp, &num);
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
-	if (num < 0 || num > 255) {
-		/* not in range */
-		rejects++;
-		strings++;
-		goto get_more;
-	}
-	if (num >= 27 && num <= 31)
-		goto get_more;
-	if (!strcmp(cp, characters[num])) {
-		strings++;
-		goto get_more;
-	}
-	len = strlen(cp);
-	if (characters[num] == default_chars[num])
-		p_new = kmalloc(len+1, GFP_KERNEL);
-	else if (strlen(characters[num]) >= len)
-		p_new = characters[num];
-	else {
-		kfree(characters[num]);
-		characters[num] = default_chars[num];
-		p_new = kmalloc(len+1, GFP_KERNEL);
-	}
-	if (!p_new) {
-		count = -ENOMEM;
-		goto out;
-	}
-	strcpy(p_new, cp);
-	characters[num] = p_new;
-	updates++;
-	strings++;
-	if (i < count)
-		goto get_more;
-	chars_stop_timer();
-	init_timer(&chars_timer);
-	chars_timer.function = show_char_results;
-	chars_timer.expires = jiffies + 5;
-		start_timer(chars_timer);
-	chars_timer_active++;
-out:
-	spk_unlock(flags);
-	return count;
-}
-
-/* this is the write handler for /proc/speakup/chartab */
-static int chartab_write_proc(struct file *file, const char *buffer,
-			      u_long count, void *data)
-{
-#define max_desc_len 72
-	static int cnt = 0, state = 0;
-	static char desc[max_desc_len + 1];
-	static u_long jiff_last = 0;
-	short i = 0, num;
-	char ch, *cp;
-	int value = 0;
-	unsigned long flags;
-	spk_lock(flags);
-	/* reset certain vars if enough time has elapsed since last called */
-	if (jiffies - jiff_last > 10)
-		cnt = state = strings = rejects = updates = 0;
-	jiff_last = jiffies;
-get_more:
-	desc[cnt] = '\0';
-	state = 0;
-	for ( ; i < count && state < 2; i++) {
-		get_user(ch, buffer + i);
-		if (ch == '\n') {
-			desc[cnt] = '\0';
-			state = 2;
-		} else if (cnt < max_desc_len)
-			desc[cnt++] = ch;
-	}
-	if (state < 2)
-		goto out;
-	cp = desc;
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
-	if ((!cnt) || strchr("dDrR", *cp)) {
-		reset_default_chartab();
-		pr_info("character descriptions reset to defaults\n");
-		cnt = 0;
-		goto out;
-	}
-	cnt = 0;
-	if (*cp == '#')
-		goto get_more;
-	num = -1;
-	cp = speakup_s2i(cp, &num);
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
-	if (num < 0 || num > 255) {
-		/* not in range */
-		rejects++;
-		strings++;
-		goto get_more;
-	}
-	/*	if (num >= 27 && num <= 31)
-	 *		goto get_more; */
-
-	value = chartab_get_value(cp);
-	if (!value) {
-		/* not in range */
-		rejects++;
-		strings++;
-		goto get_more;
-	}
-
-	if (value == spk_chartab[num]) {
-		strings++;
-		goto get_more;
-	}
-
-	spk_chartab[num] = value;
-	updates++;
-	strings++;
-	if (i < count)
-		goto get_more;
-	chars_stop_timer();
-	init_timer(&chars_timer);
-	chars_timer.function = show_char_results;
-	chars_timer.expires = jiffies + 5;
-		start_timer(chars_timer);
-	chars_timer_active++;
-out:
-	spk_unlock(flags);
-	return count;
-}
-
-static int bits_read_proc(char *page, char **start, off_t off, int count,
-			  int *eof, void *data)
-{
-	int i;
-	struct st_var_header *p_header = data;
-	struct st_proc_var *var = p_header->data;
-	const struct st_bits_data *pb = &punc_info[var->value];
-	short mask = pb->mask;
-	char *cp = page;
-	*start = 0;
-	*eof = 1;
-	for (i = 33; i < 128; i++) {
-		if (!(spk_chartab[i]&mask))
-			continue;
-		*cp++ = (char)i;
-	}
-	*cp++ = '\n';
-	return cp-page;
+	if (mask < PUNC && !(ch_type&PUNC))
+		return -1;
+	spk_chartab[ch] ^= mask;
+	speak_char(ch);
+	synth_printf("%s\n",(spk_chartab[ch]&mask) ? " on" : " off");
+	return 1;
 }
 
 /* set_mask_bits sets or clears the punc/delim/repeat bits,
  * if input is null uses the defaults.
  * values for how: 0 clears bits of chars supplied,
  * 1 clears allk, 2 sets bits for chars */
-
 static int set_mask_bits(const char *input, const int which, const int how)
 {
 	u_char *cp;
@@ -1981,113 +1495,6 @@ static int set_mask_bits(const char *input, const int which, const int how)
 	}
 	return 0;
 }
-
-static const struct st_bits_data *pb_edit = NULL;
-
-static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
-{
-	short mask = pb_edit->mask, ch_type = spk_chartab[ch];
-	if (type != KT_LATIN || (ch_type&B_NUM) || ch < SPACE)
-		return -1;
-	if (ch == SPACE) {
-		synth_printf("%s\n","edit done");
-		special_handler = NULL;
-		return 1;
-	}
-	if (mask < PUNC && !(ch_type&PUNC))
-		return -1;
-	spk_chartab[ch] ^= mask;
-	speak_char(ch);
-	synth_printf("%s\n",(spk_chartab[ch]&mask) ? " on" : " off");
-	return 1;
-}
-
-static int bits_write_proc(struct file *file, const char *buffer, u_long count,
-			   void *data)
-{
-	struct st_var_header *p_header = data;
-	struct st_proc_var *var = p_header->data;
-	int ret = count;
-	char punc_buf[100];
-	unsigned long flags;
-	if (count < 1 || count > 99)
-		return -EINVAL;
-	if (copy_from_user(punc_buf, buffer, count))
-		return -EFAULT;
-	if (punc_buf[count - 1] == '\n')
-		count--;
-	punc_buf[count] = '\0';
-	spk_lock(flags);
-	if (*punc_buf == 'd' || *punc_buf == 'r')
-		count = set_mask_bits(0, var->value, 3);
-	else
-		count = set_mask_bits(punc_buf, var->value, 3);
-	spk_unlock(flags);
-	if (count < 0)
-		return count;
-	return ret;
-}
-
-/* FIXME: needs reimplementing in sysfs */
-#if 0
-/* this is the read handler for /proc/speakup/synth */
-static int synth_read_proc(char *page, char **start, off_t off, int count,
-			   int *eof, void *data)
-{
-	int len;
-	if (synth == NULL)
-		strcpy(synth_name, "none");
-	else
-		strcpy(synth_name, synth->name);
-	len = sprintf(page, "%s\n", synth_name);
-	*start = 0;
-	*eof = 1;
-	return len;
-}
-
-/* this is the write handler for /proc/speakup/synth */
-static int synth_write_proc(struct file *file, const char *buffer,
-			    u_long count, void *data)
-{
-	int ret = count;
-	char new_synth_name[10];
-	const char *old_name = (synth != NULL) ? synth->name : "none";
-	if (count < 2 || count > 9)
-		return -EINVAL;
-	if (copy_from_user(new_synth_name, buffer, count))
-		return -EFAULT;
-	if (new_synth_name[count - 1] == '\n')
-		count--;
-	new_synth_name[count] = '\0';
-	strlwr(new_synth_name);
-	if (!strcmp(new_synth_name, old_name)) {
-		pr_warn("%s already in use\n", new_synth_name);
-		return ret;
-	}
-	if (synth_init(new_synth_name) == 0)
-		return ret;
-	pr_warn("failed to init synth %s\n", new_synth_name);
-	return -ENODEV;
-}
-#endif
-
-struct st_proc_var spk_proc_vars[] = {
-	 { VERSION, version_read_proc, 0, 0 },
-	 { SILENT, 0, silent_write_proc, 0 },
-	 { CHARS, chars_read_proc, chars_write_proc, 0 },
-/*	 { SYNTH, synth_read_proc, synth_write_proc, 0 },*/
-	 { KEYMAP, keys_read_proc, keys_write_proc, 0 },
-	 { PUNC_SOME, bits_read_proc, bits_write_proc, 1 },
-	 { PUNC_MOST, bits_read_proc, bits_write_proc, 2 },
-	 { PUNC_ALL, bits_read_proc, 0, 3 },
-	 { DELIM, bits_read_proc, bits_write_proc, 4 },
-	 { REPEATS, bits_read_proc, bits_write_proc, 5 },
-	 { EXNUMBER, bits_read_proc, bits_write_proc, 6 },
-	 { CHARTAB, chartab_read_proc, chartab_write_proc, 0 },
-	{ -1, 0, 0, 0 }
-};
-
-#endif /* CONFIG_PROC_FS */
 
 /* Allocation concurrency is protected by the console semaphore */
 void speakup_allocate(struct vc_data *vc)

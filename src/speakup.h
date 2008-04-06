@@ -3,6 +3,7 @@
 
 #include "spk_types.h"
 
+#define KEY_MAP_VER 119
 #define SHIFT_TBL_SIZE 64
 
 /* proc permissions */
@@ -45,10 +46,17 @@
 #define E_TOOLONG -2
 #define E_UNDEF -1
 
-extern char *speakup_s2i(char *, short *);
-extern int speakup_register_var(struct st_num_var *var);
+extern int set_key_info(const u_char *key_info, u_char *k_buffer);
+extern char *strlwr(char *s);
+extern char *speakup_s2i(char *start, short *dest);
+extern char *s2uchar(char *start, char *dest);
+extern char *xlate(char *s);
+extern void speakup_register_var(struct st_num_var *var);
+extern void speakup_unregister_var(short var_id);
 extern struct st_var_header *get_var_header(short var_id);
+extern struct st_var_header *var_header_by_name(const char *name);
 extern int set_num_var(short val, struct st_var_header *var, int how);
+extern int set_string_var(const char *page, struct st_var_header *var, int len);
 extern special_func special_handler;
 extern int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key);
 extern int synth_init(char *name);
@@ -58,17 +66,22 @@ extern void do_flush(void);
 extern void synth_buffer_add(char ch);
 extern void synth_write(const char *buf, size_t count);
 extern int synth_supports_indexing(void);
-extern int speakup_dev_init(char *);
+extern int speakup_dev_init(char *synth_name);
 
 extern declare_sleeper(synth_sleeping_list);
 
+extern const u_char key_defaults[];
+
 /* Protect speakup synthesizer list */
 extern struct mutex spk_mutex;
+extern struct st_spk_t *speakup_console[];
 extern struct spk_synth *synth;
-extern struct st_proc_var spk_proc_vars[];
+extern char pitch_buff[];
+extern char synth_name[];
 extern u_char *our_keys[];
 extern short punc_masks[];
 extern char str_caps_start[], str_caps_stop[];
+extern u_char key_buf[600];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
 extern short reading_punc, attrib_bleep, bleeps;
 extern short bleep_time, bell_pos;
