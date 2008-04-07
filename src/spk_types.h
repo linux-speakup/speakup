@@ -102,12 +102,8 @@ struct st_num_var {
 	short value; /* current value */
 };
 
-struct st_proc_var {
+struct st_punc_var {
 	short var_id;
-	int (*read_proc)(char *page, char **start, off_t off, int count,
-			 int *eof, void *data);
-	int (*write_proc)(struct file *file, const char *buffer, u_long count,
-			  void *data);
 	short value;
 };
 

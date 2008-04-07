@@ -89,7 +89,7 @@ short key_echo, cursor_timeout = 120, say_word_ctl;
 short say_ctrl, bell_pos;
 short punc_mask, punc_level, reading_punc;
 char str_caps_start[MAXVARLEN+1] = "\0", str_caps_stop[MAXVARLEN+1] = "\0";
-static const struct st_bits_data punc_info[] = {
+const struct st_bits_data punc_info[] = {
 	{ "none", "", 0 },
 	{ "some", "/$%&@", SOME },
 	{ "most", "$%&#()=+*/@^<>|\\", MOST },
@@ -127,7 +127,6 @@ typedef void (*k_handler_fn)(struct vc_data *vc, unsigned char value,
 extern k_handler_fn k_handler[16];
 
 static void spkup_write(const char *in_buf, int count);
-static int set_mask_bits(const char *input, const int which, const int how);
 
 static const char str_ctl[] = "control-";
 static const char *colors[] = {
@@ -213,8 +212,8 @@ static char *default_chars[256] = {
 
 /* array of 256 u_short (one for each character)
  * initialized to default_chartab and user selectable via
- * /proc/speakup/chartab */
-static u_short spk_chartab[256];
+ * /sys/module/speakup/parameters/chartab */
+u_short spk_chartab[256];
 
 static u_short default_chartab[256] = {
  B_CTL, B_CTL, B_CTL, B_CTL, B_CTL, B_CTL, B_CTL, B_CTL, /* 0-7 */
@@ -1453,47 +1452,6 @@ static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	speak_char(ch);
 	synth_printf("%s\n",(spk_chartab[ch]&mask) ? " on" : " off");
 	return 1;
-}
-
-/* set_mask_bits sets or clears the punc/delim/repeat bits,
- * if input is null uses the defaults.
- * values for how: 0 clears bits of chars supplied,
- * 1 clears allk, 2 sets bits for chars */
-static int set_mask_bits(const char *input, const int which, const int how)
-{
-	u_char *cp;
-	short mask = punc_info[which].mask;
-	if (how&1) {
-		for (cp = (u_char *)punc_info[3].value; *cp; cp++)
-			spk_chartab[*cp] &= ~mask;
-	}
-	cp = (u_char *)input;
-	if (cp == 0)
-		cp = punc_info[which].value;
-	else {
-		for ( ; *cp; cp++) {
-			if (*cp < SPACE)
-				break;
-			if (mask < PUNC) {
-				if (!(spk_chartab[*cp]&PUNC))
-					break;
-			} else if (spk_chartab[*cp]&B_NUM)
-				break;
-		}
-		if (*cp)
-			return -EINVAL;
-		cp = (u_char *)input;
-	}
-	if (how&2) {
-		for ( ; *cp; cp++)
-			if (*cp > SPACE)
-				spk_chartab[*cp] |= mask;
-	} else {
-		for ( ; *cp; cp++)
-			if (*cp > SPACE)
-				spk_chartab[*cp] &= ~mask;
-	}
-	return 0;
 }
 
 /* Allocation concurrency is protected by the console semaphore */

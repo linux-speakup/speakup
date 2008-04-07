@@ -13,6 +13,8 @@ static int set_silent(const char *val, struct kernel_param *kp);
 static int set_synth(const char *val, struct kernel_param *kp);
 static int get_synth(char *buffer, struct kernel_param *kp);
 static int send_synth_direct(const char *buffer, struct kernel_param *kp);
+static int set_bits(const char *val, struct kernel_param *kp);
+static int get_bits(char *buffer, struct kernel_param *kp);
 static int set_vars(const char *val, struct kernel_param *kp);
 static int get_vars(char *buffer, struct kernel_param *kp);
 
@@ -23,6 +25,13 @@ module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
 module_param_call(silent, set_silent, NULL, NULL, 0664);
 module_param_call(synth, set_synth, get_synth, NULL, 0664);
 module_param_call(synth_direct, send_synth_direct, NULL, NULL, 0664);
+
+module_param_call(delimiters, set_bits, get_bits, NULL, 0664);
+module_param_call(ex_num, set_bits, get_bits, NULL, 0664);
+module_param_call(punc_all, set_bits, get_bits, NULL, 0664);
+module_param_call(punc_most, set_bits, get_bits, NULL, 0664);
+module_param_call(punc_some, set_bits, get_bits, NULL, 0664);
+module_param_call(repeats, set_bits, get_bits, NULL, 0664);
 
 module_param_call(attrib_bleep, set_vars, get_vars, NULL, 0664);
 module_param_call(bell_pos, set_vars, get_vars, NULL, 0664);
@@ -247,6 +256,63 @@ static int send_synth_direct(const char *val, struct kernel_param *kp)
 		count -= bytes;
 	}
 	return 0;
+}
+
+/*
+ * This is the set handler for the punctuation settings.
+ */
+static int set_bits(const char *val, struct kernel_param *kp)
+{
+	struct st_var_header *p_header = var_header_by_name(kp->name);
+	struct st_punc_var *var = get_punc_var(p_header->var_id);
+	int ret;
+	int count;
+	char punc_buf[100];
+	unsigned long flags;
+
+	ret = 0;
+	count = strlen(val);
+	if (count < 1 || count > 99)
+		return -EINVAL;
+
+	strncpy(punc_buf, val, count);
+
+	if (punc_buf[count - 1] == '\n')
+		count--;
+	punc_buf[count] = '\0';
+
+	spk_lock(flags);
+
+	if (*punc_buf == 'd' || *punc_buf == 'r')
+		count = set_mask_bits(0, var->value, 3);
+	else
+		count = set_mask_bits(punc_buf, var->value, 3);
+
+	spk_unlock(flags);
+	if (count < 0)
+		ret = count;
+	return ret;
+}
+
+/*
+ * This is the get handler for the punctuation settings.
+ */
+static int get_bits(char *buffer, struct kernel_param *kp)
+{
+	int i;
+	struct st_var_header *p_header = var_header_by_name(kp->name);
+	struct st_punc_var *var = get_punc_var(p_header->var_id);
+	const struct st_bits_data *pb = &punc_info[var->value];
+	short mask = pb->mask;
+	char *cp = buffer;
+	
+	for (i = 33; i < 128; i++) {
+		if (!(spk_chartab[i]&mask))
+			continue;
+		*cp++ = (char)i;
+	}
+	*cp++ = '\n';
+	return cp-buffer;
 }
 
 /*
