@@ -145,7 +145,7 @@ static char *phonetic[] = {
 /* array of 256 char pointers (one for each character description)
  * initialized to default_chars and user selectable via
  * /proc/speakup/characters */
-static char *characters[256];
+char *characters[256];
 
 static char *default_chars[256] = {
 	"null", "^a", "^b", "^c", "^d", "^e", "^f", "^g",

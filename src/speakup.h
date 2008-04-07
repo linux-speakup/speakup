@@ -85,6 +85,7 @@ extern short punc_masks[];
 extern char str_caps_start[], str_caps_stop[];
 extern const struct st_bits_data punc_info[];
 extern u_char key_buf[600];
+extern char *characters[];
 extern u_short spk_chartab[];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
 extern short reading_punc, attrib_bleep, bleeps;

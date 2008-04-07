@@ -7,6 +7,10 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
+static int set_characters(const char *val, struct kernel_param *kp);
+static int get_characters(char *buffer, struct kernel_param *kp);
+static int set_chartab(const char *val, struct kernel_param *kp);
+static int get_chartab(char *buffer, struct kernel_param *kp);
 static int set_keymap(const char *val, struct kernel_param *kp);
 static int get_keymap(char *buffer, struct kernel_param *kp);
 static int set_silent(const char *val, struct kernel_param *kp);
@@ -21,6 +25,8 @@ static int get_vars(char *buffer, struct kernel_param *kp);
 /*
  * The first thing we do is define the parameters.
  */
+module_param_call(characters, NULL, get_characters, NULL, 0644);
+module_param_call(chartab, NULL, get_chartab, NULL, 0644);
 module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
 module_param_call(silent, set_silent, NULL, NULL, 0664);
 module_param_call(synth, set_synth, get_synth, NULL, 0664);
@@ -60,6 +66,72 @@ module_param_call(rate, set_vars, get_vars, NULL, 0664);
 module_param_call(tone, set_vars, get_vars, NULL, 0664);
 module_param_call(voice, set_vars, get_vars, NULL, 0664);
 module_param_call(vol, set_vars, get_vars, NULL, 0664);
+
+/*
+ * The set handler for characters goes here.
+ */
+static int set_characters(const char *val, struct kernel_param *kp)
+{
+	return 0;
+}
+
+/*
+ * This is the get handler for characters.
+ */
+static int get_characters(char *buffer, struct kernel_param *kp)
+{
+	int i;
+	int len = 0;
+	char *cp;
+
+	for (i = 0; i < 256; i++) {
+		cp = (characters[i]) ? characters[i] : "NULL";
+		len += sprintf(buffer + len, "%d\t%s\n", i, cp);
+	}
+	return len;
+}
+
+/*
+ * The set handler for chartab goes here.
+ */
+static int set_chartab(const char *val, struct kernel_param *kp)
+{
+	return 0;
+}
+
+/*
+ * This is the get handler for chartab.
+ */
+static int get_chartab(char *buffer, struct kernel_param *kp)
+{
+	int i;
+	int len = 0;
+	char *cp;
+
+	for (i = 0; i < 256; i++) {
+		cp = "0";
+		if (IS_TYPE(i, B_CTL))
+			cp = "B_CTL";
+		else if (IS_TYPE(i, WDLM))
+			cp = "WDLM";
+		else if (IS_TYPE(i, A_PUNC))
+			cp = "A_PUNC";
+		else if (IS_TYPE(i, PUNC))
+			cp = "PUNC";
+		else if (IS_TYPE(i, NUM))
+			cp = "NUM";
+		else if (IS_TYPE(i, A_CAP))
+			cp = "A_CAP";
+		else if (IS_TYPE(i, ALPHA))
+			cp = "ALPHA";
+		else if (IS_TYPE(i, B_CAPSYM))
+			cp = "B_CAPSYM";
+		else if (IS_TYPE(i, B_SYM))
+			cp = "B_SYM";
+		len += sprintf(buffer + len, "%d\t%s\n", i, cp);
+	}
+	return len;
+}
 
 /*
  * This is the set handler for keymap.
