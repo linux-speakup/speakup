@@ -6,27 +6,53 @@ your distro includes speakup in your kernel, so that you don't have to install
 it yourself. But if they don't, here are some basic instructions:
 
 Speakup consists of a patch for the kernel as well as the source for the speakup
-modules. To install speakup, follow the following steps:
+modules. To install speakup, perform the following steps:
 
 Unpack your kernel source to a known location such as /usr/src/linux
-from the location where speakup is unpacked run:
+or ~/linux-version.  If you are installing from a standard linux tar
+archive you might unpack a tar archive file with a command such as:
 
-# ./install /usr/src/linux
+tar jxf linux-2.6.24.tar.bz2
+
+From the location where speakup is unpacked run:
+
+$ ./install ~/linux-2.6.24
 
 At this point, you will be presented with messages about patches being
 applied to your kernel, followed by a message stating whether or not the
 installation was successful.
 
 If the installation was successful, configure, compile and install your kernel
-the usual way.  Remember to select speakup and the appropriate synthesizer
+the usual way.  Remember to select speakup and the appropriate synthesizers
 support from the configuration menu.
 
-As of this writing, building speakup into the kernel only works if one
-synthesizer is selected.  If you build speakup into your kernel, do not select
-more than one synthesizer.
-
-If, on the other hand, you build speakup as modules, you can build as many
-synthesizer driver modules as you like.
+Upon completion of your new kernel compile follow the normal steps for
+it's installation.
 
 You can now boot into your new kernel.
 
+If speakup is built-in to your new kernel it may be started on the
+kernel command line or from a boot loader such as grub or lilo by
+supplying the appropriate speakup parametres e.g. speakup.synth=xxxx
+where 'xxxx' indicates the unique code to represent your synthesizer.
+So if you are using a DECTalk Express you would use a KCL argument
+such as speakup.synth=dectlk.
+
+If you are loading speakup as modules then you could load it with
+modprobe followed by the speakup module for the given synth and an
+argument to start the synth speaking upon loading.  If you are using a
+DoubleTalk LT or LiteTalk or TripleTalk serial synth then you might
+use:
+
+modprobe speakup_ltlk start=1
+
+You can load any speakup synthesizer without using the start argument
+but it will not begin speaking upon a successful load.  To switch to
+that synth later then you would use speakup's sysfs psudo file support
+to change to that synth such as:
+
+echo "txprt" >/sys/module/speakup/param/synth
+
+This same mechanism can be used to switch between synths which have
+been loaded by subsequent modprobe commands or that have been built
+into the kernel at compile time.

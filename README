@@ -22,11 +22,11 @@ is building speakup and the synth drivers as modules. At this point it is just
 a case of using modprobe to load a synth module driver, which will pull in
 the speakup core as a dependency, e.g.:
 
-	modprobe speakup_soft
+	modprobe speakup_soft start=1
 
 Further user documentation can be found in the doc/ subdirectory, specifically
 doc/spkguide.txt. Some information here may be out of date, corrections are
-accepted. Also see the UPGRADING file.
+accepted.
 
 Implementation
 ==============
@@ -41,3 +41,7 @@ The long term plan is for kernel inclusion, but the kernel developers may
 decide that this kind of functionality should be kept out of the kernel for
 purely technical reasons.
 
+Like the Linux kernel speakup is maintaned in a git repository which
+can be retrieved from http://linux-speakup.org with the command:
+
+git clone http://linux-speakup.org/speakup.git
