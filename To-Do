@@ -22,13 +22,6 @@ so building all the chosen modules at compile time into one speakup
 module looks like a good idea if the logistics can be worked out.
 
 
-Need a script to check the modified kernel sources and take diff's
-against them like the old checkin script did.  This will make getting
-edits to the kernel source a lot easier to get into the repository.
-Quilt might be useful for something like this.  When using the linux
-git repository git-diff can be used.
-
-
 The install script will need to be made smarter so that the correct
 speakup version can be checked out for the correct linux kernel
 version.  It also needs some way to actually create a reject file when
