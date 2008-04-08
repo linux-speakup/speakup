@@ -56,14 +56,3 @@ other non-interruptable things won't drag the kernel down and
 continuously break up speech output.
 
 
-Speakup should check to see if the current console is in graphics mode
-and if so call the speakup_kill() function to turn it off in the
-current console.  This will make speakup live more politely with 'X'
-consoles running orca or lsr.  This is done as of Feb 26 2008.
-
-
-Need to start moving speakups /proc file system functions over to
-/sys.  Also need to re implement synth_name support to provide the
-ability to switch synths when speakup is built-in.
-This is done as of April 7, 2008.
-
