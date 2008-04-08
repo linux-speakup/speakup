@@ -147,7 +147,7 @@ static char *phonetic[] = {
  * /proc/speakup/characters */
 char *characters[256];
 
-static char *default_chars[256] = {
+char *default_chars[256] = {
 	"null", "^a", "^b", "^c", "^d", "^e", "^f", "^g",
 	"^h", "^i", "^j", "^k", "^l", "^m", "^n", "^o",
 	"^p", "^q", "^r", "^s", "^t", "^u", "^v", "^w",
@@ -1373,7 +1373,7 @@ static void toggle_cursoring(struct vc_data *vc)
 	synth_printf("%s\n",cursor_msgs[cursor_track]);
 }
 
-static void reset_default_chars(void)
+void reset_default_chars(void)
 {
 	int i;
 	if (default_chars[(int)'a'] == NULL) /* lowers are null first time */
@@ -1387,7 +1387,7 @@ static void reset_default_chars(void)
 	memcpy(characters, default_chars, sizeof(default_chars));
 }
 
-static void reset_default_chartab(void)
+void reset_default_chartab(void)
 {
 	memcpy(spk_chartab, default_chartab, sizeof(default_chartab));
 }

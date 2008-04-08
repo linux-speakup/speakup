@@ -5,6 +5,7 @@
 
 #define KEY_MAP_VER 119
 #define SHIFT_TBL_SIZE 64
+#define MAX_DESC_LEN 72
 
 /* proc permissions */
 #define USER_R (S_IFREG|S_IRUGO)
@@ -46,11 +47,14 @@
 #define E_TOOLONG -2
 #define E_UNDEF -1
 
+extern void reset_default_chars(void);
+extern void reset_default_chartab(void);
 extern int set_key_info(const u_char *key_info, u_char *k_buffer);
 extern char *strlwr(char *s);
 extern char *speakup_s2i(char *start, short *dest);
 extern char *s2uchar(char *start, char *dest);
 extern char *xlate(char *s);
+extern int chartab_get_value(char *keyword);
 extern void speakup_register_var(struct st_num_var *var);
 extern void speakup_unregister_var(short var_id);
 extern struct st_var_header *get_var_header(short var_id);
@@ -86,6 +90,7 @@ extern char str_caps_start[], str_caps_stop[];
 extern const struct st_bits_data punc_info[];
 extern u_char key_buf[600];
 extern char *characters[];
+extern char *default_chars[];
 extern u_short spk_chartab[];
 extern short no_intr, say_ctrl, say_word_ctl, punc_level;
 extern short reading_punc, attrib_bleep, bleeps;
