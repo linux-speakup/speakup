@@ -83,7 +83,6 @@ extern struct mutex spk_mutex;
 extern struct st_spk_t *speakup_console[];
 extern struct spk_synth *synth;
 extern char pitch_buff[];
-extern char synth_name[];
 extern u_char *our_keys[];
 extern short punc_masks[];
 extern char str_caps_start[], str_caps_stop[];

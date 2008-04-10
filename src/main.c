@@ -69,7 +69,8 @@ MODULE_DESCRIPTION("Speakup console speech");
 MODULE_LICENSE("GPL");
 MODULE_VERSION(SPEAKUP_VERSION);
 
-char synth_name[10] = "none";
+char *synth_name;
+module_param_named(synth, synth_name, charp, 0);
 
 module_param_named(quiet, quiet_boot, bool, S_IRUGO);
 

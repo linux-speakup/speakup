@@ -454,7 +454,6 @@ static int set_synth(const char *val, struct kernel_param *kp)
 {
 	int count;
 	char new_synth_name[10];
-	const char *old_synth_name = (synth != NULL) ? synth->name : "none";
 
 	if (! val)
 		return -EINVAL;
@@ -467,7 +466,7 @@ static int set_synth(const char *val, struct kernel_param *kp)
 		count--;
 	new_synth_name[count] = '\0';
 	strlwr(new_synth_name);
-	if (!strcmp(new_synth_name, old_synth_name)) {
+	if ((synth != NULL) && (!strcmp(new_synth_name, synth->name))) {
 		pr_warn("%s already in use\n", new_synth_name);
 	} else if (synth_init(new_synth_name) != 0) {
 		pr_warn("failed to init synth %s\n", new_synth_name);
@@ -482,11 +481,13 @@ static int set_synth(const char *val, struct kernel_param *kp)
  */
 static int get_synth(char *buffer, struct kernel_param *kp)
 {
+	int rv;
+
 	if (synth == NULL)
-		strcpy(synth_name, "none");
+		rv = sprintf(buffer, "none");
 	else
-		strcpy(synth_name, synth->name);
-	return sprintf(buffer, "%s\n", synth_name);
+		rv = sprintf(buffer, synth->name);
+	return rv;
 }
 
 /*
