@@ -2,11 +2,13 @@
 #include <linux/console.h>
 #include <linux/limits.h>
 #include <linux/module.h>
+#include <linux/string.h>
 
 #include "spk_types.h"
 #include "spk_priv.h"
 #include "speakup.h"
 
+static char *strip_prefix(const char *name);
 static int set_characters(const char *val, struct kernel_param *kp);
 static int get_characters(char *buffer, struct kernel_param *kp);
 static int set_chartab(const char *val, struct kernel_param *kp);
@@ -95,6 +97,23 @@ static void show_char_results(u_long data)
 			 " with %d reject%s\n",
 			 rejects, rejects > 1 ? "s" : "");
 	printk(buf);
+}
+
+/*
+ * This function returns the portion of a string that follows the last period.
+ * The idea is to get rid of the "speakup." prefix on module parameter names
+ * if speakup is built into the kernel, and return the full string otherwise.
+ */
+static char *strip_prefix(const char *name)
+{
+	char *cp;
+
+	cp = strrchr(name, '.');
+	if (cp == NULL)
+		cp = (char *) name;
+	else
+		cp++;
+	return cp;
 }
 
 /*
@@ -525,10 +544,10 @@ static int send_synth_direct(const char *val, struct kernel_param *kp)
  */
 static int set_bits(const char *val, struct kernel_param *kp)
 {
-	struct st_var_header *p_header = var_header_by_name(kp->name);
-	struct st_punc_var *var = get_punc_var(p_header->var_id);
 	int ret;
 	int count;
+	struct st_var_header *p_header;
+	struct st_punc_var *var;
 	char punc_buf[100];
 	unsigned long flags;
 
@@ -536,6 +555,18 @@ static int set_bits(const char *val, struct kernel_param *kp)
 	count = strlen(val);
 	if (count < 1 || count > 99)
 		return -EINVAL;
+
+	p_header = var_header_by_name(strip_prefix(kp->name));
+	if (p_header == NULL) {
+		pr_warn("p_header is null, kp-> name is %s\n", kp->name);
+		return -EINVAL;
+	}
+
+	var = get_punc_var(p_header->var_id);
+	if (var == NULL) {
+		pr_warn("var is null, p_header->var_id is %i\n", p_header->var_id);
+		return -EINVAL;
+	}
 
 	strncpy(punc_buf, val, count);
 
@@ -562,12 +593,26 @@ static int set_bits(const char *val, struct kernel_param *kp)
 static int get_bits(char *buffer, struct kernel_param *kp)
 {
 	int i;
-	struct st_var_header *p_header = var_header_by_name(kp->name);
-	struct st_punc_var *var = get_punc_var(p_header->var_id);
-	const struct st_bits_data *pb = &punc_info[var->value];
-	short mask = pb->mask;
 	char *cp = buffer;
+	struct st_var_header *p_header;
+	struct st_punc_var *var;
+	struct st_bits_data *pb;
+	short mask;
 	
+	p_header = var_header_by_name(strip_prefix(kp->name));
+	if (p_header == NULL) {
+		pr_warn("p_header is null, kp-> name is %s\n", kp->name);
+		return -EINVAL;
+	}
+
+	var = get_punc_var(p_header->var_id);
+	if (var == NULL) {
+		pr_warn("var is null, p_header->var_id is %i\n", p_header->var_id);
+		return -EINVAL;
+	}
+
+	pb = (struct st_bits_data *) &punc_info[var->value];
+	mask = pb->mask;
 	for (i = 33; i < 128; i++) {
 		if (!(spk_chartab[i]&mask))
 			continue;
@@ -593,7 +638,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 	if (!val)
 		return -EINVAL;
 
-	param = var_header_by_name(kp->name);
+	param = var_header_by_name(strip_prefix(kp->name));
 	if (param == NULL)
 		return -EINVAL;
 
@@ -614,13 +659,13 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		if (ret == E_RANGE) {
 			var_data = param->data;
 			pr_warn("value for %s out of range, expect %d to %d\n",
-				kp->name, (int)var_data->low, (int)var_data->high);
+				strip_prefix(kp->name), (int)var_data->low, (int)var_data->high);
 		}
 		break;
 	case VAR_STRING:
 		ret = set_string_var(val, param, len);
 		if (ret == E_TOOLONG)
-			pr_warn("value too long for %s\n", kp->name);
+			pr_warn("value too long for %s\n", strip_prefix(kp->name));
 		break;
 	default:
 		pr_warn("%s unknown type %d\n",
@@ -628,7 +673,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 	break;
 	}
 	if (ret == SET_DEFAULT)
-		pr_info("%s reset to default value\n", kp->name);
+		pr_info("%s reset to default value\n", strip_prefix(kp->name));
 	return 0;
 }
 
@@ -647,7 +692,7 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 	if (buffer == NULL)
 		return -EINVAL;
 
-	param = var_header_by_name(kp->name);
+	param = var_header_by_name(strip_prefix(kp->name));
 	if (param == NULL)
 		return -EINVAL;
 
