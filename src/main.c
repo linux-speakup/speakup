@@ -354,7 +354,7 @@ static void speakup_parked(struct vc_data *vc)
 
 /* ------ cut and paste ----- */
 /* Don't take this from <ctype.h>: 011-015 on the screen aren't spaces */
-#define ishardspace(c)	(isspace(c) && isprint(c))
+#define ishardspace(c)      ((c) == ' ')
 /* Variables for selection control. */
 /* defined in selection.c must not be disallocated */
 static struct vc_data *spk_sel_cons;
@@ -379,7 +379,7 @@ static u16 get_char(struct vc_data *vc, u16 *pos)
 		if (w & vc->vc_hi_font_mask)
 			c |= 0x100;
 
-		ch = w & 0xff00;
+		ch = w & 0xff00;		
 		ch |= inverse_translate(vc, c);
 	}
 	return ch;
@@ -511,8 +511,8 @@ static void speakup_cut(struct vc_data *vc)
 
 	if (!mark_cut_flag) {
 		mark_cut_flag = 1;
-		xs = spk_x;
-		ys = spk_y;
+		xs = (u_short) spk_x;
+		ys = (u_short) spk_y;
 		spk_sel_cons = vc;
 		synth_printf("%s\n","mark");
 		return;
