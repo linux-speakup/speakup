@@ -56,3 +56,10 @@ other languages.  Each language's array of message strings could then
 be loaded by /sysfs psudo files or by loading modules written for that
 purpose.
 
+
+A method needs to be developed to once again provide a way for speakup
+to speak the kernel messages from boot up.  This might be done
+possibly by reading the printk() circular buffer and sending it to the
+synth.  It might also be done by once again capturing the early kernel
+output and storing it in the speakup synth buffer until a synth is
+registered.

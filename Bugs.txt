@@ -2,13 +2,28 @@ This file is to keep track of the bugs we know about until we come up
 with a better bug tracking system.  Feel free to try your hand at
 fixing any of these!
 
-Starting with 2.6.22 speakup's cut and paste system appears to be
-pumping random garbage into the paste position.  This is extremely
-dangerous and will very easily hang the computer.
-
 Speakup's Key Echo does not always raise the pitch when upper case characters
 are typed.
 
+From: Gene Collins <collins@gene3.ait.iastate.edu>
+Subject: floating serial ports problem
+
+Kirk, here is the info on the floating  serial ports problem.
+
+Basicly, the second serial port shows up as one number less if you
+start speakup from the command line.  That is, /dev/ttyS2 will be
+initialized as /dev/ttyS1, and ttyS1 becomes ttyS0, because speakup
+has already registered what would be ttyS0.  When you load modules,
+the kernel serial drivers have already initialized all the ports, so
+ttyS0 is just unavailable. If you are trying to use a modem on ttyS2,
+and then bring speakup up from the command line, ttyS2 is an invalid
+device, so the system will not find the modem.  This is problematic if
+you are trying to put a getty on ttyS2, and it suddenly is switched
+after a reboot to ttyS1 because you started speakup from the command
+line rather than as a module. The same holds true for ppp connections.
+
+---- reportedly fixed! ----
+ 
 The DECTalk Express driver is not finding the synth with the git
 repository in driver speakup_dectlk.c. Fixed as of Feb 25 2008.
 
@@ -17,4 +32,9 @@ alt-left/right arrows speakup is not getting updated to the new
 screens cursor position.  I am not sure how long this has been an
 issue but I know it is a problem in my 2.6.19.1 system so it's been
 around for a while.  This should be fixed in 2.6.24.4 and 2.6.25 (since -rc4).
+
+Starting with 2.6.22 speakup's cut and paste system appears to be
+pumping random garbage into the paste position.  This is extremely
+dangerous and will very easily hang the computer.  This is fixed as of
+April 11, 2008 in the git repository for kernels 2.6.24 and up.
 
