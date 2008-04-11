@@ -3,51 +3,51 @@
 # Usage: ./install <KERNELDIR>
 
 die() {
-	echo $*
-	exit 1
+ 	echo $* | tee install.log
+ 	exit 1
 }
 
 apply() {
-	patch -N -b -p1 -l -d $2 -i $1
-	if [ ! $? ]; then
-		die "Unable to apply $1 to $2"
-	fi
+ 	patch -N -b -p1 -l -d $2 -i $1 | tee -a install.log
+ 	if [ ! $? ]; then
+ 		die "Unable to apply $1 to $2" | tee -a install.log
+ 	fi
 }
 
 KDIR=${1:-/usr/src/linux}
 SPKDIR=$(pwd)
 PATCHFILES="/drivers/char/Makefile /drivers/char/consolemap.c \
-	/drivers/char/keyboard.c /drivers/char/vt.c \
-	/drivers/Kconfig /drivers/Makefile \
-	/include/linux/keyboard.h"
+ 	/drivers/char/keyboard.c /drivers/char/vt.c \
+ 	/drivers/Kconfig /drivers/Makefile \
+ 	/include/linux/keyboard.h" | tee -a install.log
 
 if [ ! -d ${KDIR} ]; then
-	die "${KDIR} is not a directory"
+ 	die "${KDIR} is not a directory" | tee -a install.log
 fi
 
 if [ ! -e ${KDIR}/MAINTAINERS ]; then
-	die "${KDIR} is not a kernel dir"
+ 	die "${KDIR} is not a kernel dir" | tee -a install.log
 fi
 
 SPEAKUP_INSTALLED=1
 for FILE in $PATCHFILES; do
-	if [ ! -f ${KDIR}${FILE}.orig ]; then
-		SPEAKUP_INSTALLED=0
-	fi
+ 	if [ ! -f ${KDIR}${FILE}.orig ]; then
+ 		SPEAKUP_INSTALLED=0
+ 	fi
 done
 
 if [ ${SPEAKUP_INSTALLED} -eq 1 ]; then
-	echo Re-installing speakup to ${KDIR}
-	for FILE in $PATCHFILES; do
-		mv -f ${KDIR}${FILE}.orig ${KDIR}${FILE}
-	done
-	apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
-	cp -Ru ${SPKDIR}/src/* ${KDIR}/drivers/char/speakup
-	cp -Ru ${SPKDIR}/doc/* ${KDIR}/Documentation/speakup
-	echo "speakup has been updated in ${KDIR}"
+ 	echo Re-installing speakup to ${KDIR} | tee -a install.log
+ 	for FILE in $PATCHFILES; do
+ 		mv -f ${KDIR}${FILE}.orig ${KDIR}${FILE}
+ 	done
+ 	apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR} | tee -a install.log
+ 	cp -Ru ${SPKDIR}/src/* ${KDIR}/drivers/char/speakup
+ 	cp -Ru ${SPKDIR}/doc/* ${KDIR}/Documentation/speakup
+ 	echo "speakup has been updated in ${KDIR}" | tee -a install.log
 else
-	apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR}
-	cp -R ${SPKDIR}/src ${KDIR}/drivers/char/speakup
-	cp -R ${SPKDIR}/doc ${KDIR}/Documentation/speakup
-	echo "speakup has been installed to ${KDIR}"
+ 	apply $SPKDIR/patches/kernel-integration-2.6.24.patch ${KDIR} | tee -a install.log
+ 	cp -R ${SPKDIR}/src ${KDIR}/drivers/char/speakup
+ 	cp -R ${SPKDIR}/doc ${KDIR}/Documentation/speakup
+ 	echo "speakup has been installed to ${KDIR}" | tee -a install.log
 fi
