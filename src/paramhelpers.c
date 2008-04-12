@@ -19,6 +19,7 @@ static int set_silent(const char *val, struct kernel_param *kp);
 static int set_synth(const char *val, struct kernel_param *kp);
 static int get_synth(char *buffer, struct kernel_param *kp);
 static int send_synth_direct(const char *buffer, struct kernel_param *kp);
+static int get_version(char *buffer, struct kernel_param *kp);
 static int set_bits(const char *val, struct kernel_param *kp);
 static int get_bits(char *buffer, struct kernel_param *kp);
 static int set_vars(const char *val, struct kernel_param *kp);
@@ -33,6 +34,7 @@ module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
 module_param_call(silent, set_silent, NULL, NULL, 0664);
 module_param_call(synth, set_synth, get_synth, NULL, 0664);
 module_param_call(synth_direct, send_synth_direct, NULL, NULL, 0664);
+module_param_call(version, NULL, get_version, NULL, 0444);
 
 module_param_call(delimiters, set_bits, get_bits, NULL, 0664);
 module_param_call(ex_num, set_bits, get_bits, NULL, 0664);
@@ -537,6 +539,21 @@ static int send_synth_direct(const char *val, struct kernel_param *kp)
 		count -= bytes;
 	}
 	return 0;
+}
+
+/*
+ * This function is called when a user reads the version pseudo file.
+ */
+static int get_version(char *buffer, struct kernel_param *kp)
+{
+	char *cp;
+
+	cp = buffer;
+	cp += sprintf(cp, "Speakup version %s\n", SPEAKUP_VERSION);
+	if (synth != NULL)
+		cp += sprintf(cp, "%s synthesizer driver version %s\n",
+		synth->name, synth->version);
+	return cp - buffer;
 }
 
 /*
