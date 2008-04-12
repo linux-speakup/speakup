@@ -1,9 +1,11 @@
 speakup installation instructions
 =================================
 
-Installing speakup requires knowledge of building your own kernel. Hopefully
-your distro includes speakup in your kernel, so that you don't have to install
-it yourself. But if they don't, here are some basic instructions:
+Installing speakup requires knowledge of building your own
+kernel. Hopefully your distro includes speakup in your kernel, so that
+you don't have to install it yourself. But if they don't, here are
+some basic instructions which assume you understand the kernel
+compilation process:
 
 Speakup consists of a patch for the kernel as well as the source for the speakup
 modules. To install speakup, perform the following steps:
@@ -22,9 +24,9 @@ At this point, you will be presented with messages about patches being
 applied to your kernel, followed by a message stating whether or not the
 installation was successful.
 
-If the installation was successful, configure, compile and install your kernel
-the usual way.  Remember to select speakup and the appropriate synthesizers
-support from the configuration menu.
+If the installation was successful, configure, compile and install
+your kernel the usual way.  Remember to select speakup and it's
+appropriate synthesizer support from the configuration menu.
 
 Upon completion of your new kernel compile follow the normal steps for
 it's installation.
@@ -33,7 +35,7 @@ You can now boot into your new kernel.
 
 If speakup is built-in to your new kernel it may be started on the
 kernel command line or from a boot loader such as grub or lilo by
-supplying the appropriate speakup parametres e.g. speakup.synth=xxxx
+supplying the appropriate speakup parameters e.g. speakup.synth=xxxx
 where 'xxxx' indicates the unique code to represent your synthesizer.
 So if you are using a DECTalk Express you would use a KCL argument
 such as speakup.synth=dectlk.
@@ -48,10 +50,10 @@ modprobe speakup_ltlk start=1
 
 You can load any speakup synthesizer without using the start argument
 but it will not begin speaking upon a successful load.  To switch to
-that synth later then you would use speakup's sysfs psudo file support
+that synth later then you would use speakup's sysfs pseudo file support
 to change to that synth such as:
 
-echo "txprt" >/sys/module/speakup/param/synth
+echo "txprt" >/sys/module/speakup/parameters/synth
 
 This same mechanism can be used to switch between synths which have
 been loaded by subsequent modprobe commands or that have been built
