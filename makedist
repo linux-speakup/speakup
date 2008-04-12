@@ -2,7 +2,7 @@
 # Makes a tarball release
 
 DIRS="doc patches src"
-DOCS="Bugs.txt INSTALLATION README To-Do UPGRADING"
+DOCS="Bugs.txt INSTALLATION README To-Do"
 FILES="install version"
 SPKVER=$(./version)
 RELDIR=speakup-${SPKVER}
