@@ -5,23 +5,6 @@ help by submitting patches to implement them.  If you can think of
 better ways of implementing any of these please speakup!
 
 
-Kernel command line and modules specification. on the kcl with speakup
-built-in speakup will be the keyword with arguments separated by a
-period as in speakup.synth=ltlk for the LiteTalk synthesizer.  Each
-argument will require a separate occurrence of the speakup command so
-that a person wanting to specify the LiteTalk on ttyS2 would type at
-the kcl: linux speakup.synth=ltlk speakup.ser=2.  In the case of
-loading speakup from modules modprobe would be followed by
-speakup_ltlk for the LiteTalk and additional arguments are passed as
-separate arguments such as: modprobe speakup_ltlk ser=2 quiet=1 to
-load the LiteTalk driver specifying ttyS2 and starting quietly. The
-current available arguments are synth, ser, port and quiet.  After
-doing some experimentation it seems that the sysfs variables synth,
-ser, port and quiet are not available to the individual synth drivers
-so building all the chosen modules at compile time into one speakup
-module looks like a good idea if the logistics can be worked out.
-
-
 The install script will need to be made smarter so that the correct
 speakup version can be checked out for the correct linux kernel
 version.  It also needs some way to actually create a reject file when
