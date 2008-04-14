@@ -2350,6 +2350,7 @@ static int keyboard_notifier_call(struct notifier_block *nb,
 			do_handle_shift(vc, val, up);
 			break;
 		case KT_LATIN:
+		case KT_LETTER:
 			do_handle_latin(vc, val, up);
 			break;
 		case KT_CUR:
