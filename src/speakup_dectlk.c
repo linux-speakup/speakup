@@ -1,7 +1,7 @@
 /*
- * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
-* this version considerably modified by David Borowski, david575@rogers.com
-
+ * originally written by: Kirk Reiser <kirk@braille.uwo.ca>
+ * this version considerably modified by David Borowski, david575@rogers.com
+ *
  * Copyright (C) 1998-99  Kirk Reiser.
  * Copyright (C) 2003 David Borowski.
  *
@@ -29,7 +29,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dectlk
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -227,12 +227,19 @@ static void synth_flush(void)
 
 static int serprobe(int index)
 {
-	struct serial_state *ser = spk_serial_init(index);
-	/*u_char test, timeout = 10000; */
-	int test=0, timeout = 1000000;
+	struct serial_state *ser;
+
+	if (! speakup_info.port_forced)
+		speakup_info.port_forced = 0x3f8;
+	ser = spk_serial_init(index);
 	if (ser == NULL)
 		return -1;
 	outb(0x0d, ser->port);
+	return 0;
+
+#if 0
+	int test=0;
+	int timeout = 1000000;
 	/* ignore any error results, if port was forced */
 	if (speakup_info.port_forced)
 		return 0;
@@ -248,11 +255,13 @@ static int serprobe(int index)
 	spk_serial_release();
 	timeouts = speakup_info.alive = speakup_info.port_tts = 0;	/* not ignoring */
 	return -1;
+#endif
 }
 
 static int synth_probe(void)
 {
-	int i = 0, failed = 0;
+	int i;
+	int failed = 0;
 	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
 	/* check ttyS0-ttyS3 */
 	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
