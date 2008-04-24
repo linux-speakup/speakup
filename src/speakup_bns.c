@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_bns
-#define DRV_VERSION "1.6"
+#define DRV_VERSION "1.7"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -58,44 +58,6 @@ struct spk_synth synth_bns = {"bns", DRV_VERSION, "Braille 'N Speak",
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
-
-static int wait_for_xmitr(void)
-{
-	static int timeouts = 0;	/* sequential number of timeouts */
-	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		speakup_info.alive = 0;
-		timeouts = 0;
-		return 0;
-	}
-	do {
-		check = inb(speakup_info.port_tts + UART_LSR);
-		if (--tmout == 0) {
-			pr_warn("BNS: timed out\n");
-			timeouts++;
-			return 0;
-		}
-	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
-	tmout = SPK_XMITR_TIMEOUT;
-	do {
-		check = inb(speakup_info.port_tts + UART_MSR);
-		if (--tmout == 0) {
-			timeouts++;
-			return 0;
-		}
-	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
-	timeouts = 0;
-	return 1;
-}
-
-static int spk_serial_out(const char ch)
-{
-	if (speakup_info.alive && wait_for_xmitr()) {
-		outb(ch, speakup_info.port_tts);
-		return 1;
-	}
-	return 0;
-}
 
 static void do_catch_up(unsigned long data)
 {

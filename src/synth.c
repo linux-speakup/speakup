@@ -43,6 +43,7 @@ static u_char *buffer_highwater = synth_buffer+synthBufferSize-100;
 u_char *buffer_end = synth_buffer+synthBufferSize-1;
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static struct serial_state *serstate;
+static int timeouts;
 
 short synth_trigger_time = 50;
 struct speakup_info_t speakup_info = {
@@ -162,6 +163,65 @@ static void stop_serial_interrupt(void)
 	/* Free IRQ */
 	free_irq(serstate->irq, (void *) synth_readbuf_handler);
 }
+
+int wait_for_xmitr(void)
+{
+	int check, tmout = SPK_XMITR_TIMEOUT;
+	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+		speakup_info.alive = 0;
+		timeouts = 0;
+		return 0;
+	}
+	do {
+		/* holding register empty? */
+		check = inb_p(speakup_info.port_tts + UART_LSR);
+		if (--tmout == 0) {
+			pr_warn("%s: timed out\n", synth->long_name);
+			timeouts++;
+			return 0;
+		}
+	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
+	tmout = SPK_XMITR_TIMEOUT;
+	do {
+		/* CTS */
+		check = inb_p(speakup_info.port_tts + UART_MSR);
+		if (--tmout == 0) {
+			timeouts++;
+			return 0;
+		}
+	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
+	timeouts = 0;
+	return 1;
+}
+EXPORT_SYMBOL_GPL(wait_for_xmitr);
+
+unsigned char spk_serial_in(void)
+{
+	int c;
+	int lsr;
+	int tmout = SPK_SERIAL_TIMEOUT;
+
+	do {
+		lsr = inb_p(speakup_info.port_tts + UART_LSR);
+		if (--tmout == 0) {
+			pr_warn("time out while waiting for input.\n");
+			return 0xff;
+		}
+	} while (!(lsr & UART_LSR_DR));
+	c = inb_p(speakup_info.port_tts + UART_RX);
+	return (unsigned char) c;
+}
+EXPORT_SYMBOL_GPL(spk_serial_in);
+
+int spk_serial_out(const char ch)
+{
+	if (speakup_info.alive && wait_for_xmitr()) {
+		outb_p(ch, speakup_info.port_tts);
+		return 1;
+	}
+	return 0;
+}
+EXPORT_SYMBOL_GPL(spk_serial_out);
 
 void spk_serial_release(void)
 {

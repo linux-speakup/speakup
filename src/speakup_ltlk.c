@@ -29,7 +29,7 @@
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
 #define MY_SYNTH synth_ltlk
-#define DRV_VERSION "1.6"
+#define DRV_VERSION "1.7"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
@@ -65,60 +65,6 @@ struct spk_synth synth_ltlk = { "ltlk", DRV_VERSION, "LiteTalk",
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
 	{"\x01%di", 1, 5, 1} };
 
-
-static int wait_for_xmitr(void)
-{
-	static int timeouts = 0;	/* sequential number of timeouts */
-	int check, tmout = SPK_XMITR_TIMEOUT;
-	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		speakup_info.alive = 0;
-		timeouts = 0;
-		return 0;
-	}
-	do {
-		/* holding register empty? */
-		check = inb(speakup_info.port_tts + UART_LSR);
-		if (--tmout == 0) {
-			pr_warn("%s: register timed out\n", MY_SYNTH.long_name);
-			timeouts++;
-			return 0;
-		}
-	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
-	tmout = SPK_XMITR_TIMEOUT;
-	do {
-		/* CTS */
-		check = inb(speakup_info.port_tts + UART_MSR);
-		if (--tmout == 0) {
-			timeouts++;
-			return 0;
-		}
-	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
-	timeouts = 0;
-	return 1;
-}
-
-static int spk_serial_out(const char ch)
-{
-	if (speakup_info.alive && wait_for_xmitr()) {
-		outb(ch, speakup_info.port_tts);
-		return 1;
-	}
-	return 0;
-}
-
-static unsigned char spk_serial_in(void)
-{
-	int c, lsr, tmout = SPK_SERIAL_TIMEOUT;
-	do {
-		lsr = inb(speakup_info.port_tts + UART_LSR);
-		if (--tmout == 0) {
-			pr_warn("time out while waiting for input.\n");
-			return 0xff;
-		}
-	} while ((lsr & UART_LSR_DR) != UART_LSR_DR);
-	c = inb(speakup_info.port_tts + UART_RX);
-	return (unsigned char) c;
-}
 
 static void do_catch_up(unsigned long data)
 {
