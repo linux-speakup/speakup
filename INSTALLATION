@@ -20,6 +20,8 @@ From the location where speakup is unpacked run:
 
 $ ./install ~/linux-2.6.24
 
+(~/linux-2.6.24 is the path where you have unpacked the kernel source)
+
 At this point, you will be presented with messages about patches being
 applied to your kernel, followed by a message stating whether or not the
 installation was successful.
