@@ -20,8 +20,12 @@ apply() {
 	fi
 }
 
+realpath() {
+	readlink -f $1
+}
+
 KDIR=${1:-/usr/src/linux}
-SPKDIR=$(dirname $0)
+SPKDIR=$(realpath $(dirname $0))
 PATCHFILES="/drivers/Kconfig /drivers/Makefile /drivers/char/Makefile \
 	/drivers/char/consolemap.c /drivers/char/keyboard.c /drivers/char/vt.c"
 
