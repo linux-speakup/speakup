@@ -181,15 +181,14 @@ index edb7002..7d6beb1 100644
  
  	    /* prevent users from taking too much memory */
  	    if (currcons >= MAX_NR_USER_CONSOLES && !capable(CAP_SYS_RESOURCE))
-@@ -729,7 +760,7 @@ int vc_allocate(unsigned int currcons)	/* return 0 on success */
+@@ -729,6 +760,7 @@ int vc_allocate(unsigned int currcons)	/* return 0 on success */
+ 	    /* due to the granularity of kmalloc, we waste some memory here */
+ 	    /* the alloc is done in two steps, to optimize the common situation
+ 	       of a 25x80 console (structsize=216, screenbuf_size=4000) */
++	    param.vc =
  	    /* although the numbers above are not valid since long ago, the
  	       point is still up-to-date and the comment still has its value
  	       even if only as a historical artifact.  --mj, July 1998 */
--	    vc = kzalloc(sizeof(struct vc_data), GFP_KERNEL);
-+	    param.vc = vc = kzalloc(sizeof(struct vc_data), GFP_KERNEL);
- 	    if (!vc)
- 		return -ENOMEM;
- 	    vc_cons[currcons].d = vc;
 @@ -746,6 +777,7 @@ int vc_allocate(unsigned int currcons)	/* return 0 on success */
  	    }
  	    vc->vc_kmalloced = 1;
