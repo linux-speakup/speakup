@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# speakwith -- switches speakup synthesizers on the fly
+#
+# Bug reports, suggestions, etc. to chuckh@ftml.net
+#
+# This script requires Linux kernel 2.6.24 or higher
+# Speakwith requires speech-dispacher and speechd-up for software speech
+# and speakupconf to load and save speakup settings
+# To install speakwith, simply copy this script to /usr/local/sbin
+# On my system, the /etc/rc.local file contains statements like these:
+#
+# start talking
+#export PATH=/usr/local/bin:/usr/local/sbin:$PATH
+#renice -n -5 speech-dispatcher # or use "nice" instead
+#speakwith soft
+#
+# some versions of speechd-up may require the speakwith -x option.
+#
+if [ ! -d /sys/module/speakup ]
+then
+        echo ${0}: The kernel does not contain speakup. 1>&2
+        exit 1
+fi
+#
+OPT="-t"
+if [ "$1" = "-x" ]; then
+OPT=""
+shift
+fi
+#
+if [ "$1" = "" ] || [ "$2" != "" ] || \
+[ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+echo "Usage: `basename $0` <synth>"
+echo or
+echo "Usage: `basename $0` -x <synth>"
+echo "(the -x option permits speechd-up to load its own punctuation tables)"
+echo
+echo "You may use one of the following synthesizer names if the driver"
+echo "has been selected and the corresponding device is available:"
+echo "acntsa, acntpc, apollo, audptr, bns, dectlk, decext, decpc, dtlk,"
+echo "keypc, ltlk, soft, spkout, txprt, dummy, or none."
+echo "Use speakupconf to save speech settings to load at startup"
+exit
+fi
+#
+if [ "$1" != "none" ] && \
+# To disallow a particular device, comment out its line below:
+[ "$1" != "acntsa" ] && \
+[ "$1" != "acntpc" ] && \
+[ "$1" != "apollo" ] && \
+[ "$1" != "audptr" ] && \
+[ "$1" != "bns" ] && \
+[ "$1" != "dectlk" ] && \
+[ "$1" != "decext" ] && \
+[ "$1" != "decpc" ] && \
+[ "$1" != "dtlk" ] && \
+[ "$1" != "keypc" ] && \
+[ "$1" != "ltlk" ] && \
+[ "$1" != "spkout" ] && \
+[ "$1" != "txprt" ] && \
+[ "$1" != "dummy" ] && \
+# do not comment out the next line!
+[ "$1" != "soft" ]; then
+echo "Unrecognized synthesizer type: \"$1\""
+exit 1
+fi
+#
+F1="`cat /sys/module/speakup/parameters/synth`"
+if [ "$F1" != "none" ]; then
+echo "none" > /sys/module/speakup/parameters/synth
+if [ "$F1" = "soft" ]; then
+kill -9 `cat /var/run/speechd-up.pid` >/dev/null 2>&1
+fi
+sleep 1
+fi
+#
+if [ "$1" = "none" ]; then
+exit
+fi
+#
+echo "$1" >/sys/module/speakup/parameters/synth
+if [ "$1" = "soft" ]; then
+nice -n 5 speechd-up $OPT
+fi
+speakupconf load

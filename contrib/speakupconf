@@ -1,0 +1,51 @@
+#!/bin/sh
+# script to load/save all the vars in speakup
+# speakupconf save or speakupconf load
+# if root saves in /etc/speakup/<synth> else in $HOME/.speakup/<synth>
+if [ $UID -eq "0" ]; then
+  SAVEDIR="/etc/speakup"
+else
+  SAVEDIR="$HOME/.speakup"
+fi
+if [ ! -d /sys/module/speakup/parameters ]; then
+  echo "no directory /sys/module/speakup/parameters"
+  exit 0
+fi
+SYNTH=`cat /sys/module/speakup/parameters/synth`
+case "$1" in
+*save)
+  if [ ! -d $SAVEDIR ] ; then
+    echo creating $SAVEDIR
+    mkdir $SAVEDIR
+  fi
+  if [ ! -d $SAVEDIR/$SYNTH ] ; then
+    echo creating $SAVEDIR/$SYNTH
+    mkdir $SAVEDIR/$SYNTH
+  fi
+  cd /sys/module/speakup/parameters
+  SAVELIST=`    find . -perm -6 |sed 's/..//' |fgrep -v synth`
+  for f in $SAVELIST; do
+    cp $f $SAVEDIR/$SYNTH/$f
+  done
+;;
+*load)
+  if [ ! -d $SAVEDIR ] ; then
+    echo no directory $SAVEDIR
+    exit 1
+  fi
+  if [ ! -d $SAVEDIR/$SYNTH ] ; then
+    echo no directory $SAVEDIR/$SYNTH
+    exit 1
+  fi
+  cd $SAVEDIR/$SYNTH
+  for f in *; do
+    if [ -w /sys/module/speakup/parameters/$f ]; then
+      cat $f >/sys/module/speakup/parameters/$f
+    fi
+  done
+;;
+*)
+  echo "usage: speakupconf load/save"
+  exit 1
+;;
+esac

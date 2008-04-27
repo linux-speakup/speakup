@@ -1,0 +1,11 @@
+			speakup contributions
+
+This directory is for useful contributions by speakup users and
+developers which help make speakup easier and more fun to use.
+
+speakupconf - A shell script donated by Bill Acker
+<wacker@octothorp.org> for saving and restoring speakup's customizable
+variables.
+
+speakwith - a shell script written by Chuck Hallenbeck
+<chuckh@ftml.net> which makes flipping between synths very simple.
