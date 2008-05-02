@@ -66,18 +66,7 @@ struct serial_state *spk_serial_init(int index)
 	int i, cflag = CREAD | HUPCL | CLOCAL | B9600 | CS8;
 	struct serial_state *ser = NULL;
 
-	if (speakup_info.port_forced) {
-		if (index > 0)
-			return NULL;
-		pr_info("probe forced to 0x%x by kernel command line\n",
-			speakup_info.port_forced);
-		for (i = 0; i <= SPK_HI_TTY; i++)
-			if ((rs_table+i)->port == speakup_info.port_forced) {
-				ser = rs_table+i;
-				break;
-			}
-	} else
-		ser = rs_table + index;
+	ser = rs_table + index;
 	/*	Divisor, bytesize and parity */
 	quot = ser->baud_base / baud;
 	cval = cflag & (CSIZE | CSTOPB);
@@ -124,6 +113,33 @@ struct serial_state *spk_serial_init(int index)
 	return ser;
 }
 EXPORT_SYMBOL_GPL(spk_serial_init);
+
+int serial_synth_probe(void)
+{
+	struct serial_state *ser;
+	int failed = 0;
+	
+	if ((param_ser >= SPK_LO_TTY) && (param_ser <= SPK_HI_TTY)) {
+		ser = spk_serial_init(param_ser);
+		if (ser == NULL) {
+			failed = -1;
+		} else {
+		outb_p(0, ser->port);
+		mdelay(1);
+		outb_p('\r', ser->port);
+	}
+	} else {
+		failed = -1;
+		pr_warn("ttyS%i is an invalid port\n", param_ser);
+	}
+	if (failed) {
+		pr_info("%s: not found\n", synth->long_name);
+		return -ENODEV;
+	}
+	pr_info("%s: ttyS%i, Driver Version %s\n", synth->long_name, param_ser, synth->version);
+	return 0;
+}
+EXPORT_SYMBOL_GPL(serial_synth_probe);
 
 static void start_serial_interrupt(int irq)
 {

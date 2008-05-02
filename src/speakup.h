@@ -99,5 +99,6 @@ extern short spell_delay, key_echo, punc_mask;
 extern short synth_trigger_time;
 extern short cursor_timeout, pitch_shift, synth_flags;
 extern int quiet_boot;
+extern int param_ser;
 
 #endif

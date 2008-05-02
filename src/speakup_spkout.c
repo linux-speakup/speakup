@@ -28,11 +28,10 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_spkout
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
@@ -57,7 +56,7 @@ static struct st_num_var numvars[] = {
 
 struct spk_synth synth_spkout = {"spkout", DRV_VERSION, "Speakout",
 	 init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
+	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL,
 	get_index, {"\x05[%c", 1, 5, 1} };
 
@@ -114,42 +113,6 @@ static unsigned char get_index(void)
 		c = inb(speakup_info.port_tts + UART_RX);
 		return (unsigned char) c;
 	}
-	return 0;
-}
-
-static int serprobe(int index)
-{
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	/* ignore any error results, if port was forced */
-	if (speakup_info.port_forced)
-		return 0;
-	/* check for speak out now... */
-	synth_immediate("\x05[\x0f\r");
-	mdelay(10); /*failed with no delay */
-	if (spk_serial_in() == 0x0f)
-		return 0;
-	synth_release_region(ser->port, 8);
-	speakup_info.alive = 0;
-	return -1;
-}
-
-static int synth_probe(void)
-{
-	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
-	}
-	if (failed) {
-		pr_info("%s Out: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	pr_info("%s Out: %03x-%03x, Driver version %s,\n", MY_SYNTH.long_name,
-		speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
 	return 0;
 }
 

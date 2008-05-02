@@ -29,7 +29,7 @@
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
 #define MY_SYNTH synth_ltlk
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
@@ -142,42 +142,14 @@ static void synth_interrogate(void)
 	pr_info("%s: ROM version: %s\n", MY_SYNTH.long_name, rom_v);
 }
 
-static int serprobe(int index)
-{
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	outb(0, ser->port);
-	mdelay(1);
-	outb('\r', ser->port);
-	/* ignore any error results, if port was forced */
-	if (speakup_info.port_forced)
-		return 0;
-	/* check for device... */
-	if (!synth_immediate("\x18"))
-		return 0;
-	spk_serial_release();
-	speakup_info.alive = 0; /* try next port */
-	return -1;
-}
-
 static int synth_probe(void)
 {
-	int i, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
-	}
-	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	synth_interrogate();
-	pr_info("%s: at %03x-%03x, driver %s\n", MY_SYNTH.long_name,
-		speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
-	return 0;
+	int failed = 0;
+
+	failed = serial_synth_probe();
+	if (failed == 0)
+		synth_interrogate();
+	return failed;
 }
 
 static int synth_is_alive(void)

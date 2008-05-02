@@ -28,9 +28,8 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dummy
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 
-static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
@@ -53,7 +52,7 @@ static struct st_num_var numvars[] = {
 
 struct spk_synth synth_dummy = {"dummy", DRV_VERSION, "Dummy",
 	init_string, 500, 50, 50, 5000, 0, 0, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
+	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
 
@@ -94,40 +93,6 @@ static const char *synth_immediate(const char *buf)
 
 static void synth_flush(void)
 {
-}
-
-static int serprobe(int index)
-{
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	outb('\r', ser->port);
-	if (speakup_info.port_forced)
-		return 0;
-	/* check for serial console now... */
-	if (!synth_immediate("probing\n"))
-		return 0;
-	spk_serial_release();
-	speakup_info.alive = 0;
-	return -1;
-}
-
-static int synth_probe(void)
-{
-	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
-	}
-	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	pr_info("%s: %03x-%03x, Driver version %s,\n", MY_SYNTH.long_name,
-		speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
-	return 0;
 }
 
 static int synth_is_alive(void)

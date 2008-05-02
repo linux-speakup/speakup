@@ -1,7 +1,7 @@
 /*
  * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
-* this version considerably modified by David Borowski, david575@rogers.com
-
+ * this version considerably modified by David Borowski, david575@rogers.com
+ *
  * Copyright (C) 1998-99  Kirk Reiser.
  * Copyright (C) 2003 David Borowski.
  *
@@ -28,7 +28,7 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_audptr
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
@@ -38,7 +38,6 @@ static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
 
-static int timeouts;	/* sequential number of timeouts */
 static const char init_string[] = "\x05[D1]\x05[Ol]";
 
 static struct st_string_var stringvars[] = {
@@ -107,17 +106,10 @@ static void synth_flush(void)
 	spk_serial_out(PROCSPEECH);
 }
 
-static char synth_id[40] = "";
-
-static int serprobe(int index)
+static void synth_version(void)
 {
-	u_char test = 0;
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	/* ignore any error results, if port was forced */
-	if (speakup_info.port_forced)
-		return 0;
+	unsigned char test = 0;
+	char synth_id[40] = "";
 	synth_immediate("\x05[Q]");
 	synth_id[test] = spk_serial_in();
 	if (synth_id[test] == 'A') {
@@ -126,32 +118,19 @@ static int serprobe(int index)
 			synth_id[++test] = spk_serial_in();
 		} while (synth_id[test] != '\n' && test < 32);
 		synth_id[++test] = 0x00;
-		if (test != 32)
-			return 0;
 	}
-	spk_serial_release();
-	timeouts = speakup_info.alive = 0; /* not ignoring */
-	return -1;
+	if (synth_id[0] == 'A')
+		pr_info("%s version: %s", MY_SYNTH.long_name, synth_id);
 }
 
 static int synth_probe(void)
 {
-	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
-	}
-	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	pr_info("%s: %03x-%03x, Driver %s,\n", MY_SYNTH.long_name,
-	 speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
-	if (synth_id[0] == 'A')
-		pr_info("%s version: %s", MY_SYNTH.long_name, synth_id);
-		return 0;
+	int failed = 0;
+
+	failed = serial_synth_probe();
+	if (failed == 0) 
+		synth_version();
+	return 0;
 }
 
 static int synth_is_alive(void)

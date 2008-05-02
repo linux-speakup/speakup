@@ -30,8 +30,8 @@
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define MY_SYNTH synth_acntsa
-#define DRV_VERSION "1.7"
-#define synth_full() (inb_p(speakup_info.port_tts) == 'F')
+#define DRV_VERSION "1.8"
+#define synth_full() (spk_serial_in() == 'F')
 #define PROCSPEECH '\r'
 
 static int synth_probe(void);
@@ -39,8 +39,6 @@ static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
-
-static int timeouts;	/* sequential number of timeouts */
 
 static const char init_string[] = "\033T2\033=M\033Oi\033N1\n";
 
@@ -107,46 +105,19 @@ static void synth_flush(void)
 	spk_serial_out(SYNTH_CLEAR);
 }
 
-static int serprobe(int index)
-{
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	outb(0x0d, ser->port);
-	/*	mdelay(1); */
-	/* ignore any error results, if port was forced */
-	if (speakup_info.port_forced)
-		return 0;
-	/* check for accent s.a now... */
-	if (!synth_immediate("\x18"))
-		return 0;
-	spk_serial_release();
-	timeouts = speakup_info.alive = 0;	/* not ignoring */
-	return -1;
-}
-
 static int synth_probe(void)
 {
-	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
+	int failed = 0;
+
+	failed = serial_synth_probe();
+	if (failed == 0) {
+		synth_immediate("\033=R\r");
+		mdelay(100);
 	}
-	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
-		speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
-	synth_immediate("\033=R\r");
-	mdelay(100);
-	return 0;
+	return failed;
 }
 
-static int
-synth_is_alive(void)
+static int synth_is_alive(void)
 {
 	if (speakup_info.alive)
 		return 1;

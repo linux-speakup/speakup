@@ -41,6 +41,7 @@
 #define KT_SPKUP 15
 
 extern struct serial_state *spk_serial_init(int index);
+extern int serial_synth_probe(void);
 extern int wait_for_xmitr(void);
 extern unsigned char spk_serial_in(void);
 extern int spk_serial_out(const char ch);
