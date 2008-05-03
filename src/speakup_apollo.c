@@ -28,17 +28,14 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_apollo
-#define DRV_VERSION "1.8"
+#define DRV_VERSION "1.9"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
-
-static int timeouts;	/* sequential number of timeouts */
 
 static const char init_string[] = "@R3@D0@K1\r";
 
@@ -58,7 +55,7 @@ static struct st_num_var numvars[] = {
 
 struct spk_synth synth_apollo = {"apollo", DRV_VERSION, "Apollo",
 	init_string, 500, 50, 50, 5000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
+	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
 
@@ -105,43 +102,6 @@ static const char *synth_immediate(const char *buf)
 static void synth_flush(void)
 {
 	spk_serial_out(SYNTH_CLEAR);
-}
-
-static int serprobe(int index)
-{
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	outb(0x0d, ser->port); /* wake it up if older BIOS */
-	mdelay(1);
-	speakup_info.port_tts = ser->port;
-	if (speakup_info.port_forced)
-		return 0;
-	/* check for apollo now... */
-	if (!synth_immediate("\x18"))
-		return 0;
-	pr_warn("port %x failed\n", speakup_info.port_tts);
-	spk_serial_release();
-	timeouts = speakup_info.alive = speakup_info.port_tts = 0;
-	return -1;
-}
-
-static int synth_probe(void)
-{
-	int i, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
-	}
-	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	pr_info("%s: %03x-%03x, Driver version %s,\n", MY_SYNTH.long_name,
-	 speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
-	return 0;
 }
 
 static int synth_is_alive(void)

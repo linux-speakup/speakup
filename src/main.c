@@ -73,7 +73,7 @@ module_param_named(synth, synth_name, charp, 0);
 
 module_param_named(quiet, quiet_boot, bool, S_IRUGO);
 
-static int param_ser;
+int param_ser;
 module_param_named(ser, param_ser, int, S_IRUGO);
 
 static int param_port;
@@ -1402,10 +1402,7 @@ static void __init speakup_open(struct vc_data *vc,
 {
 	int i;
 	struct st_num_var *n_var;
-	const int ser_lookup[] = { 0x3f8, 0x2f8, 0x3e8, 0x2e8 };
 
-	if (param_ser > 0 && param_ser <= ARRAY_SIZE(ser_lookup))
-		speakup_info.port_forced = ser_lookup[param_ser - 1];
 	if (param_port)
 		speakup_info.port_forced = param_port;
 

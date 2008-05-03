@@ -28,12 +28,11 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_decext
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-#define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
+#define synth_full() (spk_serial_in() == 0x13)
 
-static int synth_probe(void);
 static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
@@ -59,7 +58,7 @@ static struct st_num_var numvars[] = {
 
 struct spk_synth synth_decext = {"decext", DRV_VERSION, "Dectalk External",
 	 init_string, 500, 50, 50, 1000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
+	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };
 
@@ -117,43 +116,6 @@ static void synth_flush(void)
 {
 	in_escape = 0;
 	synth_immediate("\033P;10z\033\\");
-}
-
-static int serprobe(int index)
-{
-	u_char test = 0;
-	struct serial_state *ser = spk_serial_init(index);
-	if (ser == NULL)
-		return -1;
-	/* ignore any error results, if port was forced */
-	if (speakup_info.port_forced)
-		return 0;
-	synth_immediate("\033[;5n\033\\");
-	test = spk_serial_in();
-	if (test == '\033')
-		return 0;
-	spk_serial_release();
-	timeouts = speakup_info.alive = speakup_info.port_tts = 0; /* not ignoring */
-	return -1;
-}
-
-static int synth_probe(void)
-{
-	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
-		/* check ttyS0-ttyS3 */
-	for (i = SPK_LO_TTY; i <= SPK_HI_TTY; i++) {
-		failed = serprobe(i);
-		if (failed == 0)
-			break; /* found it */
-	}
-	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
-		return -ENODEV;
-	}
-	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
-		speakup_info.port_tts, speakup_info.port_tts+7, MY_SYNTH.version);
-	return 0;
 }
 
 static int synth_is_alive(void)
