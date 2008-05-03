@@ -37,6 +37,7 @@
 #define SYNTH_CHECK 20030716 /* today's date ought to do for check value */
 /* synth flags, for odd synths */
 #define SF_DEC 1 /* to fiddle puncs in alpha strings so it doesn't spell */
+#define SYNTH_START MODULE
 
 #define KT_SPKUP 15
 

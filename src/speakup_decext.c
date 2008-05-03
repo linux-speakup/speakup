@@ -58,7 +58,7 @@ static struct st_num_var numvars[] = {
 };
 
 struct spk_synth synth_decext = {"decext", DRV_VERSION, "Dectalk External",
-	 init_string, 500, 50, 50, 1000, 0, 0, SYNTH_CHECK,
+	 init_string, 500, 50, 50, 1000, 0, SYNTH_START, SYNTH_CHECK,
 	stringvars, numvars, synth_probe, spk_serial_release, synth_immediate,
 	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
 	{NULL, 0, 0, 0} };

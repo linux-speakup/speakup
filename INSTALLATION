@@ -43,17 +43,16 @@ So if you are using a DECTalk Express you would use a KCL argument
 such as speakup.synth=dectlk.
 
 If you are loading speakup as modules then you could load it with
-modprobe followed by the speakup module for the given synth and an
-argument to start the synth speaking upon loading.  If you are using a
-DoubleTalk LT or LiteTalk or TripleTalk serial synth then you might
-use:
+modprobe followed by the speakup module for the given synth.  If you
+are using a DoubleTalk LT or LiteTalk or TripleTalk serial synth then
+you might use:
 
-modprobe speakup_ltlk start=1
+modprobe speakup_ltlk
 
-You can load any speakup synthesizer without using the start argument
-but it will not begin speaking upon a successful load.  To switch to
-that synth later then you would use speakup's sysfs pseudo file support
-to change to that synth such as:
+You can load any speakup synthesizer with an additional start=0
+parameter to make not begin speaking upon a successful load.  To switch
+to that synth later then you would use speakup's sysfs pseudo file
+support to change to that synth such as:
 
 echo "txprt" >/sys/module/speakup/parameters/synth
 

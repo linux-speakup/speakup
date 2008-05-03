@@ -63,7 +63,7 @@ static struct st_num_var numvars[] = {
 };
 
 struct spk_synth synth_soft = { "soft", DRV_VERSION, "software synth",
-	init_string, 0, 0, 0, 0, 0, 0, SYNTH_CHECK,
+	init_string, 0, 0, 0, 0, 0, SYNTH_START, SYNTH_CHECK,
 	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
 	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
 	get_index, {"\x01%di", 1, 5, 1} };
