@@ -20,8 +20,8 @@ static int set_synth(const char *val, struct kernel_param *kp);
 static int get_synth(char *buffer, struct kernel_param *kp);
 static int send_synth_direct(const char *buffer, struct kernel_param *kp);
 static int get_version(char *buffer, struct kernel_param *kp);
-static int set_bits(const char *val, struct kernel_param *kp);
-static int get_bits(char *buffer, struct kernel_param *kp);
+static int set_punc(const char *val, struct kernel_param *kp);
+static int get_punc(char *buffer, struct kernel_param *kp);
 static int set_vars(const char *val, struct kernel_param *kp);
 static int get_vars(char *buffer, struct kernel_param *kp);
 
@@ -36,12 +36,12 @@ module_param_call(synth, set_synth, get_synth, NULL, 0664);
 module_param_call(synth_direct, send_synth_direct, NULL, NULL, 0664);
 module_param_call(version, NULL, get_version, NULL, 0444);
 
-module_param_call(delimiters, set_bits, get_bits, NULL, 0664);
-module_param_call(ex_num, set_bits, get_bits, NULL, 0664);
-module_param_call(punc_all, set_bits, get_bits, NULL, 0664);
-module_param_call(punc_most, set_bits, get_bits, NULL, 0664);
-module_param_call(punc_some, set_bits, get_bits, NULL, 0664);
-module_param_call(repeats, set_bits, get_bits, NULL, 0664);
+module_param_call(delimiters, set_punc, get_punc, NULL, 0664);
+module_param_call(ex_num, set_punc, get_punc, NULL, 0664);
+module_param_call(punc_all, set_punc, get_punc, NULL, 0664);
+module_param_call(punc_most, set_punc, get_punc, NULL, 0664);
+module_param_call(punc_some, set_punc, get_punc, NULL, 0664);
+module_param_call(repeats, set_punc, get_punc, NULL, 0664);
 
 module_param_call(attrib_bleep, set_vars, get_vars, NULL, 0664);
 module_param_call(bell_pos, set_vars, get_vars, NULL, 0664);
@@ -559,7 +559,7 @@ static int get_version(char *buffer, struct kernel_param *kp)
 /*
  * This is the set handler for the punctuation settings.
  */
-static int set_bits(const char *val, struct kernel_param *kp)
+static int set_punc(const char *val, struct kernel_param *kp)
 {
 	int ret;
 	int count;
@@ -607,7 +607,7 @@ static int set_bits(const char *val, struct kernel_param *kp)
 /*
  * This is the get handler for the punctuation settings.
  */
-static int get_bits(char *buffer, struct kernel_param *kp)
+static int get_punc(char *buffer, struct kernel_param *kp)
 {
 	int i;
 	char *cp = buffer;
