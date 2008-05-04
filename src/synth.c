@@ -62,7 +62,7 @@ struct serial_state *spk_serial_init(int index)
 {
 	int baud = 9600, quot = 0;
 	unsigned int cval = 0;
-	int i, cflag = CREAD | HUPCL | CLOCAL | B9600 | CS8;
+	int cflag = CREAD | HUPCL | CLOCAL | B9600 | CS8;
 	struct serial_state *ser = NULL;
 
 	ser = rs_table + index;
