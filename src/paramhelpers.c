@@ -76,11 +76,12 @@ module_param_call(vol, set_vars, get_vars, NULL, 0664);
 static int strings, rejects, updates;
 
 /* indicates when timer is set */
-static volatile int chars_timer_active;
+static int chars_timer_active;
 static declare_timer(chars_timer);
 
 static void chars_stop_timer(void)
 {
+	mb();
 	if (chars_timer_active)
 		stop_timer(chars_timer);
 }
@@ -200,7 +201,7 @@ get_more:
 	init_timer(&chars_timer);
 	chars_timer.function = show_char_results;
 	chars_timer.expires = jiffies + 5;
-		start_timer(chars_timer);
+	start_timer(chars_timer);
 	chars_timer_active++;
 out:
 	spk_unlock(flags);
@@ -301,7 +302,7 @@ get_more:
 	init_timer(&chars_timer);
 	chars_timer.function = show_char_results;
 	chars_timer.expires = jiffies + 5;
-		start_timer(chars_timer);
+	start_timer(chars_timer);
 	chars_timer_active++;
 out:
 	spk_unlock(flags);
@@ -380,7 +381,8 @@ static int set_keymap(const char *val, struct kernel_param *kp)
 	i += 2; /* 0 and last map ver */
 	if (cp1[-3] != KEY_MAP_VER || cp1[-1] > 10 ||
 			i+SHIFT_TBL_SIZE+4 >= sizeof(key_buf)) {
-		pr_warn("i %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
+		pr_warn("i %d %d %d %d\n", i,
+				(int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
 		spk_unlock(flags);
 		return -EINVAL;
 	}
@@ -392,7 +394,8 @@ static int set_keymap(const char *val, struct kernel_param *kp)
 	}
 	if (i != 0 || cp1[-1] != KEY_MAP_VER || cp1[-2] != 0) {
 		ret = -EINVAL;
-		pr_warn("end %d %d %d %d\n", i, (int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
+		pr_warn("end %d %d %d %d\n", i,
+				(int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
 	} else {
 		if (set_key_info(in_buff, key_buf)) {
 			set_key_info(key_defaults, key_buf);
@@ -475,7 +478,7 @@ static int set_synth(const char *val, struct kernel_param *kp)
 	int count;
 	char new_synth_name[10];
 
-	if (! val)
+	if (!val)
 		return -EINVAL;
 
 	count = strlen(val);
@@ -521,7 +524,7 @@ static int send_synth_direct(const char *val, struct kernel_param *kp)
 	int bytes;
 	const char *ptr = val;
 
-	if (! val)
+	if (!val)
 		return -EINVAL;
 
 	if (synth == NULL)
@@ -533,7 +536,7 @@ static int send_synth_direct(const char *val, struct kernel_param *kp)
 		strncpy(buf, ptr, bytes);
 		buf[bytes] = '\0';
 		xlate(buf);
-		synth_printf("%s",buf);
+		synth_printf("%s", buf);
 		ptr += bytes;
 		count -= bytes;
 	}
@@ -580,7 +583,8 @@ static int set_punc(const char *val, struct kernel_param *kp)
 
 	var = get_punc_var(p_header->var_id);
 	if (var == NULL) {
-		pr_warn("var is null, p_header->var_id is %i\n", p_header->var_id);
+		pr_warn("var is null, p_header->var_id is %i\n",
+				p_header->var_id);
 		return -EINVAL;
 	}
 
@@ -614,7 +618,7 @@ static int get_punc(char *buffer, struct kernel_param *kp)
 	struct st_punc_var *var;
 	struct st_bits_data *pb;
 	short mask;
-	
+
 	p_header = var_header_by_name(strip_prefix(kp->name));
 	if (p_header == NULL) {
 		pr_warn("p_header is null, kp-> name is %s\n", kp->name);
@@ -623,7 +627,8 @@ static int get_punc(char *buffer, struct kernel_param *kp)
 
 	var = get_punc_var(p_header->var_id);
 	if (var == NULL) {
-		pr_warn("var is null, p_header->var_id is %i\n", p_header->var_id);
+		pr_warn("var is null, p_header->var_id is %i\n",
+				p_header->var_id);
 		return -EINVAL;
 	}
 
@@ -675,13 +680,15 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		if (ret == E_RANGE) {
 			var_data = param->data;
 			pr_warn("value for %s out of range, expect %d to %d\n",
-				strip_prefix(kp->name), (int)var_data->low, (int)var_data->high);
+				strip_prefix(kp->name),
+				(int)var_data->low, (int)var_data->high);
 		}
 		break;
 	case VAR_STRING:
 		ret = set_string_var(val, param, len);
 		if (ret == E_TOOLONG)
-			pr_warn("value too long for %s\n", strip_prefix(kp->name));
+			pr_warn("value too long for %s\n",
+					strip_prefix(kp->name));
 		break;
 	default:
 		pr_warn("%s unknown type %d\n",
@@ -714,28 +721,28 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 
 	n_var = (struct st_num_var *) param->data;
 	switch (param->var_type) {
-		case VAR_NUM:
-		case VAR_TIME:
-			rv = sprintf(buffer, "%i", (int) n_var->value);
-			break;
-		case VAR_STRING:
-			cp1 = buffer;
-			*cp1++ = '"';
-			for (cp = (char *)param->p_val; (ch = *cp); cp++) {
-				if (ch >= ' ' && ch < '~')
-					*cp1++ = ch;
-				else
-					cp1 += sprintf(cp1, "\\""x%02x", ch);
-			}
+	case VAR_NUM:
+	case VAR_TIME:
+		rv = sprintf(buffer, "%i", (int) n_var->value);
+		break;
+	case VAR_STRING:
+		cp1 = buffer;
+		*cp1++ = '"';
+		for (cp = (char *)param->p_val; (ch = *cp); cp++) {
+			if (ch >= ' ' && ch < '~')
+				*cp1++ = ch;
+			else
+				cp1 += sprintf(cp1, "\\""x%02x", ch);
+		}
 		*cp1++ = '"';
 		*cp1++ = '\n';
 		*cp1 = '\0';
 		rv = cp1-buffer;
-			break;
-		default:
-			rv = sprintf("Bad parameter  %s, type %i\n",
-				param->name, param->var_type);
-			break;
+		break;
+	default:
+		rv = sprintf("Bad parameter  %s, type %i\n",
+			param->name, param->var_type);
+		break;
 	}
 	return rv;
 }

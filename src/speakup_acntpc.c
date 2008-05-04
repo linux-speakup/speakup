@@ -117,19 +117,22 @@ static void do_catch_up(unsigned long data)
 			synth_delay(speakup_info.full_time);
 			return;
 		}
-		while (synth_writable());
+		while (synth_writable())
+			;
 		ch = *speakup_info.buff_out++;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
 		if (jiffies >= jiff_max && ch == SPACE) {
-			while (synth_writable());
+			while (synth_writable())
+				;
 			outb_p(PROCSPEECH, speakup_info.port_tts);
 			synth_delay(speakup_info.delay_time);
 			return;
 		}
 	}
-	while (synth_writable());
+	while (synth_writable())
+		;
 	outb_p(PROCSPEECH, speakup_info.port_tts);
 	synth_done();
 }
@@ -148,7 +151,8 @@ static int synth_probe(void)
 		speakup_info.port_tts = speakup_info.port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
 				speakup_info.port_tts);
-		if (synth_request_region(speakup_info.port_tts-1, SYNTH_IO_EXTENT)) {
+		if (synth_request_region(speakup_info.port_tts-1,
+					SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
@@ -180,7 +184,7 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, driver version %s,\n", MY_SYNTH.long_name,
-		synth_port_control,	synth_port_control+SYNTH_IO_EXTENT-1,
+		synth_port_control, synth_port_control+SYNTH_IO_EXTENT-1,
 		MY_SYNTH.version);
 	return 0;
 }

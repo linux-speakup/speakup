@@ -195,7 +195,7 @@ static void say_key(int key)
 	key &= 0xff;
 	for (i = 0; i < 6; i++) {
 		if (state & masks[i])
-			synth_printf("%s",statenames[i]);
+			synth_printf("%s", statenames[i]);
 	}
 	synth_printf(" %s\n", keynames[--key]);
 }
@@ -220,13 +220,12 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	char *name;
 	u_char func, *kp;
 	u_short *p_keys, val;
-	if (letter_offsets[0] == -1) {
+	if (letter_offsets[0] == -1)
 		help_init();
-	}
 	if (type == KT_LATIN) {
 		if (ch == SPACE) {
 			special_handler = NULL;
-			synth_printf("%s\n","leaving help");
+			synth_printf("%s\n", "leaving help");
 			return 1;
 		}
 		ch |= 32; /* lower case */
@@ -246,13 +245,13 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
 		special_handler = handle_help;
-		synth_printf("%s\n",help_info);
+		synth_printf("%s\n", help_info);
 		build_key_data(); /* rebuild each time in case new mapping */
 		return 1;
 	} else {
 		name = NULL;
 		if (type != KT_SPKUP) {
-			synth_printf("%s\n",keynames[key-1]);
+			synth_printf("%s\n", keynames[key-1]);
 			return 1;
 		}
 		for (i = 0; funcvals[i] != 0 && !name; i++) {
@@ -273,16 +272,16 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	}
 	name = funcnames[cur_item];
 	func = funcvals[cur_item];
-	synth_printf("%s",name);
+	synth_printf("%s", name);
 	if (key_offsets[func] == 0) {
-		synth_printf("%s\n"," is unassigned");
+		synth_printf("%s\n", " is unassigned");
 		return 1;
 	}
 	p_keys = key_data + key_offsets[func];
 	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
 		if (n > 0)
-			synth_printf("%s","or ");
+			synth_printf("%s", "or ");
 		say_key(val);
 	}
 	return 1;

@@ -58,6 +58,7 @@ extern char *xlate(char *s);
 extern int chartab_get_value(char *keyword);
 extern void speakup_register_var(struct st_num_var *var);
 extern void speakup_unregister_var(short var_id);
+extern void speakup_remove(void);
 extern struct st_var_header *get_var_header(short var_id);
 extern struct st_var_header *var_header_by_name(const char *name);
 extern struct st_punc_var *get_punc_var(short var_id);

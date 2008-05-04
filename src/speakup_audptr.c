@@ -59,7 +59,7 @@ static struct spk_synth synth_audptr = {
 	.version = DRV_VERSION,
 	.long_name = "Audapter",
 	.init = init_string,
-	.delay= 400,
+	.delay = 400,
 	.trigger = 5,
 	.jiffies = 30,
 	.full = 5000,
@@ -72,7 +72,7 @@ static struct spk_synth synth_audptr = {
 	.release = spk_serial_release,
 	.synth_immediate = synth_immediate,
 	.catch_up = do_catch_up,
-	.start= NULL,
+	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = synth_is_alive,
 	.synth_adjust = NULL,
@@ -127,7 +127,9 @@ static const char *synth_immediate(const char *buf)
 
 static void synth_flush(void)
 {
-	while ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY);
+	while ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY)
+			!= BOTH_EMPTY)
+		;
 	outb(SYNTH_CLEAR, speakup_info.port_tts);
 	spk_serial_out(PROCSPEECH);
 }
@@ -154,7 +156,7 @@ static int synth_probe(void)
 	int failed = 0;
 
 	failed = serial_synth_probe();
-	if (failed == 0) 
+	if (failed == 0)
 		synth_version();
 	return 0;
 }
@@ -166,7 +168,7 @@ static int synth_is_alive(void)
 	if (!speakup_info.alive && wait_for_xmitr() > 0) {
 		/* restart */
 		speakup_info.alive = 1;
-		synth_printf("%s",MY_SYNTH.init);
+		synth_printf("%s", MY_SYNTH.init);
 		return 2;
 	}
 	return 0;

@@ -136,7 +136,7 @@ static int synth_is_alive(void)
 	if (wait_for_xmitr() > 0) {
 		/* restart */
 		speakup_info.alive = 1;
-		synth_printf("%s",MY_SYNTH.init);
+		synth_printf("%s", MY_SYNTH.init);
 		return 2;
 	}
 	pr_warn("%s: can't restart synth\n", MY_SYNTH.long_name);

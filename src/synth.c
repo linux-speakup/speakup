@@ -10,7 +10,7 @@
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/kmod.h>
 #include <linux/jiffies.h>
-#include <asm/uaccess.h> /* for copy_from_user */
+#include <linux/uaccess.h> /* for copy_from_user */
 
 #ifndef SYNTH_MINOR
 #define SYNTH_MINOR 25
@@ -117,7 +117,7 @@ int serial_synth_probe(void)
 {
 	struct serial_state *ser;
 	int failed = 0;
-	
+
 	if ((param_ser >= SPK_LO_TTY) && (param_ser <= SPK_HI_TTY)) {
 		ser = spk_serial_init(param_ser);
 		if (ser == NULL) {
@@ -135,7 +135,8 @@ int serial_synth_probe(void)
 		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: ttyS%i, Driver Version %s\n", synth->long_name, param_ser, synth->version);
+	pr_info("%s: ttyS%i, Driver Version %s\n",
+			synth->long_name, param_ser, synth->version);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(serial_synth_probe);
@@ -319,7 +320,7 @@ void do_flush(void)
 		if (synth->flush_wait)
 			synth_delay((synth->flush_wait * HZ) / 1000);
 		if (pitch_shift) {
-			synth_printf("%s",pitch_buff);
+			synth_printf("%s", pitch_buff);
 			pitch_shift = 0;
 		}
 	}
@@ -522,7 +523,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	for (n_var = synth_time_vars; n_var->var_id >= 0; n_var++)
 		speakup_register_var(n_var);
 	speakup_info.alive = 1;
-	synth_printf("%s",synth->init);
+	synth_printf("%s", synth->init);
 	for (s_var = synth->string_vars; s_var->var_id >= 0; s_var++)
 		speakup_register_var((struct st_num_var *) s_var);
 	for (n_var = synth->num_vars; n_var->var_id >= 0; n_var++)
@@ -558,7 +559,7 @@ synth_release(void)
 int synth_add(struct spk_synth *in_synth)
 {
 	int i;
-	int status=0;
+	int status = 0;
 	mutex_lock(&spk_mutex);
 	for (i = 0; synths[i] != NULL && i < MAXSYNTHS; i++)
 		/* synth_remove() is responsible for rotating the array down */
@@ -573,7 +574,7 @@ int synth_add(struct spk_synth *in_synth)
 	}
 	synths[i++] = in_synth;
 	synths[i] = NULL;
-	if (in_synth->flags) 
+	if (in_synth->flags)
 		status = do_synth_init(in_synth);
 	mutex_unlock(&spk_mutex);
 	return status;
@@ -602,7 +603,7 @@ short punc_masks[] = { 0, SOME, MOST, PUNC, PUNC|B_SYM };
 /* called by: speakup_init() */
 int speakup_dev_init(char *synth_name)
 {
-	pr_warn("synth name on entry is: %s\n", synth_name); 
+	pr_warn("synth name on entry is: %s\n", synth_name);
 	synth_init(synth_name);
 	speakup_register_devsynth();
 	return 0;
@@ -612,9 +613,9 @@ void speakup_remove(void)
 {
 	int i;
 
-	for (i = 0; i < MAXVARS; i++) {
+	for (i = 0; i < MAXVARS; i++)
 		speakup_unregister_var(i);
-}
+
 	pr_info("speakup: unregistering synth device /dev/synth\n");
 	misc_deregister(&synth_device);
 	misc_registered = 0;

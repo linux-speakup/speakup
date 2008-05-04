@@ -69,7 +69,7 @@ char *strlwr(char *s)
 	return s;
 }
 
-char * speakup_s2i(char *start, short *dest)
+char *speakup_s2i(char *start, short *dest)
 {
 	int val;
 	char ch = *start;
@@ -317,7 +317,7 @@ int set_num_var(short input, struct st_var_header *var, int how)
 		l = sprintf(cp, var_data->synth_fmt, (int)val);
 	else
 		l = sprintf(cp, var_data->synth_fmt, var_data->out_str[val]);
-	synth_printf("%s",cp);
+	synth_printf("%s", cp);
 	return ret;
 }
 

@@ -65,7 +65,7 @@ static struct spk_synth synth_dectlk = {
 	.version = DRV_VERSION,
 	.long_name = "Dectalk Express",
 	.init = init_string,
-	.delay= 500,
+	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
 	.full = 1000,
@@ -78,7 +78,7 @@ static struct spk_synth synth_dectlk = {
 	.release = spk_serial_release,
 	.synth_immediate = synth_immediate,
 	.catch_up = do_catch_up,
-	.start= NULL,
+	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = synth_is_alive,
 	.synth_adjust = NULL,
@@ -206,7 +206,7 @@ static int synth_is_alive(void)
 	if (!speakup_info.alive && wait_for_xmitr() > 0) {
 		/* restart */
 		speakup_info.alive = 1;
-		synth_printf("%s",MY_SYNTH.init);
+		synth_printf("%s", MY_SYNTH.init);
 		return 2;
 	} else
 		pr_warn("%s: can't restart synth\n", MY_SYNTH.long_name);

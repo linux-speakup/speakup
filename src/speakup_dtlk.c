@@ -94,7 +94,7 @@ static struct spk_synth synth_dtlk = {
 		.lowindex = 1,
 		.highindex = 5,
 		.currindex = 1,
-	} 
+	}
 };
 
 static void spk_out(const char ch)

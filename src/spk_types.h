@@ -15,7 +15,7 @@
 #include <linux/vt_kern.h>
 #include <linux/spinlock.h>
 #include <linux/mutex.h>
-#include <asm/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
+#include <linux/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
 
 enum {
 	VAR_NUM = 0,

@@ -184,7 +184,7 @@ static unsigned int softsynth_poll(struct file *fp,
 
 static void softsynth_flush(void)
 {
-	synth_printf("%c",'\x18');
+	synth_printf("%c", '\x18');
 }
 
 static unsigned char get_index(void)

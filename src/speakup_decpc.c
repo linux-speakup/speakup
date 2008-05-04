@@ -166,7 +166,7 @@ static struct spk_synth synth_dec_pc = {
 	.version = DRV_VERSION,
 	.long_name = "Dectalk PC",
 	.init = init_string,
-	.delay= 500,
+	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
 	.full = 1000,
@@ -179,7 +179,7 @@ static struct spk_synth synth_dec_pc = {
 	.release = dtpc_release,
 	.synth_immediate = synth_immediate,
 	.catch_up = do_catch_up,
-	.start= NULL,
+	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = synth_is_alive,
 	.synth_adjust = NULL,
@@ -195,7 +195,8 @@ static struct spk_synth synth_dec_pc = {
 
 static int dt_getstatus(void)
 {
-	dt_stat = inb_p(speakup_info.port_tts) | (inb_p(speakup_info.port_tts + 1) << 8);
+	dt_stat = inb_p(speakup_info.port_tts) |
+		 (inb_p(speakup_info.port_tts + 1) << 8);
 	return dt_stat;
 }
 
@@ -380,7 +381,8 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
-		speakup_info.port_tts, speakup_info.port_tts + 7, MY_SYNTH.version);
+		speakup_info.port_tts, speakup_info.port_tts + 7,
+		MY_SYNTH.version);
 	return 0;
 }
 

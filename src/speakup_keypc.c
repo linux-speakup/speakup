@@ -180,7 +180,8 @@ static int synth_probe(void)
 	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
 	if (speakup_info.port_forced) {
 		synth_port = speakup_info.port_forced;
-		pr_info("probe forced to %x by kernel command line\n", synth_port);
+		pr_info("probe forced to %x by kernel command line\n",
+				synth_port);
 		if (synth_request_region(synth_port-1, SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
