@@ -261,7 +261,7 @@ static int synth_probe(void)
 		return -ENODEV;
 	}
 	while (inw_p(synth_lpc) != 0x147f)
-		; /* wait until it's ready */
+		cpu_relax(); /* wait until it's ready */
 	sp = synth_interrogate();
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
 		MY_SYNTH.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
