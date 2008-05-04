@@ -35,7 +35,7 @@ static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
 
-static const char init_string[] = "\x05Z\x05\x43";
+static const char init_string[] = "Speakup\n";
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "CAPS_START\n" },
