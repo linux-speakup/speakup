@@ -100,11 +100,11 @@ static void spk_out(const char ch)
 {
 	int tmout = 100000;
 	while ((inb_p(speakup_info.port_tts) & TTS_WRITABLE) == 0)
-		;
+		cpu_relax();
 	outb_p(ch, speakup_info.port_tts);
 	while (((inb_p(speakup_info.port_tts) & TTS_WRITABLE) != 0)
 		&& (--tmout != 0))
-		;
+		cpu_relax();
 }
 
 static void do_catch_up(unsigned long data)
@@ -164,7 +164,7 @@ static void synth_flush(void)
 {
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
 	while (((inb_p(speakup_info.port_tts)) & TTS_WRITABLE) != 0)
-		;
+		cpu_relax();
 }
 
 static char synth_read_tts(void)
@@ -172,11 +172,11 @@ static char synth_read_tts(void)
 	u_char ch;
 	u_char synth_status;
 	while (((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE) == 0)
-		;
+		cpu_relax();
 	ch = synth_status & 0x7f;
 	outb_p(ch, speakup_info.port_tts);
 	while ((inb_p(speakup_info.port_tts) & TTS_READABLE) != 0)
-		;
+		cpu_relax();
 	return (char) ch;
 }
 

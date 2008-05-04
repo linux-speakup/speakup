@@ -101,7 +101,7 @@ static const char *synth_immediate(const char *buf)
 		if (synth_full())
 			return buf;
 		while (synth_writable())
-			;
+			cpu_relax();
 		outb_p(ch, speakup_info.port_tts);
 		buf++;
 	}
@@ -119,21 +119,21 @@ static void do_catch_up(unsigned long data)
 			return;
 		}
 		while (synth_writable())
-			;
+			cpu_relax();
 		ch = *speakup_info.buff_out++;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
 		if (jiffies >= jiff_max && ch == SPACE) {
 			while (synth_writable())
-				;
+				cpu_relax();
 			outb_p(PROCSPEECH, speakup_info.port_tts);
 			synth_delay(speakup_info.delay_time);
 			return;
 		}
 	}
 	while (synth_writable())
-		;
+		cpu_relax();
 	outb_p(PROCSPEECH, speakup_info.port_tts);
 	synth_done();
 }
