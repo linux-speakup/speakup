@@ -119,7 +119,7 @@ static void do_catch_up(unsigned long data)
 		last = ch;
 	}
 	if (synth_done() || !in_escape)
-	spk_serial_out(PROCSPEECH);
+		spk_serial_out(PROCSPEECH);
 }
 
 static const char *synth_immediate(const char *buf)
