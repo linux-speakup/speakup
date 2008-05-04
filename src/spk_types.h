@@ -130,7 +130,12 @@ struct spk_synth {
 	const char *version;
 	const char *long_name;
 	const char *init;
-	short delay, trigger, jiffies, full, flush_wait, flags;
+	short delay;
+	short trigger;
+	short jiffies;
+	short full;
+	short flush_wait;
+	short flags;
 	const int checkval; /* for validating a proper synth module */
 	struct st_string_var *string_vars;
 	struct st_num_var *num_vars;

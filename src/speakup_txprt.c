@@ -52,11 +52,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 	 };
 
-struct spk_synth synth_txprt = {"txprt", DRV_VERSION, "Transport",
-	init_string, 500, 50, 50, 5000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL, 0, 0, 0} };
+struct spk_synth synth_txprt = {
+	.name = "txprt",
+	.version = DRV_VERSION,
+	.long_name = "Transport",
+	.init = init_string,
+	.delay = 500,
+	.trigger = 50,
+	.jiffies = 50,
+	.full = 5000,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = serial_synth_probe,
+	.release = spk_serial_release,
+	.synth_immediate = synth_immediate,
+	.catch_up = do_catch_up,
+	.start = NULL,
+	.flush = synth_flush,
+	.is_alive = synth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = NULL,
+	.get_index = NULL,
+	.indexing = {
+		.command = NULL,
+		.lowindex = 0,
+		.highindex = 0,
+		.currindex = 0,
+	}
+};
 
 static void do_catch_up(unsigned long data)
 {

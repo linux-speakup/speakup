@@ -60,11 +60,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_acntpc = {"acntpc", DRV_VERSION, "Accent PC",
-	init_string, 500, 50, 50, 1000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, accent_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL, 0, 0, 0} };
+struct spk_synth synth_acntpc = {
+	.name = "acntpc",
+	.version = DRV_VERSION,
+	.long_name = "Accent PC",
+	.init = init_string,
+	.delay = 500,
+	.trigger = 50,
+	.jiffies = 50,
+	.full = 1000,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = synth_probe,
+	.release = accent_release,
+	.synth_immediate = synth_immediate,
+	.catch_up = do_catch_up,
+	.start = NULL,
+	.flush = synth_flush,
+	.is_alive = synth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = NULL,
+	.get_index = NULL,
+	.indexing = {
+		.command = NULL,
+		.lowindex = 0,
+		.highindex = 0,
+		.currindex = 0,
+	}
+};
 
 static const char *synth_immediate(const char *buf)
 {

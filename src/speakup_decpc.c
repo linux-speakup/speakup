@@ -161,11 +161,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dec_pc = { "decpc", DRV_VERSION, "Dectalk PC",
-	init_string, 500, 50, 50, 1000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, dtpc_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, NULL,
-	{NULL, 0, 0, 0} };
+struct spk_synth synth_dec_pc = {
+	.name = "decpc",
+	.version = DRV_VERSION,
+	.long_name = "Dectalk PC",
+	.init = init_string,
+	.delay= 500,
+	.trigger = 50,
+	.jiffies = 50,
+	.full = 1000,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = synth_probe,
+	.release = dtpc_release,
+	.synth_immediate = synth_immediate,
+	.catch_up = do_catch_up,
+	.start= NULL,
+	.flush = synth_flush,
+	.is_alive = synth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = NULL,
+	.get_index = NULL,
+	.indexing = {
+		.command = NULL,
+		.lowindex = 0,
+		.highindex = 0,
+		.currindex = 0,
+	}
+};
 
 static int dt_getstatus(void)
 {

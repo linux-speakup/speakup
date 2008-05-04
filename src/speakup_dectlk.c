@@ -60,11 +60,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dectlk = { "dectlk", DRV_VERSION, "Dectalk Express",
-	init_string, 500, 50, 50, 1000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, read_buff_add,
-	get_index, {"[:in re %d] ", 1, 8, 1} };
+struct spk_synth synth_dectlk = {
+	.name = "dectlk",
+	.version = DRV_VERSION,
+	.long_name = "Dectalk Express",
+	.init = init_string,
+	.delay= 500,
+	.trigger = 50,
+	.jiffies = 50,
+	.full = 1000,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = serial_synth_probe,
+	.release = spk_serial_release,
+	.synth_immediate = synth_immediate,
+	.catch_up = do_catch_up,
+	.start= NULL,
+	.flush = synth_flush,
+	.is_alive = synth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = read_buff_add,
+	.get_index = get_index,
+	.indexing = {
+		.command = "[:in re %d] ",
+		.lowindex = 1,
+		.highindex = 8,
+		.currindex = 1,
+	}
+};
 
 static int is_indnum(u_char *ch)
 {

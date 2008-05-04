@@ -62,12 +62,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_soft = { "soft", DRV_VERSION, "software synth",
-	init_string, 0, 0, 0, 0, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, softsynth_probe, softsynth_release, NULL,
-	NULL, softsynth_start, softsynth_flush, softsynth_is_alive, NULL, NULL,
-	get_index, {"\x01%di", 1, 5, 1} };
-
+struct spk_synth synth_soft = {
+	.name = "soft",
+	.version = DRV_VERSION,
+	.long_name = "software synth",
+	.init = init_string,
+	.delay = 0,
+	.trigger = 0,
+	.jiffies = 0,
+	.full = 0,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = softsynth_probe,
+	.release = softsynth_release,
+	.synth_immediate = NULL,
+	.catch_up = NULL,
+	.start = softsynth_start,
+	.flush = softsynth_flush,
+	.is_alive = softsynth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = NULL,
+	.get_index = get_index,
+	.indexing = {
+		.command = "\x01%di",
+		.lowindex = 1,
+		.highindex = 5,
+		.currindex = 1,
+	}
+};
 
 static int softsynth_open(struct inode *inode, struct file *fp)
 {
@@ -157,8 +182,7 @@ static unsigned int softsynth_poll(struct file *fp,
 	return ret;
 }
 
-static void
-softsynth_flush(void)
+static void softsynth_flush(void)
 {
 	synth_printf("%c",'\x18');
 }
@@ -180,8 +204,7 @@ static struct file_operations softsynth_fops = {
 };
 
 
-static int
-softsynth_probe(void)
+static int softsynth_probe(void)
 {
 
 	if (misc_registered != 0)
@@ -200,22 +223,19 @@ softsynth_probe(void)
 	return 0;
 }
 
-static void
-softsynth_release(void)
+static void softsynth_release(void)
 {
 	misc_deregister(&synth_device);
 	misc_registered = 0;
 	pr_info("unregistered /dev/softsynth\n");
 }
 
-static void
-softsynth_start(void)
+static void softsynth_start(void)
 {
 	wake_up_interruptible(&wait_on_output);
 }
 
-static int
-softsynth_is_alive(void)
+static int softsynth_is_alive(void)
 {
 	if (speakup_info.alive)
 		return 1;

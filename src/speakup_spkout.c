@@ -54,11 +54,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_spkout = {"spkout", DRV_VERSION, "Speakout",
-	 init_string, 500, 50, 50, 5000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, serial_synth_probe, spk_serial_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL,
-	get_index, {"\x05[%c", 1, 5, 1} };
+struct spk_synth synth_spkout = {
+	.name = "spkout",
+	.version = DRV_VERSION,
+	.long_name = "Speakout",
+	.init = init_string,
+	.delay = 500,
+	.trigger = 50,
+	.jiffies = 50,
+	.full = 5000,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = serial_synth_probe,
+	.release = spk_serial_release,
+	.synth_immediate = synth_immediate,
+	.catch_up = do_catch_up,
+	.start = NULL,
+	.flush = synth_flush,
+	.is_alive = synth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = NULL,
+	.get_index = get_index,
+	.indexing = {
+		.command = "\x05[%c",
+		.lowindex = 1,
+		.highindex = 5,
+		.currindex = 1,
+	}
+};
 
 static void do_catch_up(unsigned long data)
 {

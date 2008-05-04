@@ -65,11 +65,37 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dtlk = {"dtlk", DRV_VERSION, "DoubleTalk PC",
-	init_string, 500, 30, 50, 1000, 0, SYNTH_START, SYNTH_CHECK,
-	stringvars, numvars, synth_probe, dtlk_release, synth_immediate,
-	do_catch_up, NULL, synth_flush, synth_is_alive, NULL, NULL, get_index,
-	{"\x01%di", 1, 5, 1} };
+struct spk_synth synth_dtlk = {
+	.name = "dtlk",
+	.version = DRV_VERSION,
+	.long_name = "DoubleTalk PC",
+	.init = init_string,
+	.delay = 500,
+	.trigger = 30,
+	.jiffies = 50,
+	.full = 1000,
+	.flush_wait = 0,
+	.flags = SYNTH_START,
+	.checkval = SYNTH_CHECK,
+	.string_vars = stringvars,
+	.num_vars = numvars,
+	.probe = synth_probe,
+	.release = dtlk_release,
+	.synth_immediate = synth_immediate,
+	.catch_up = do_catch_up,
+	.start = NULL,
+	.flush = synth_flush,
+	.is_alive = synth_is_alive,
+	.synth_adjust = NULL,
+	.read_buff_add = NULL,
+	.get_index = get_index,
+	.indexing = {
+		.command = "\x01%di",
+		.lowindex = 1,
+		.highindex = 5,
+		.currindex = 1,
+	} 
+};
 
 static void spk_out(const char ch)
 {
@@ -240,8 +266,7 @@ static int synth_is_alive(void)
 	return 1;	/* I'm *INVINCIBLE* */
 }
 
-static void
-dtlk_release(void)
+static void dtlk_release(void)
 {
 	if (speakup_info.port_tts)
 		synth_release_region(speakup_info.port_tts-1, SYNTH_IO_EXTENT);
