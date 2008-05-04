@@ -34,7 +34,6 @@
 
 #include <linux/keyboard.h>	/* for KT_SHIFT */
 #include <linux/kbd_kern.h> /* for vc_kbd_* and friends */
-#include <linux/vt_kern.h>
 #include <linux/input.h>
 #include <linux/kmod.h>
 
@@ -48,7 +47,6 @@
 #include <linux/consolemap.h>
 
 #include <linux/spinlock.h>
-#include <linux/ctype.h>
 #include <linux/notifier.h>
 
 #include <asm/uaccess.h> /* copy_from|to|user() and others */
