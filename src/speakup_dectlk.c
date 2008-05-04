@@ -38,12 +38,12 @@ static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
-void read_buff_add(u_char c);
+static void read_buff_add(u_char c);
 static unsigned char get_index(void);
 
 static int in_escape;
 static int is_flushing;
-atomic_t dectest = ATOMIC_INIT(0);
+static atomic_t dectest = ATOMIC_INIT(0);
 static const char init_string[] = "[:dv ap 100][:error sp]";
 
 static struct st_string_var stringvars[] = {
@@ -60,7 +60,7 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_dectlk = {
+static struct spk_synth synth_dectlk = {
 	.name = "dectlk",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk Express",
@@ -111,7 +111,7 @@ static unsigned char get_index(void)
 	return rv;
 }
 
-void read_buff_add(u_char c)
+static void read_buff_add(u_char c)
 {
 	static int ind = -1;
 

@@ -60,7 +60,7 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_acntpc = {
+static struct spk_synth synth_acntpc = {
 	.name = "acntpc",
 	.version = DRV_VERSION,
 	.long_name = "Accent PC",

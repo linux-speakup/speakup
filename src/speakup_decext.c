@@ -55,7 +55,7 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_decext = {
+static struct spk_synth synth_decext = {
 	.name = "decext",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk External",

@@ -42,7 +42,7 @@ static unsigned char get_index(void);
 static struct miscdevice synth_device;
 static int misc_registered;
 static int dev_opened;
-DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
+static DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
 static const char init_string[] = "\01@\x01\x31y\n";
 
@@ -62,7 +62,7 @@ static struct st_num_var numvars[] = {
 	V_LAST_NUM
 };
 
-struct spk_synth synth_soft = {
+static struct spk_synth synth_soft = {
 	.name = "soft",
 	.version = DRV_VERSION,
 	.long_name = "software synth",
