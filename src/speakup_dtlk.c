@@ -233,7 +233,8 @@ static int synth_probe(void)
 		speakup_info.port_tts = speakup_info.port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
 				speakup_info.port_tts);
-		if (synth_request_region(speakup_info.port_tts-1, SYNTH_IO_EXTENT)) {
+		if (synth_request_region(speakup_info.port_tts-1,
+					SYNTH_IO_EXTENT)) {
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
