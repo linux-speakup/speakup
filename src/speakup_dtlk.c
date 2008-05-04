@@ -175,7 +175,8 @@ static char synth_read_tts(void)
 		;
 	ch = synth_status & 0x7f;
 	outb_p(ch, speakup_info.port_tts);
-	while ((inb_p(speakup_info.port_tts) & TTS_READABLE) != 0);
+	while ((inb_p(speakup_info.port_tts) & TTS_READABLE) != 0)
+		;
 	return (char) ch;
 }
 
@@ -258,7 +259,8 @@ static int synth_probe(void)
 		pr_info("DoubleTalk PC: not found\n");
 		return -ENODEV;
 	}
-	while (inw_p(synth_lpc) != 0x147f); /* wait until it's ready */
+	while (inw_p(synth_lpc) != 0x147f)
+		; /* wait until it's ready */
 	sp = synth_interrogate();
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
 		MY_SYNTH.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,

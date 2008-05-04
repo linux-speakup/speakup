@@ -96,11 +96,12 @@ static const char *synth_immediate(const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
-	if (ch == '\n')
-		ch = PROCSPEECH;
+		if (ch == '\n')
+			ch = PROCSPEECH;
 		if (synth_full())
 			return buf;
-		while (synth_writable());
+		while (synth_writable())
+			;
 		outb_p(ch, speakup_info.port_tts);
 		buf++;
 	}
