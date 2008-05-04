@@ -5,7 +5,6 @@
  * This file includes all of the typedefs and structs used in speakup.
  */
 
-#include <linux/version.h>
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/errno.h>

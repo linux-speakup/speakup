@@ -1,4 +1,3 @@
-#include <linux/version.h>
 #include <linux/console.h>
 #include <linux/limits.h>
 #include <linux/module.h>

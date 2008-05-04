@@ -1,4 +1,3 @@
-#include <linux/version.h>
 #include <linux/types.h>
 #include <linux/ctype.h>	/* for isdigit() and friends */
 #include <linux/fs.h>
