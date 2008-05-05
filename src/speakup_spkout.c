@@ -81,7 +81,7 @@ static struct spk_synth synth_spkout = {
 
 static void synth_flush(struct spk_synth *synth)
 {
-	while (spk_tx_busy())
+	while (spk_serial_tx_busy())
 		cpu_relax();
 	outb(SYNTH_CLEAR, speakup_info.port_tts);
 }

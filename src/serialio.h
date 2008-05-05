@@ -20,7 +20,7 @@
 #define SPK_TIMEOUT 100
 #define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
 
-#define spk_tx_busy() ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY)
+#define spk_serial_tx_busy() ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY)
 
 /* 2.6.22 doesn't have them any more, hardcode it for now (these values should
  * be fine for 99% cases) */

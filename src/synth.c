@@ -188,7 +188,7 @@ int wait_for_xmitr(void)
 		timeouts = 0;
 		return 0;
 	}
-	while (spk_tx_busy()) {
+	while (spk_serial_tx_busy()) {
 		if (--tmout == 0) {
 			pr_warn("%s: timed out\n", synth->long_name);
 			timeouts++;
