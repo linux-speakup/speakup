@@ -1,0 +1,18 @@
+diff --git a/drivers/accessibility/Kconfig b/drivers/accessibility/Kconfig
+index 1264c4b..e82d1d7 100644
+--- a/drivers/accessibility/Kconfig
++++ b/drivers/accessibility/Kconfig
+@@ -20,4 +20,6 @@ config A11Y_BRAILLE_CONSOLE
+ 
+ 	  If unsure, say N.
+ 
++source "drivers/accessibility/speakup/Kconfig"
++
+ endif # ACCESSIBILITY
+diff --git a/drivers/accessibility/Makefile b/drivers/accessibility/Makefile
+index 72b01a4..ef0d3a5 100644
+--- a/drivers/accessibility/Makefile
++++ b/drivers/accessibility/Makefile
+@@ -1 +1,2 @@
+ obj-y				+= braille/
++obj-$(CONFIG_SPEAKUP)		+= speakup/
