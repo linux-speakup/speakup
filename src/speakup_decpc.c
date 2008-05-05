@@ -343,7 +343,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		last = ch;
 	}
 	if (synth_done() || !in_escape)
-	dt_sendchar(PROCSPEECH);
+		dt_sendchar(PROCSPEECH);
 }
 
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)
