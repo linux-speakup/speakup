@@ -32,8 +32,6 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static const char init_string[] = "\x05Z\x05\x43";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x05\x31\x32P" },
 	{ CAPS_STOP, "\x05\x38P" },
@@ -51,7 +49,7 @@ static struct spk_synth synth_bns = {
 	.name = "bns",
 	.version = DRV_VERSION,
 	.long_name = "Braille 'N Speak",
-	.init = init_string,
+	.init = "\x05Z\x05\x43",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

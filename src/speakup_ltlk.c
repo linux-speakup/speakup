@@ -36,8 +36,6 @@
 static int synth_probe(void);
 static unsigned char get_index(void);
 
-static const char init_string[] = "\01@\x01\x31y\n\0";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x01+35p" },
 	{ CAPS_STOP, "\x01-35p" },
@@ -59,7 +57,7 @@ static struct spk_synth synth_ltlk = {
 	.name = "ltlk",
 	.version = DRV_VERSION,
 	.long_name = "LiteTalk",
-	.init = init_string,
+	.init = "\01@\x01\x31y\n\0",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

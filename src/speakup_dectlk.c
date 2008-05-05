@@ -42,7 +42,6 @@ static unsigned char get_index(void);
 static int in_escape;
 static int is_flushing;
 static atomic_t dectest = ATOMIC_INIT(0);
-static const char init_string[] = "[:dv ap 100][:error sp]";
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[:dv ap 200]" },
@@ -62,7 +61,7 @@ static struct spk_synth synth_dectlk = {
 	.name = "dectlk",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk Express",
-	.init = init_string,
+	.init = "[:dv ap 100][:error sp]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

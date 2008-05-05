@@ -45,8 +45,6 @@ static int synth_lpc;
 static unsigned int synth_portlist[] =
 		{ 0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0 };
 
-static const char init_string[] = "\x01@\x01\x31y";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x01+35p" },
 	{ CAPS_STOP, "\x01-35p" },
@@ -67,7 +65,7 @@ static struct spk_synth synth_dtlk = {
 	.name = "dtlk",
 	.version = DRV_VERSION,
 	.long_name = "DoubleTalk PC",
-	.init = init_string,
+	.init = "\x01@\x01\x31y",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

@@ -44,8 +44,6 @@ static void synth_flush(struct spk_synth *synth);
 static int synth_port_control;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
-static const char init_string[] = "\033=X \033Oi\033T2\033=M\033N1\n";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\033P8" },
 	{ CAPS_STOP, "\033P5" },
@@ -63,7 +61,7 @@ static struct spk_synth synth_acntpc = {
 	.name = "acntpc",
 	.version = DRV_VERSION,
 	.long_name = "Accent PC",
-	.init = init_string,
+	.init = "\033=X \033Oi\033T2\033=M\033N1\n",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

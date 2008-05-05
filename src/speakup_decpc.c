@@ -144,7 +144,6 @@ static void synth_flush(struct spk_synth *synth);
 static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
 static int in_escape, is_flushing;
 static int dt_stat, dma_state;
-static const char init_string[] = "[:pe -380]";
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[:dv ap 200]" },
@@ -164,7 +163,7 @@ static struct spk_synth synth_dec_pc = {
 	.name = "decpc",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk PC",
-	.init = init_string,
+	.init = "[:pe -380]",
 	.procspeech = PROCSPEECH,
 	.delay = 500,
 	.trigger = 50,

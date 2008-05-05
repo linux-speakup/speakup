@@ -32,8 +32,6 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
-static const char init_string[] = "\x05N1";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x05P8" },
 	{ CAPS_STOP, "\x05P5" },
@@ -51,7 +49,7 @@ static struct spk_synth synth_txprt = {
 	.name = "txprt",
 	.version = DRV_VERSION,
 	.long_name = "Transport",
-	.init = init_string,
+	.init = "\x05N1",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

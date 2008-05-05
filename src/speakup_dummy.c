@@ -32,8 +32,6 @@
 #define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18
 
-static const char init_string[] = "Speakup\n";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "CAPS_START\n" },
 	{ CAPS_STOP, "CAPS_STOP" },
@@ -51,7 +49,7 @@ static struct spk_synth synth_dummy = {
 	.name = "dummy",
 	.version = DRV_VERSION,
 	.long_name = "Dummy",
-	.init = init_string,
+	.init = "Speakup\n",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

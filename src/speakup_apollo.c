@@ -34,8 +34,6 @@
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
 
-static const char init_string[] = "@R3@D0@K1\r";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "cap, " },
 	{ CAPS_STOP, "" },
@@ -54,7 +52,7 @@ static struct spk_synth synth_apollo = {
 	.name = "apollo",
 	.version = DRV_VERSION,
 	.long_name = "Apollo",
-	.init = init_string,
+	.init = "@R3@D0@K1\r",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

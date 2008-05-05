@@ -35,8 +35,6 @@
 static int synth_probe(void);
 static void synth_flush(struct spk_synth *synth);
 
-static const char init_string[] = "\x05[D1]\x05[Ol]";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x05[f99]" },
 	{ CAPS_STOP, "\x05[f80]" },
@@ -55,7 +53,7 @@ static struct spk_synth synth_audptr = {
 	.name = "audptr",
 	.version = DRV_VERSION,
 	.long_name = "Audapter",
-	.init = init_string,
+	.init = "\x05[D1]\x05[Ol]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 400,

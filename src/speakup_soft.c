@@ -44,8 +44,6 @@ static int misc_registered;
 static int dev_opened;
 static DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
-static const char init_string[] = "\01@\x01\x31y\n";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x01+3p" },
 	{ CAPS_STOP, "\x01-3p" },
@@ -66,7 +64,7 @@ static struct spk_synth synth_soft = {
 	.name = "soft",
 	.version = DRV_VERSION,
 	.long_name = "software synth",
-	.init = init_string,
+	.init = "\01@\x01\x31y\n",
 	.procspeech = PROCSPEECH,
 	.delay = 0,
 	.trigger = 0,

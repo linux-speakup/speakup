@@ -37,7 +37,6 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(struct spk_synth *synth);
 
 static int in_escape;
-static const char init_string[] = "[:pe -380]";
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[:dv ap 222]" },
@@ -57,7 +56,7 @@ static struct spk_synth synth_decext = {
 	.name = "decext",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk External",
-	.init = init_string,
+	.init = "[:pe -380]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

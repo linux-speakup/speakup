@@ -35,8 +35,6 @@
 static void synth_flush(struct spk_synth *synth);
 static unsigned char get_index(void);
 
-static const char init_string[] = "\005W1\005I2\005C3";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x05P+" },
 	{ CAPS_STOP, "\x05P-" },
@@ -55,7 +53,7 @@ static struct spk_synth synth_spkout = {
 	.name = "spkout",
 	.version = DRV_VERSION,
 	.long_name = "Speakout",
-	.init = init_string,
+	.init = "\005W1\005I2\005C3",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

@@ -42,7 +42,6 @@ static void synth_flush(struct spk_synth *synth);
 
 static int synth_port;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
-static const char init_string[] = "[t][n7,1][n8,0]";
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[f130]" },
@@ -59,7 +58,7 @@ static struct spk_synth synth_keypc = {
 	.name = "keypc",
 	.version = DRV_VERSION,
 	.long_name = "Keynote PC",
-	.init = init_string,
+	.init = "[t][n7,1][n8,0]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,

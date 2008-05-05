@@ -36,8 +36,6 @@
 
 static int synth_probe(void);
 
-static const char init_string[] = "\033T2\033=M\033Oi\033N1\n";
-
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\033P8" },
 	{ CAPS_STOP, "\033P5" },
@@ -55,7 +53,7 @@ static struct spk_synth synth_acntsa = {
 	.name = "acntsa",
 	.version = DRV_VERSION,
 	.long_name = "Accent-SA",
-	.init = init_string,
+	.init = "\033T2\033=M\033Oi\033N1\n",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 400,
