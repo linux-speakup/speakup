@@ -188,15 +188,13 @@ int wait_for_xmitr(void)
 		timeouts = 0;
 		return 0;
 	}
-	do {
-		/* holding register empty? */
-		check = inb_p(speakup_info.port_tts + UART_LSR);
+	while (spk_tx_busy()) {
 		if (--tmout == 0) {
 			pr_warn("%s: timed out\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
-	} while ((check & BOTH_EMPTY) != BOTH_EMPTY);
+	}
 	tmout = SPK_XMITR_TIMEOUT;
 	do {
 		/* CTS */

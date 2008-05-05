@@ -82,8 +82,7 @@ static struct spk_synth synth_audptr = {
 
 static void synth_flush(struct spk_synth *synth)
 {
-	while ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY)
-			!= BOTH_EMPTY)
+	while (spk_tx_busy())
 		cpu_relax();
 	outb(SYNTH_CLEAR, speakup_info.port_tts);
 	spk_serial_out(PROCSPEECH);
