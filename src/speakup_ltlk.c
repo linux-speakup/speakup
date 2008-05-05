@@ -34,7 +34,6 @@
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
 static int synth_probe(void);
-static void synth_flush(void);
 static unsigned char get_index(void);
 
 static const char init_string[] = "\01@\x01\x31y\n\0";
@@ -62,6 +61,7 @@ static struct spk_synth synth_ltlk = {
 	.long_name = "LiteTalk",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -76,7 +76,7 @@ static struct spk_synth synth_ltlk = {
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = spk_do_catch_up,
 	.start = NULL,
-	.flush = synth_flush,
+	.flush = spk_synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
@@ -88,11 +88,6 @@ static struct spk_synth synth_ltlk = {
 		.currindex = 1,
 	}
 };
-
-static void synth_flush(void)
-{
-	spk_serial_out(SYNTH_CLEAR);
-}
 
 static unsigned char get_index(void)
 {

@@ -33,7 +33,7 @@
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
 static int synth_probe(void);
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 
 static const char init_string[] = "\x05[D1]\x05[Ol]";
 
@@ -57,6 +57,7 @@ static struct spk_synth synth_audptr = {
 	.long_name = "Audapter",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 400,
 	.trigger = 5,
 	.jiffies = 30,
@@ -84,7 +85,7 @@ static struct spk_synth synth_audptr = {
 	}
 };
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	while ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY)
 			!= BOTH_EMPTY)

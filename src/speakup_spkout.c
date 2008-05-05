@@ -32,7 +32,7 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 static unsigned char get_index(void);
 
 static const char init_string[] = "\005W1\005I2\005C3";
@@ -57,6 +57,7 @@ static struct spk_synth synth_spkout = {
 	.long_name = "Speakout",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -84,7 +85,7 @@ static struct spk_synth synth_spkout = {
 	}
 };
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	while ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY)
 		cpu_relax();

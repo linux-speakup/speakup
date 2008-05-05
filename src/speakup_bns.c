@@ -32,8 +32,6 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static void synth_flush(void);
-
 static const char init_string[] = "\x05Z\x05\x43";
 
 static struct st_string_var stringvars[] = {
@@ -55,6 +53,7 @@ static struct spk_synth synth_bns = {
 	.long_name = "Braille 'N Speak",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -69,7 +68,7 @@ static struct spk_synth synth_bns = {
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = spk_do_catch_up,
 	.start = NULL,
-	.flush = synth_flush,
+	.flush = spk_synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
@@ -81,11 +80,6 @@ static struct spk_synth synth_bns = {
 		.currindex = 0,
 	}
 };
-
-static void synth_flush(void)
-{
-	spk_serial_out(SYNTH_CLEAR);
-}
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 

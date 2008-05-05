@@ -288,6 +288,11 @@ const char *spk_synth_immediate(struct spk_synth *synth, const char *buff)
 }
 EXPORT_SYMBOL_GPL(spk_synth_immediate);
 
+void spk_synth_flush(struct spk_synth *synth)
+{
+	spk_serial_out(synth->clear);
+}
+
 int spk_synth_is_alive_nop(struct spk_synth *synth)
 {
 	speakup_info.alive = 1;
@@ -378,7 +383,7 @@ void do_flush(void)
 	synth_stop_timer();
 	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
 	if (speakup_info.alive) {
-		synth->flush();
+		synth->flush(synth);
 		if (synth->flush_wait)
 			synth_delay((synth->flush_wait * HZ) / 1000);
 		if (pitch_shift) {

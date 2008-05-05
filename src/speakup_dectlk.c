@@ -35,7 +35,7 @@
 #define synth_full() (spk_serial_in() == 0x13)
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 static void read_buff_add(u_char c);
 static unsigned char get_index(void);
 
@@ -64,6 +64,7 @@ static struct spk_synth synth_dectlk = {
 	.long_name = "Dectalk Express",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -172,7 +173,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	spk_serial_out(PROCSPEECH);
 }
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	if (in_escape) {
 		/* if in command output ']' so we don't get an error */

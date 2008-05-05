@@ -33,7 +33,6 @@
 #define PROCSPEECH '\r'
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
-static void synth_flush(void);
 
 static const char init_string[] = "@R3@D0@K1\r";
 
@@ -57,6 +56,7 @@ static struct spk_synth synth_apollo = {
 	.long_name = "Apollo",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -71,7 +71,7 @@ static struct spk_synth synth_apollo = {
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
 	.start = NULL,
-	.flush = synth_flush,
+	.flush = spk_synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
@@ -107,11 +107,6 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	}
 	spk_serial_out(PROCSPEECH);
 	synth_done();
-}
-
-static void synth_flush(void)
-{
-	spk_serial_out(SYNTH_CLEAR);
 }
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);

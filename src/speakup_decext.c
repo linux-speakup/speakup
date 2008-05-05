@@ -34,7 +34,7 @@
 #define synth_full() (spk_serial_in() == 0x13)
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 
 static int in_escape;
 static const char init_string[] = "[:pe -380]";
@@ -59,6 +59,7 @@ static struct spk_synth synth_decext = {
 	.long_name = "Dectalk External",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -121,7 +122,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		spk_serial_out(PROCSPEECH);
 }
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	in_escape = 0;
 	spk_synth_immediate(&MY_SYNTH, "\033P;10z\033\\");

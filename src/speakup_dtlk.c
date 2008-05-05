@@ -38,7 +38,7 @@ static int synth_probe(void);
 static void dtlk_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 static unsigned char get_index(void);
 
 static int synth_lpc;
@@ -69,6 +69,7 @@ static struct spk_synth synth_dtlk = {
 	.long_name = "DoubleTalk PC",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 30,
 	.jiffies = 50,
@@ -160,7 +161,7 @@ static unsigned char get_index(void)
 	return 0;
 }
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
 	while (((inb_p(speakup_info.port_tts)) & TTS_WRITABLE) != 0)

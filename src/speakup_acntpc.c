@@ -39,7 +39,7 @@ static int synth_probe(void);
 static void accent_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 
 static int synth_port_control;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
@@ -65,6 +65,7 @@ static struct spk_synth synth_acntpc = {
 	.long_name = "Accent PC",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -138,7 +139,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	synth_done();
 }
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
 }

@@ -35,7 +35,6 @@
 #define PROCSPEECH '\r'
 
 static int synth_probe(void);
-static void synth_flush(void);
 
 static const char init_string[] = "\033T2\033=M\033Oi\033N1\n";
 
@@ -58,6 +57,7 @@ static struct spk_synth synth_acntsa = {
 	.long_name = "Accent-SA",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 400,
 	.trigger = 5,
 	.jiffies = 30,
@@ -72,7 +72,7 @@ static struct spk_synth synth_acntsa = {
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = spk_do_catch_up,
 	.start = NULL,
-	.flush = synth_flush,
+	.flush = spk_synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
@@ -84,11 +84,6 @@ static struct spk_synth synth_acntsa = {
 		.currindex = 0,
 	}
 };
-
-static void synth_flush(void)
-{
-	spk_serial_out(SYNTH_CLEAR);
-}
 
 static int synth_probe(void)
 {

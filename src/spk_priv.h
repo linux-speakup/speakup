@@ -53,6 +53,7 @@ extern int spk_serial_out(const char ch);
 extern void spk_serial_release(void);
 extern const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);
 extern void spk_do_catch_up(struct spk_synth *synth, unsigned long data);
+extern void spk_synth_flush(struct spk_synth *synth);
 extern int spk_synth_is_alive_nop(struct spk_synth *synth);
 extern int spk_synth_is_alive_restart(struct spk_synth *synth);
 extern void synth_delay(int ms);

@@ -35,7 +35,7 @@
 static int softsynth_probe(void);
 static void softsynth_release(void);
 static void softsynth_start(void);
-static void softsynth_flush(void);
+static void softsynth_flush(struct spk_synth *synth);
 static int softsynth_is_alive(struct spk_synth *synth);
 static unsigned char get_index(void);
 
@@ -183,7 +183,7 @@ static unsigned int softsynth_poll(struct file *fp,
 	return ret;
 }
 
-static void softsynth_flush(void)
+static void softsynth_flush(struct spk_synth *synth)
 {
 	synth_printf("%c", '\x18');
 }

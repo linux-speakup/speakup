@@ -139,7 +139,7 @@ static int synth_probe(void);
 static void dtpc_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
-static void synth_flush(void);
+static void synth_flush(struct spk_synth *synth);
 
 static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
 static int in_escape, is_flushing;
@@ -250,7 +250,7 @@ static int dt_ctrl(u_int cmd)
 	return 0;
 }
 
-static void synth_flush(void)
+static void synth_flush(struct spk_synth *synth)
 {
 	int timeout = 10;
 	if (is_flushing)

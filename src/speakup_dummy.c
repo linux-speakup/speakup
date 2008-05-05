@@ -30,8 +30,7 @@
 #define MY_SYNTH synth_dummy
 #define PROCSPEECH '\n'
 #define DRV_VERSION "1.8"
-
-static void synth_flush(void);
+#define SYNTH_CLEAR 0x18
 
 static const char init_string[] = "Speakup\n";
 
@@ -54,6 +53,7 @@ static struct spk_synth synth_dummy = {
 	.long_name = "Dummy",
 	.init = init_string,
 	.procspeech = PROCSPEECH,
+	.clear = SYNTH_CLEAR,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -68,7 +68,7 @@ static struct spk_synth synth_dummy = {
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = spk_do_catch_up,
 	.start = NULL,
-	.flush = synth_flush,
+	.flush = spk_synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
@@ -80,10 +80,6 @@ static struct spk_synth synth_dummy = {
 		.currindex = 0,
 	}
 };
-
-static void synth_flush(void)
-{
-}
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
 
