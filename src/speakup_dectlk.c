@@ -34,7 +34,7 @@
 #define PROCSPEECH 0x0b
 #define synth_full() (spk_serial_in() == 0x13)
 
-static void do_catch_up(unsigned long data);
+static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
 static void read_buff_add(u_char c);
@@ -130,7 +130,7 @@ static void read_buff_add(u_char c)
 	}
 }
 
-static void do_catch_up(unsigned long data)
+static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;

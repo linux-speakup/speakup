@@ -32,7 +32,7 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static void do_catch_up(unsigned long data);
+static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
 
@@ -85,7 +85,7 @@ static struct spk_synth synth_apollo = {
 	}
 };
 
-static void do_catch_up(unsigned long data)
+static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;

@@ -32,7 +32,6 @@
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
-static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
 
@@ -69,7 +68,7 @@ static struct spk_synth synth_txprt = {
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,
-	.catch_up = do_catch_up,
+	.catch_up = spk_do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = synth_is_alive,
@@ -83,31 +82,6 @@ static struct spk_synth synth_txprt = {
 		.currindex = 0,
 	}
 };
-
-static void do_catch_up(unsigned long data)
-{
-	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
-	u_char ch;
-
-	synth_stop_timer();
-	while (speakup_info.buff_out < speakup_info.buff_in) {
-		ch = *speakup_info.buff_out;
-		if (ch == '\n')
-			ch = PROCSPEECH;
-		if (!spk_serial_out(ch)) {
-			synth_delay(speakup_info.full_time);
-			return;
-		}
-		speakup_info.buff_out++;
-		if (jiffies >= jiff_max && ch == ' ') {
-			spk_serial_out(PROCSPEECH);
-			synth_delay(speakup_info.delay_time);
-			return;
-		}
-	}
-	spk_serial_out(PROCSPEECH);
-	synth_done();
-}
 
 static void synth_flush(void)
 {

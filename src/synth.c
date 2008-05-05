@@ -248,6 +248,30 @@ void spk_serial_release(void)
 }
 EXPORT_SYMBOL_GPL(spk_serial_release);
 
+void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
+{
+	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
+	u_char ch;
+	synth_stop_timer();
+	while (speakup_info.buff_out < speakup_info.buff_in) {
+		ch = *speakup_info.buff_out;
+		if (ch == '\n')
+			ch = synth->procspeech;
+		if (!spk_serial_out(ch)) {
+			synth_delay(speakup_info.full_time);
+			return;
+		}
+		speakup_info.buff_out++;
+		if (jiffies >= jiff_max && ch == SPACE) {
+			spk_serial_out(synth->procspeech);
+			synth_delay(speakup_info.delay_time);
+			return;
+		}
+	}
+	spk_serial_out(synth->procspeech);
+	synth_done();
+}
+
 const char *spk_synth_immediate(struct spk_synth *synth, const char *buff)
 {
 	u_char ch;
@@ -509,7 +533,7 @@ static void synth_catch_up(u_long data)
 	unsigned long flags;
 	spk_lock(flags);
 	if (synth->catch_up)
-		synth->catch_up(data);
+		synth->catch_up(synth, data);
 	spk_unlock(flags);
 }
 

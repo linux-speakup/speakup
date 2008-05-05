@@ -142,7 +142,7 @@ struct spk_synth {
 	int (*probe)(void);
 	void (*release)(void);
 	const char *(*synth_immediate)(struct spk_synth *synth, const char *buff);
-	void (*catch_up)(u_long data);
+	void (*catch_up)(struct spk_synth *synth, u_long data);
 	void (*start)(void);
 	void (*flush)(void);
 	int (*is_alive)(void);

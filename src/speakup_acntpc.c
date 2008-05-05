@@ -38,7 +38,7 @@
 static int synth_probe(void);
 static void accent_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
-static void do_catch_up(unsigned long data);
+static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
 
@@ -109,7 +109,7 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 	return 0;
 }
 
-static void do_catch_up(unsigned long data)
+static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
