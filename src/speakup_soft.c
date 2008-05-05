@@ -31,7 +31,7 @@
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
 
-static int softsynth_probe(void);
+static int softsynth_probe(struct spk_synth *synth);
 static void softsynth_release(void);
 static void softsynth_start(void);
 static void softsynth_flush(struct spk_synth *synth);
@@ -202,7 +202,7 @@ static struct file_operations softsynth_fops = {
 };
 
 
-static int softsynth_probe(void)
+static int softsynth_probe(struct spk_synth *synth)
 {
 
 	if (misc_registered != 0)

@@ -34,7 +34,7 @@
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
 #define PROCSPEECH '\r'
 
-static int synth_probe(void);
+static int synth_probe(struct spk_synth *synth);
 static void accent_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
@@ -141,11 +141,11 @@ static void synth_flush(struct spk_synth *synth)
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
 }
 
-static int synth_probe(void)
+static int synth_probe(struct spk_synth *synth)
 {
 	unsigned int port_val = 0;
 	int i = 0;
-	pr_info("Probing for %s.\n", synth_acntpc.long_name);
+	pr_info("Probing for %s.\n", synth->long_name);
 	if (speakup_info.port_forced) {
 		speakup_info.port_tts = speakup_info.port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
@@ -177,14 +177,14 @@ static int synth_probe(void)
 	port_val &= 0xfffc;
 	if (port_val != 0x53fc) {
 		/* 'S' and out&input bits */
-		pr_info("%s: not found\n", synth_acntpc.long_name);
+		pr_info("%s: not found\n", synth->long_name);
 		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port_control = 0;
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, driver version %s,\n", synth_acntpc.long_name,
+	pr_info("%s: %03x-%03x, driver version %s,\n", synth->long_name,
 		synth_port_control, synth_port_control+SYNTH_IO_EXTENT-1,
-		synth_acntpc.version);
+		synth->version);
 	return 0;
 }
 

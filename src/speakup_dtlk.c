@@ -33,7 +33,7 @@
 #define synth_readable() ((inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_full() ((inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
 
-static int synth_probe(void);
+static int synth_probe(struct spk_synth *synth);
 static void dtlk_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
@@ -179,13 +179,13 @@ static char synth_read_tts(void)
 }
 
 /* interrogate the DoubleTalk PC and return its settings */
-static struct synth_settings *synth_interrogate(void)
+static struct synth_settings *synth_interrogate(struct spk_synth *synth)
 {
 	u_char *t;
 	static char buf[sizeof(struct synth_settings) + 1];
 	int total, i;
 	static struct synth_settings status;
-	synth_immediate(&synth_dtlk, "\x18\x01?");
+	synth_immediate(synth, "\x18\x01?");
 	for (total = 0, i = 0; i < 50; i++) {
 		buf[total] = synth_read_tts();
 		if (total > 2 && buf[total] == 0x7f)
@@ -221,7 +221,7 @@ static struct synth_settings *synth_interrogate(void)
 	return &status;
 }
 
-static int synth_probe(void)
+static int synth_probe(struct spk_synth *synth)
 {
 		unsigned int port_val = 0;
 	int i = 0;
@@ -260,10 +260,10 @@ static int synth_probe(void)
 	}
 	while (inw_p(synth_lpc) != 0x147f)
 		cpu_relax(); /* wait until it's ready */
-	sp = synth_interrogate();
+	sp = synth_interrogate(synth);
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
-		synth_dtlk.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
-	 sp->rom_version, sp->serial_number, synth_dtlk.version);
+		synth->long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
+	 sp->rom_version, sp->serial_number, synth->version);
 	/*	speakup_info.alive = 1; */
 	return 0;
 }

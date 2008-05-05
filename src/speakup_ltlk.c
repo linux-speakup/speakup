@@ -30,7 +30,7 @@
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
-static int synth_probe(void);
+static int synth_probe(struct spk_synth *synth);
 static unsigned char get_index(void);
 
 static struct st_string_var stringvars[] = {
@@ -96,11 +96,11 @@ static unsigned char get_index(void)
 }
 
 /* interrogate the LiteTalk and print its settings */
-static void synth_interrogate(void)
+static void synth_interrogate(struct spk_synth *synth)
 {
 	unsigned char *t, i;
 	unsigned char buf[50], rom_v[20];
-	spk_synth_immediate(&synth_ltlk, "\x18\x01?");
+	spk_synth_immediate(synth, "\x18\x01?");
 	for (i = 0; i < 50; i++) {
 		buf[i] = spk_serial_in();
 		if (i > 2 && buf[i] == 0x7f)
@@ -113,16 +113,16 @@ static void synth_interrogate(void)
 			break;
 	}
 	rom_v[i] = 0;
-	pr_info("%s: ROM version: %s\n", synth_ltlk.long_name, rom_v);
+	pr_info("%s: ROM version: %s\n", synth->long_name, rom_v);
 }
 
-static int synth_probe(void)
+static int synth_probe(struct spk_synth *synth)
 {
 	int failed = 0;
 
-	failed = serial_synth_probe();
+	failed = serial_synth_probe(synth);
 	if (failed == 0)
-		synth_interrogate();
+		synth_interrogate(synth);
 	return failed;
 }
 

@@ -134,7 +134,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
-static int synth_probe(void);
+static int synth_probe(struct spk_synth *synth);
 static void dtpc_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
@@ -359,10 +359,10 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 	return 0;
 }
 
-static int synth_probe(void)
+static int synth_probe(struct spk_synth *synth)
 {
 	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", synth_dec_pc.long_name);
+	pr_info("Probing for %s.\n", synth->long_name);
 	for (i = 0; synth_portlist[i]; i++) {
 		if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
 			pr_warn("request_region: failed with 0x%x, %d\n",
@@ -375,12 +375,12 @@ static int synth_probe(void)
 			break;
 	}
 	if (failed) {
-		pr_info("%s: not found\n", synth_dec_pc.long_name);
+		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth_dec_pc.long_name,
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
 		speakup_info.port_tts, speakup_info.port_tts + 7,
-		synth_dec_pc.version);
+		synth->version);
 	return 0;
 }
 

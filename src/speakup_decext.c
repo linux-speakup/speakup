@@ -123,7 +123,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 static void synth_flush(struct spk_synth *synth)
 {
 	in_escape = 0;
-	spk_synth_immediate(&synth_decext, "\033P;10z\033\\");
+	spk_synth_immediate(synth, "\033P;10z\033\\");
 }
 
 module_param_named(start, synth_decext.flags, short, S_IRUGO);

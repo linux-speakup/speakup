@@ -113,7 +113,7 @@ struct serial_state *spk_serial_init(int index)
 }
 EXPORT_SYMBOL_GPL(spk_serial_init);
 
-int serial_synth_probe(void)
+int serial_synth_probe(struct spk_synth *synth)
 {
 	struct serial_state *ser;
 	int failed = 0;
@@ -575,7 +575,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 		return -EINVAL;
 	synth = in_synth;
 	pr_warn("synth probe\n");
-	if (synth->probe() < 0) {
+	if (synth->probe(synth) < 0) {
 		pr_warn("%s: device probe failed\n", in_synth->name);
 		synth = NULL;
 		return -ENODEV;

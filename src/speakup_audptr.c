@@ -29,7 +29,7 @@
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
-static int synth_probe(void);
+static int synth_probe(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 
 static struct st_string_var stringvars[] = {
@@ -89,11 +89,11 @@ static void synth_flush(struct spk_synth *synth)
 	spk_serial_out(PROCSPEECH);
 }
 
-static void synth_version(void)
+static void synth_version(struct spk_synth *synth)
 {
 	unsigned char test = 0;
 	char synth_id[40] = "";
-	spk_synth_immediate(&synth_audptr, "\x05[Q]");
+	spk_synth_immediate(synth, "\x05[Q]");
 	synth_id[test] = spk_serial_in();
 	if (synth_id[test] == 'A') {
 		do {
@@ -103,16 +103,16 @@ static void synth_version(void)
 		synth_id[++test] = 0x00;
 	}
 	if (synth_id[0] == 'A')
-		pr_info("%s version: %s", synth_audptr.long_name, synth_id);
+		pr_info("%s version: %s", synth->long_name, synth_id);
 }
 
-static int synth_probe(void)
+static int synth_probe(struct spk_synth *synth)
 {
 	int failed = 0;
 
-	failed = serial_synth_probe();
+	failed = serial_synth_probe(synth);
 	if (failed == 0)
-		synth_version();
+		synth_version(synth);
 	return 0;
 }
 

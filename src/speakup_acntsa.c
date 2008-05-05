@@ -30,7 +30,7 @@
 #define synth_full() (spk_serial_in() == 'F')
 #define PROCSPEECH '\r'
 
-static int synth_probe(void);
+static int synth_probe(struct spk_synth *synth);
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\033P8" },
@@ -79,13 +79,13 @@ static struct spk_synth synth_acntsa = {
 	}
 };
 
-static int synth_probe(void)
+static int synth_probe(struct spk_synth *synth)
 {
 	int failed = 0;
 
-	failed = serial_synth_probe();
+	failed = serial_synth_probe(synth);
 	if (failed == 0) {
-		spk_synth_immediate(&synth_acntsa, "\033=R\r");
+		spk_synth_immediate(synth, "\033=R\r");
 		mdelay(100);
 	}
 	return failed;

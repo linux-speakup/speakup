@@ -140,7 +140,7 @@ struct spk_synth {
 	const int checkval; /* for validating a proper synth module */
 	struct st_string_var *string_vars;
 	struct st_num_var *num_vars;
-	int (*probe)(void);
+	int (*probe)(struct spk_synth *synth);
 	void (*release)(void);
 	const char *(*synth_immediate)(struct spk_synth *synth, const char *buff);
 	void (*catch_up)(struct spk_synth *synth, u_long data);
