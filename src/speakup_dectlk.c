@@ -92,8 +92,8 @@ static struct spk_synth synth_dectlk = {
 
 static int is_indnum(u_char *ch)
 {
-	if ((*ch > 47) && (*ch < 58)) {
-		*ch = *ch - 48;
+	if ((*ch >= '0') && (*ch <= '9')) {
+		*ch = *ch - '0';
 		return 1;
 	}
 	return 0;
