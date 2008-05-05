@@ -168,7 +168,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		last = ch;
 	}
 	if (synth_done() || !in_escape)
-	spk_serial_out(PROCSPEECH);
+		spk_serial_out(PROCSPEECH);
 }
 
 static void synth_flush(struct spk_synth *synth)
