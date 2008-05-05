@@ -180,7 +180,7 @@ static void stop_serial_interrupt(void)
 	free_irq(serstate->irq, (void *) synth_readbuf_handler);
 }
 
-int wait_for_xmitr(void)
+static int wait_for_xmitr(void)
 {
 	int check, tmout = SPK_XMITR_TIMEOUT;
 	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
@@ -207,7 +207,6 @@ int wait_for_xmitr(void)
 	timeouts = 0;
 	return 1;
 }
-EXPORT_SYMBOL_GPL(wait_for_xmitr);
 
 unsigned char spk_serial_in(void)
 {
