@@ -24,7 +24,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "1.6"
+#define DRV_VERSION "1.7"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)

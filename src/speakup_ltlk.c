@@ -26,7 +26,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
-#define DRV_VERSION "1.8"
+#define DRV_VERSION "1.9"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 

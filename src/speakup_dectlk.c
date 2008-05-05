@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.12"
+#define DRV_VERSION "1.13"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (spk_serial_in() == 0x13)

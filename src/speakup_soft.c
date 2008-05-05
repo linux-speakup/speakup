@@ -26,7 +26,7 @@
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
-#define DRV_VERSION "0.10"
+#define DRV_VERSION "0.11"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18

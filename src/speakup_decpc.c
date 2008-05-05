@@ -130,7 +130,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "1.6"
+#define DRV_VERSION "1.7"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 

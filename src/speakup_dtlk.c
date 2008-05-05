@@ -28,7 +28,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define DRV_VERSION "1.6"
+#define DRV_VERSION "1.7"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
