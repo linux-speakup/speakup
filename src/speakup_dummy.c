@@ -25,7 +25,6 @@
  * s not a general device driver.
  */
 #include "spk_priv.h"
-#include "serialio.h"
 
 #define PROCSPEECH '\n'
 #define DRV_VERSION "1.8"

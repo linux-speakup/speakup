@@ -23,7 +23,6 @@
  * package and is not a general device driver.
  */
 #include "spk_priv.h"
-#include "serialio.h"
 
 #define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18

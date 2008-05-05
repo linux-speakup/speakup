@@ -24,7 +24,6 @@
  */
 
 #include "spk_priv.h"
-#include "serialio.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define DRV_VERSION "1.8"
