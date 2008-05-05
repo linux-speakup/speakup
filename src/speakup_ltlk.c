@@ -31,7 +31,6 @@
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
 static int synth_probe(struct spk_synth *synth);
-static unsigned char get_index(void);
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x01+35p" },
@@ -75,7 +74,7 @@ static struct spk_synth synth_ltlk = {
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
-	.get_index = get_index,
+	.get_index = spk_serial_in_nowait,
 	.indexing = {
 		.command = "\x01%di",
 		.lowindex = 1,
@@ -83,17 +82,6 @@ static struct spk_synth synth_ltlk = {
 		.currindex = 1,
 	}
 };
-
-static unsigned char get_index(void)
-{
-	int c, lsr;/*, tmout = SPK_SERIAL_TIMEOUT; */
-	lsr = inb(speakup_info.port_tts + UART_LSR);
-	if ((lsr & UART_LSR_DR) == UART_LSR_DR) {
-		c = inb(speakup_info.port_tts + UART_RX);
-		return (unsigned char) c;
-	}
-	return 0;
-}
 
 /* interrogate the LiteTalk and print its settings */
 static void synth_interrogate(struct spk_synth *synth)

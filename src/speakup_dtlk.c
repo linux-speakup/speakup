@@ -38,7 +38,6 @@ static void dtlk_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(struct spk_synth *synth);
-static unsigned char get_index(void);
 
 static int synth_lpc;
 static unsigned int synth_portlist[] =
@@ -85,7 +84,7 @@ static struct spk_synth synth_dtlk = {
 	.is_alive = spk_synth_is_alive_nop,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
-	.get_index = get_index,
+	.get_index = spk_serial_in_nowait,
 	.indexing = {
 		.command = "\x01%di",
 		.lowindex = 1,
@@ -143,17 +142,6 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 			ch = PROCSPEECH;
 		spk_out(ch);
 		buf++;
-	}
-	return 0;
-}
-
-static unsigned char get_index(void)
-{
-	int c, lsr;/*, tmout = SPK_SERIAL_TIMEOUT; */
-	lsr = inb_p(speakup_info.port_tts + UART_LSR);
-	if ((lsr & UART_LSR_DR) == UART_LSR_DR) {
-		c = inb_p(speakup_info.port_tts + UART_RX);
-		return (unsigned char) c;
 	}
 	return 0;
 }

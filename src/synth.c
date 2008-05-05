@@ -227,6 +227,18 @@ unsigned char spk_serial_in(void)
 }
 EXPORT_SYMBOL_GPL(spk_serial_in);
 
+unsigned char spk_serial_in_nowait(void)
+{
+	int c, lsr;
+
+	lsr = inb_p(speakup_info.port_tts + UART_LSR);
+	if (!(lsr & UART_LSR_DR))
+		return 0;
+	c = inb_p(speakup_info.port_tts + UART_RX);
+	return (unsigned char) c;
+}
+EXPORT_SYMBOL_GPL(spk_serial_in_nowait);
+
 int spk_serial_out(const char ch)
 {
 	if (speakup_info.alive && wait_for_xmitr()) {

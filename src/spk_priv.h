@@ -49,6 +49,7 @@ extern struct serial_state *spk_serial_init(int index);
 extern int serial_synth_probe(struct spk_synth *synth);
 extern int wait_for_xmitr(void);
 extern unsigned char spk_serial_in(void);
+extern unsigned char spk_serial_in_nowait(void);
 extern int spk_serial_out(const char ch);
 extern void spk_serial_release(void);
 extern const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);

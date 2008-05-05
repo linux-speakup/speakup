@@ -30,7 +30,6 @@
 #define PROCSPEECH '\r'
 
 static void synth_flush(struct spk_synth *synth);
-static unsigned char get_index(void);
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x05P+" },
@@ -71,7 +70,7 @@ static struct spk_synth synth_spkout = {
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
-	.get_index = get_index,
+	.get_index = spk_serial_in_nowait,
 	.indexing = {
 		.command = "\x05[%c",
 		.lowindex = 1,
@@ -85,17 +84,6 @@ static void synth_flush(struct spk_synth *synth)
 	while (spk_tx_busy())
 		cpu_relax();
 	outb(SYNTH_CLEAR, speakup_info.port_tts);
-}
-
-static unsigned char get_index(void)
-{
-	int c, lsr;/*, tmout = SPK_SERIAL_TIMEOUT; */
-	lsr = inb(speakup_info.port_tts + UART_LSR);
-	if ((lsr & UART_LSR_DR) == UART_LSR_DR) {
-		c = inb(speakup_info.port_tts + UART_RX);
-		return (unsigned char) c;
-	}
-	return 0;
 }
 
 module_param_named(start, synth_spkout.flags, short, S_IRUGO);
