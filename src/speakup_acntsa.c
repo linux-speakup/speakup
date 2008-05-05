@@ -81,7 +81,7 @@ static struct spk_synth synth_acntsa = {
 
 static int synth_probe(struct spk_synth *synth)
 {
-	int failed = 0;
+	int failed;
 
 	failed = serial_synth_probe(synth);
 	if (failed == 0) {
