@@ -28,7 +28,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_dectlk
 #define DRV_VERSION "1.12"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
@@ -183,16 +182,16 @@ static void synth_flush(struct spk_synth *synth)
 	is_flushing = 5; /* if no ctl-a in 4, send data anyway */
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_dectlk.flags, short, S_IRUGO);
 
 static int __init dectlk_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_dectlk);
 }
 
 static void __exit dectlk_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_dectlk);
 }
 
 module_init(dectlk_init);

@@ -27,7 +27,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_dummy
 #define PROCSPEECH '\n'
 #define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18
@@ -79,16 +78,16 @@ static struct spk_synth synth_dummy = {
 	}
 };
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_dummy.flags, short, S_IRUGO);
 
 static int __init dummy_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_dummy);
 }
 
 static void __exit dummy_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_dummy);
 }
 
 module_init(dummy_init);

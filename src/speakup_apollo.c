@@ -27,7 +27,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_apollo
 #define DRV_VERSION "1.9"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
@@ -107,16 +106,16 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	synth_done();
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_apollo.flags, short, S_IRUGO);
 
 static int __init apollo_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_apollo);
 }
 
 static void __exit apollo_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_apollo);
 }
 
 module_init(apollo_init);

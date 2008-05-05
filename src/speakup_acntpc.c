@@ -28,7 +28,6 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define MY_SYNTH synth_acntpc
 #define DRV_VERSION "1.6"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
@@ -146,7 +145,7 @@ static int synth_probe(void)
 {
 	unsigned int port_val = 0;
 	int i = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
+	pr_info("Probing for %s.\n", synth_acntpc.long_name);
 	if (speakup_info.port_forced) {
 		speakup_info.port_tts = speakup_info.port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
@@ -178,14 +177,14 @@ static int synth_probe(void)
 	port_val &= 0xfffc;
 	if (port_val != 0x53fc) {
 		/* 'S' and out&input bits */
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
+		pr_info("%s: not found\n", synth_acntpc.long_name);
 		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port_control = 0;
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, driver version %s,\n", MY_SYNTH.long_name,
+	pr_info("%s: %03x-%03x, driver version %s,\n", synth_acntpc.long_name,
 		synth_port_control, synth_port_control+SYNTH_IO_EXTENT-1,
-		MY_SYNTH.version);
+		synth_acntpc.version);
 	return 0;
 }
 
@@ -196,16 +195,16 @@ static void accent_release(void)
 	speakup_info.port_tts = 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_acntpc.flags, short, S_IRUGO);
 
 static int __init acntpc_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_acntpc);
 }
 
 static void __exit acntpc_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_acntpc);
 }
 
 module_init(acntpc_init);

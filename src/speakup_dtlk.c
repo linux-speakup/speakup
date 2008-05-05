@@ -28,7 +28,6 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define MY_SYNTH synth_dtlk
 #define DRV_VERSION "1.6"
 #define PROCSPEECH 0x00
 #define synth_readable() ((inb_p(speakup_info.port_tts)) & TTS_READABLE)
@@ -186,7 +185,7 @@ static struct synth_settings *synth_interrogate(void)
 	static char buf[sizeof(struct synth_settings) + 1];
 	int total, i;
 	static struct synth_settings status;
-	synth_immediate(&MY_SYNTH, "\x18\x01?");
+	synth_immediate(&synth_dtlk, "\x18\x01?");
 	for (total = 0, i = 0; i < 50; i++) {
 		buf[total] = synth_read_tts();
 		if (total > 2 && buf[total] == 0x7f)
@@ -263,8 +262,8 @@ static int synth_probe(void)
 		cpu_relax(); /* wait until it's ready */
 	sp = synth_interrogate();
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
-		MY_SYNTH.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
-	 sp->rom_version, sp->serial_number, MY_SYNTH.version);
+		synth_dtlk.long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
+	 sp->rom_version, sp->serial_number, synth_dtlk.version);
 	/*	speakup_info.alive = 1; */
 	return 0;
 }
@@ -276,16 +275,16 @@ static void dtlk_release(void)
 	speakup_info.port_tts = 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_dtlk.flags, short, S_IRUGO);
 
 static int __init dtlk_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_dtlk);
 }
 
 static void __exit dtlk_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_dtlk);
 }
 
 module_init(dtlk_init);

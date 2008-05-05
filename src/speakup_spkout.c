@@ -27,7 +27,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_spkout
 #define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
@@ -101,16 +100,16 @@ static unsigned char get_index(void)
 	return 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_spkout.flags, short, S_IRUGO);
 
 static int __init spkout_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_spkout);
 }
 
 static void __exit spkout_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_spkout);
 }
 
 module_init(spkout_init);

@@ -28,7 +28,6 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
-#define MY_SYNTH synth_ltlk
 #define DRV_VERSION "1.8"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
@@ -103,7 +102,7 @@ static void synth_interrogate(void)
 {
 	unsigned char *t, i;
 	unsigned char buf[50], rom_v[20];
-	spk_synth_immediate(&MY_SYNTH, "\x18\x01?");
+	spk_synth_immediate(&synth_ltlk, "\x18\x01?");
 	for (i = 0; i < 50; i++) {
 		buf[i] = spk_serial_in();
 		if (i > 2 && buf[i] == 0x7f)
@@ -116,7 +115,7 @@ static void synth_interrogate(void)
 			break;
 	}
 	rom_v[i] = 0;
-	pr_info("%s: ROM version: %s\n", MY_SYNTH.long_name, rom_v);
+	pr_info("%s: ROM version: %s\n", synth_ltlk.long_name, rom_v);
 }
 
 static int synth_probe(void)
@@ -129,16 +128,16 @@ static int synth_probe(void)
 	return failed;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_ltlk.flags, short, S_IRUGO);
 
 static int __init ltlk_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_ltlk);
 }
 
 static void __exit ltlk_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_ltlk);
 }
 
 module_init(ltlk_init);

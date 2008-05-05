@@ -29,7 +29,6 @@
 #include "serialio.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define MY_SYNTH synth_acntsa
 #define DRV_VERSION "1.8"
 #define synth_full() (spk_serial_in() == 'F')
 #define PROCSPEECH '\r'
@@ -89,22 +88,22 @@ static int synth_probe(void)
 
 	failed = serial_synth_probe();
 	if (failed == 0) {
-		spk_synth_immediate(&MY_SYNTH, "\033=R\r");
+		spk_synth_immediate(&synth_acntsa, "\033=R\r");
 		mdelay(100);
 	}
 	return failed;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_acntsa.flags, short, S_IRUGO);
 
 static int __init acntsa_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_acntsa);
 }
 
 static void __exit acntsa_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_acntsa);
 }
 
 module_init(acntsa_init);

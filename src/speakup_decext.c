@@ -27,7 +27,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_decext
 #define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
@@ -124,19 +123,19 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 static void synth_flush(struct spk_synth *synth)
 {
 	in_escape = 0;
-	spk_synth_immediate(&MY_SYNTH, "\033P;10z\033\\");
+	spk_synth_immediate(&synth_decext, "\033P;10z\033\\");
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_decext.flags, short, S_IRUGO);
 
 static int __init decext_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_decext);
 }
 
 static void __exit decext_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_decext);
 }
 
 module_init(decext_init);

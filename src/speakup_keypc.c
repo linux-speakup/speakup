@@ -24,7 +24,6 @@
 
 #include "spk_priv.h"
 
-#define MY_SYNTH synth_keypc
 #define DRV_VERSION "1.6"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
@@ -177,7 +176,7 @@ static int synth_probe(void)
 {
 	unsigned int port_val = 0;
 	int i = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
+	pr_info("Probing for %s.\n", synth_keypc.long_name);
 	if (speakup_info.port_forced) {
 		synth_port = speakup_info.port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
@@ -203,14 +202,14 @@ static int synth_probe(void)
 		}
 	}
 	if (port_val != 0x80) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
+		pr_info("%s: not found\n", synth_keypc.long_name);
 		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
 		synth_port = 0;
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, driver version %s,\n", MY_SYNTH.long_name,
+	pr_info("%s: %03x-%03x, driver version %s,\n", synth_keypc.long_name,
 		synth_port, synth_port+SYNTH_IO_EXTENT-1,
-		MY_SYNTH.version);
+		synth_keypc.version);
 	return 0;
 }
 
@@ -221,16 +220,16 @@ static void keynote_release(void)
 	synth_port = 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_keypc.flags, short, S_IRUGO);
 
 static int __init keypc_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_keypc);
 }
 
 static void __exit keypc_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_keypc);
 }
 
 module_init(keypc_init);

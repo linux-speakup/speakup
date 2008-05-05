@@ -130,7 +130,6 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define MY_SYNTH synth_dec_pc
 #define DRV_VERSION "1.6"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
@@ -363,7 +362,7 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 static int synth_probe(void)
 {
 	int i = 0, failed = 0;
-	pr_info("Probing for %s.\n", MY_SYNTH.long_name);
+	pr_info("Probing for %s.\n", synth_dec_pc.long_name);
 	for (i = 0; synth_portlist[i]; i++) {
 		if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
 			pr_warn("request_region: failed with 0x%x, %d\n",
@@ -376,12 +375,12 @@ static int synth_probe(void)
 			break;
 	}
 	if (failed) {
-		pr_info("%s: not found\n", MY_SYNTH.long_name);
+		pr_info("%s: not found\n", synth_dec_pc.long_name);
 		return -ENODEV;
 	}
-	pr_info("%s: %03x-%03x, Driver Version %s,\n", MY_SYNTH.long_name,
+	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth_dec_pc.long_name,
 		speakup_info.port_tts, speakup_info.port_tts + 7,
-		MY_SYNTH.version);
+		synth_dec_pc.version);
 	return 0;
 }
 
@@ -392,16 +391,16 @@ static void dtpc_release(void)
 	speakup_info.port_tts = 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_dec_pc.flags, short, S_IRUGO);
 
 static int __init decpc_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_dec_pc);
 }
 
 static void __exit decpc_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_dec_pc);
 }
 
 module_init(decpc_init);

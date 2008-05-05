@@ -27,7 +27,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_audptr
 #define DRV_VERSION "1.8"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
@@ -96,7 +95,7 @@ static void synth_version(void)
 {
 	unsigned char test = 0;
 	char synth_id[40] = "";
-	spk_synth_immediate(&MY_SYNTH, "\x05[Q]");
+	spk_synth_immediate(&synth_audptr, "\x05[Q]");
 	synth_id[test] = spk_serial_in();
 	if (synth_id[test] == 'A') {
 		do {
@@ -106,7 +105,7 @@ static void synth_version(void)
 		synth_id[++test] = 0x00;
 	}
 	if (synth_id[0] == 'A')
-		pr_info("%s version: %s", MY_SYNTH.long_name, synth_id);
+		pr_info("%s version: %s", synth_audptr.long_name, synth_id);
 }
 
 static int synth_probe(void)
@@ -119,16 +118,16 @@ static int synth_probe(void)
 	return 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_audptr.flags, short, S_IRUGO);
 
 static int __init audptr_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_audptr);
 }
 
 static void __exit audptr_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_audptr);
 }
 
 module_init(audptr_init);

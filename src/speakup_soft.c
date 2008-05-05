@@ -26,7 +26,6 @@
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
-#define MY_SYNTH synth_soft
 #define DRV_VERSION "0.10"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
@@ -241,17 +240,17 @@ static int softsynth_is_alive(struct spk_synth *synth)
 	return 0;
 }
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_soft.flags, short, S_IRUGO);
 
 
 static int __init soft_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_soft);
 }
 
 static void __exit soft_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_soft);
 }
 
 module_init(soft_init);

@@ -27,7 +27,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define MY_SYNTH synth_txprt
 #define DRV_VERSION "1.9"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
@@ -79,16 +78,16 @@ static struct spk_synth synth_txprt = {
 	}
 };
 
-module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);
+module_param_named(start, synth_txprt.flags, short, S_IRUGO);
 
 static int __init txprt_init(void)
 {
-	return synth_add(&MY_SYNTH);
+	return synth_add(&synth_txprt);
 }
 
 static void __exit txprt_exit(void)
 {
-	synth_remove(&MY_SYNTH);
+	synth_remove(&synth_txprt);
 }
 
 module_init(txprt_init);
