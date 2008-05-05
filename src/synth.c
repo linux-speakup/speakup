@@ -280,6 +280,7 @@ void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 	spk_serial_out(synth->procspeech);
 	synth_done();
 }
+EXPORT_SYMBOL_GPL(spk_do_catch_up);
 
 const char *spk_synth_immediate(struct spk_synth *synth, const char *buff)
 {
@@ -301,6 +302,7 @@ void spk_synth_flush(struct spk_synth *synth)
 {
 	spk_serial_out(synth->clear);
 }
+EXPORT_SYMBOL_GPL(spk_synth_flush);
 
 int spk_synth_is_alive_nop(struct spk_synth *synth)
 {
