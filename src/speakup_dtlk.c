@@ -39,7 +39,6 @@ static void dtlk_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(void);
-static int synth_is_alive(void);
 static unsigned char get_index(void);
 
 static int synth_lpc;
@@ -85,7 +84,7 @@ static struct spk_synth synth_dtlk = {
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
-	.is_alive = synth_is_alive,
+	.is_alive = spk_synth_is_alive_nop,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
 	.get_index = get_index,
@@ -269,11 +268,6 @@ static int synth_probe(void)
 	 sp->rom_version, sp->serial_number, MY_SYNTH.version);
 	/*	speakup_info.alive = 1; */
 	return 0;
-}
-
-static int synth_is_alive(void)
-{
-	return 1;	/* I'm *INVINCIBLE* */
 }
 
 static void dtlk_release(void)

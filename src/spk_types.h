@@ -145,7 +145,7 @@ struct spk_synth {
 	void (*catch_up)(struct spk_synth *synth, u_long data);
 	void (*start)(void);
 	void (*flush)(void);
-	int (*is_alive)(void);
+	int (*is_alive)(struct spk_synth *synth);
 	int (*synth_adjust)(struct st_var_header *var);
 	void (*read_buff_add)(u_char);
 	unsigned char (*get_index)(void);

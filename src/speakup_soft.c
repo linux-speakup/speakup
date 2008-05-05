@@ -36,7 +36,7 @@ static int softsynth_probe(void);
 static void softsynth_release(void);
 static void softsynth_start(void);
 static void softsynth_flush(void);
-static int softsynth_is_alive(void);
+static int softsynth_is_alive(struct spk_synth *synth);
 static unsigned char get_index(void);
 
 static struct miscdevice synth_device;
@@ -236,7 +236,7 @@ static void softsynth_start(void)
 	wake_up_interruptible(&wait_on_output);
 }
 
-static int softsynth_is_alive(void)
+static int softsynth_is_alive(struct spk_synth *synth)
 {
 	if (speakup_info.alive)
 		return 1;

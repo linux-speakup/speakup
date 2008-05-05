@@ -33,7 +33,6 @@
 #define PROCSPEECH '\r'
 
 static void synth_flush(void);
-static int synth_is_alive(void);
 
 static const char init_string[] = "\x05Z\x05\x43";
 
@@ -71,7 +70,7 @@ static struct spk_synth synth_bns = {
 	.catch_up = spk_do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
-	.is_alive = synth_is_alive,
+	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
 	.get_index = NULL,
@@ -86,20 +85,6 @@ static struct spk_synth synth_bns = {
 static void synth_flush(void)
 {
 	spk_serial_out(SYNTH_CLEAR);
-}
-
-static int synth_is_alive(void)
-{
-	if (speakup_info.alive)
-		return 1;
-	if (!speakup_info.alive && wait_for_xmitr() > 0) {
-		/* restart */
-		speakup_info.alive = 1;
-		synth_printf("%s", MY_SYNTH.init);
-		return 2;
-	}
-	pr_warn("%s: can't restart synth\n", MY_SYNTH.long_name);
-	return 0;
 }
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);

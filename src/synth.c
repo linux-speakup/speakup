@@ -288,6 +288,28 @@ const char *spk_synth_immediate(struct spk_synth *synth, const char *buff)
 }
 EXPORT_SYMBOL_GPL(spk_synth_immediate);
 
+int spk_synth_is_alive_nop(struct spk_synth *synth)
+{
+	speakup_info.alive = 1;
+	return 1;
+}
+EXPORT_SYMBOL_GPL(spk_synth_is_alive_nop);
+
+int spk_synth_is_alive_restart(struct spk_synth *synth)
+{
+	if (speakup_info.alive)
+		return 1;
+	if (!speakup_info.alive && wait_for_xmitr() > 0) {
+		/* restart */
+		speakup_info.alive = 1;
+		synth_printf("%s", synth->init);
+		return 2; /* reenabled */
+	}
+	pr_warn("%s: can't restart synth\n", synth->long_name);
+	return 0;
+}
+EXPORT_SYMBOL_GPL(spk_synth_is_alive_restart);
+
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 {
 /*printk(KERN_ERR "in irq\n"); */

@@ -140,7 +140,6 @@ static void dtpc_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(void);
-static int synth_is_alive(void);
 
 static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
 static int in_escape, is_flushing;
@@ -182,7 +181,7 @@ static struct spk_synth synth_dec_pc = {
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
-	.is_alive = synth_is_alive,
+	.is_alive = spk_synth_is_alive_nop,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
 	.get_index = NULL,
@@ -392,12 +391,6 @@ static void dtpc_release(void)
 	if (speakup_info.port_tts)
 		synth_release_region(speakup_info.port_tts, SYNTH_IO_EXTENT);
 	speakup_info.port_tts = 0;
-}
-
-static int synth_is_alive(void)
-{
-	speakup_info.alive = 1;
-	return 1;
 }
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);

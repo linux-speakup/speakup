@@ -39,7 +39,6 @@ static void keynote_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(void);
-static int synth_is_alive(void);
 
 static int synth_port;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
@@ -77,7 +76,7 @@ static struct spk_synth synth_keypc = {
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
-	.is_alive = synth_is_alive,
+	.is_alive = spk_synth_is_alive_nop,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
 	.get_index = NULL,
@@ -220,12 +219,6 @@ static void keynote_release(void)
 	if (synth_port)
 		synth_release_region(synth_port, SYNTH_IO_EXTENT);
 	synth_port = 0;
-}
-
-static int synth_is_alive(void)
-{
-	speakup_info.alive = 1;
-	return 1;
 }
 
 module_param_named(start, MY_SYNTH.flags, short, S_IRUGO);

@@ -310,7 +310,7 @@ static void speakup_shut_up(struct vc_data *vc)
 
 static void speech_kill(struct vc_data *vc)
 {
-	char val = synth->is_alive();
+	char val = synth->is_alive(synth);
 	if (val == 0)
 		return;
 
