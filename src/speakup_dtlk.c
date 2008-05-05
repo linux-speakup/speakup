@@ -30,8 +30,8 @@
 
 #define DRV_VERSION "1.6"
 #define PROCSPEECH 0x00
-#define synth_readable() ((inb_p(speakup_info.port_tts)) & TTS_READABLE)
-#define synth_full() ((inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
+#define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
+#define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
 
 static int synth_probe(struct spk_synth *synth);
 static void dtlk_release(void);
@@ -42,6 +42,7 @@ static void synth_flush(struct spk_synth *synth);
 static int synth_lpc;
 static unsigned int synth_portlist[] =
 		{ 0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0 };
+static u_char synth_status;
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "\x01+35p" },
@@ -96,10 +97,10 @@ static struct spk_synth synth_dtlk = {
 static void spk_out(const char ch)
 {
 	int tmout = 100000;
-	while ((inb_p(speakup_info.port_tts) & TTS_WRITABLE) == 0)
+	while (((synth_status = inb_p(speakup_info.port_tts)) & TTS_WRITABLE) == 0)
 		cpu_relax();
 	outb_p(ch, speakup_info.port_tts);
-	while (((inb_p(speakup_info.port_tts) & TTS_WRITABLE) != 0)
+	while ((((synth_status = inb_p(speakup_info.port_tts)) & TTS_WRITABLE) != 0)
 		&& (--tmout != 0))
 		cpu_relax();
 }
@@ -108,7 +109,6 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
-	u_char synth_status;
 	synth_stop_timer();
 	synth_status = inb_p(speakup_info.port_tts);
 	while (speakup_info.buff_out < speakup_info.buff_in) {
@@ -133,7 +133,6 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 {
 	u_char ch;
-	u_char synth_status;
 	synth_status = inb_p(speakup_info.port_tts);
 	while ((ch = (u_char)*buf)) {
 		if (synth_status & TTS_ALMOST_FULL)
@@ -149,14 +148,13 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 static void synth_flush(struct spk_synth *synth)
 {
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
-	while (((inb_p(speakup_info.port_tts)) & TTS_WRITABLE) != 0)
+	while ((((synth_status = inb_p(speakup_info.port_tts))) & TTS_WRITABLE) != 0)
 		cpu_relax();
 }
 
 static char synth_read_tts(void)
 {
 	u_char ch;
-	u_char synth_status;
 	while (((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE) == 0)
 		cpu_relax();
 	ch = synth_status & 0x7f;
