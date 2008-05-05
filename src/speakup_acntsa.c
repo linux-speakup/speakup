@@ -23,8 +23,6 @@
  * package and is not a general device driver.
  */
 
-#include <linux/jiffies.h>
-
 #include "spk_priv.h"
 #include "serialio.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
