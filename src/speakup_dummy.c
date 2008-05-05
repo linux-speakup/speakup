@@ -28,9 +28,9 @@
 #include "serialio.h"
 
 #define MY_SYNTH synth_dummy
+#define PROCSPEECH '\n'
 #define DRV_VERSION "1.8"
 
-static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -55,6 +55,7 @@ static struct spk_synth synth_dummy = {
 	.version = DRV_VERSION,
 	.long_name = "Dummy",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -66,7 +67,7 @@ static struct spk_synth synth_dummy = {
 	.num_vars = numvars,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
-	.synth_immediate = synth_immediate,
+	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
@@ -102,19 +103,6 @@ static void do_catch_up(unsigned long data)
 	}
 	spk_serial_out('\n');
 	synth_done();
-}
-
-static const char *synth_immediate(const char *buf)
-{
-	u_char ch;
-	while ((ch = *buf)) {
-		if (wait_for_xmitr())
-			outb(ch, speakup_info.port_tts);
-		else
-			return buf;
-		buf++;
-	}
-	return 0;
 }
 
 static void synth_flush(void)

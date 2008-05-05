@@ -67,6 +67,7 @@ static struct spk_synth synth_soft = {
 	.version = DRV_VERSION,
 	.long_name = "software synth",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 0,
 	.trigger = 0,
 	.jiffies = 0,

@@ -137,7 +137,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 
 static int synth_probe(void);
 static void dtpc_release(void);
-static const char *synth_immediate(const char *buf);
+static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -166,6 +166,7 @@ static struct spk_synth synth_dec_pc = {
 	.version = DRV_VERSION,
 	.long_name = "Dectalk PC",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -348,7 +349,7 @@ static void do_catch_up(unsigned long data)
 	dt_sendchar(PROCSPEECH);
 }
 
-static const char *synth_immediate(const char *buf)
+static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {

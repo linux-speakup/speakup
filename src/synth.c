@@ -248,6 +248,22 @@ void spk_serial_release(void)
 }
 EXPORT_SYMBOL_GPL(spk_serial_release);
 
+const char *spk_synth_immediate(struct spk_synth *synth, const char *buff)
+{
+	u_char ch;
+	while ((ch = *buff)) {
+		if (ch == '\n')
+			ch = synth->procspeech;
+		if (wait_for_xmitr())
+			outb(ch, speakup_info.port_tts);
+		else
+			return buff;
+		buff++;
+	}
+	return 0;
+}
+EXPORT_SYMBOL_GPL(spk_synth_immediate);
+
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 {
 /*printk(KERN_ERR "in irq\n"); */

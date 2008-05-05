@@ -34,7 +34,6 @@
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
 static int synth_probe(void);
-static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -64,6 +63,7 @@ static struct spk_synth synth_ltlk = {
 	.version = DRV_VERSION,
 	.long_name = "LiteTalk",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -75,7 +75,7 @@ static struct spk_synth synth_ltlk = {
 	.num_vars = numvars,
 	.probe = synth_probe,
 	.release = spk_serial_release,
-	.synth_immediate = synth_immediate,
+	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
@@ -115,21 +115,6 @@ static void do_catch_up(unsigned long data)
 	synth_done();
 }
 
-static const char *synth_immediate(const char *buf)
-{
-	u_char ch;
-	while ((ch = *buf)) {
-		if (ch == 0x0a)
-			ch = PROCSPEECH;
-		if (wait_for_xmitr())
-			outb(ch, speakup_info.port_tts);
-		else
-			return buf;
-		buf++;
-	}
-	return 0;
-}
-
 static void synth_flush(void)
 {
 	spk_serial_out(SYNTH_CLEAR);
@@ -151,7 +136,7 @@ static void synth_interrogate(void)
 {
 	unsigned char *t, i;
 	unsigned char buf[50], rom_v[20];
-	synth_immediate("\x18\x01?");
+	spk_synth_immediate(&MY_SYNTH, "\x18\x01?");
 	for (i = 0; i < 50; i++) {
 		buf[i] = spk_serial_in();
 		if (i > 2 && buf[i] == 0x7f)

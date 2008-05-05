@@ -33,7 +33,6 @@
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
 static int synth_probe(void);
-static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -59,6 +58,7 @@ static struct spk_synth synth_audptr = {
 	.version = DRV_VERSION,
 	.long_name = "Audapter",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 400,
 	.trigger = 5,
 	.jiffies = 30,
@@ -70,7 +70,7 @@ static struct spk_synth synth_audptr = {
 	.num_vars = numvars,
 	.probe = synth_probe,
 	.release = spk_serial_release,
-	.synth_immediate = synth_immediate,
+	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
@@ -110,21 +110,6 @@ static void do_catch_up(unsigned long data)
 	synth_done();
 }
 
-static const char *synth_immediate(const char *buf)
-{
-	u_char ch;
-	while ((ch = *buf)) {
-		if (ch == '\n')
-			ch = PROCSPEECH;
-		if (wait_for_xmitr())
-			outb(ch, speakup_info.port_tts);
-		else
-			return buf;
-		buf++;
-	}
-	return 0;
-}
-
 static void synth_flush(void)
 {
 	while ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY)
@@ -138,7 +123,7 @@ static void synth_version(void)
 {
 	unsigned char test = 0;
 	char synth_id[40] = "";
-	synth_immediate("\x05[Q]");
+	spk_synth_immediate(&MY_SYNTH, "\x05[Q]");
 	synth_id[test] = spk_serial_in();
 	if (synth_id[test] == 'A') {
 		do {

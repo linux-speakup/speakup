@@ -36,7 +36,7 @@
 
 static int synth_probe(void);
 static void dtlk_release(void);
-static const char *synth_immediate(const char *buf);
+static const char *synth_immediate(struct spk_synth *synth, const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -69,6 +69,7 @@ static struct spk_synth synth_dtlk = {
 	.version = DRV_VERSION,
 	.long_name = "DoubleTalk PC",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 500,
 	.trigger = 30,
 	.jiffies = 50,
@@ -133,7 +134,7 @@ static void do_catch_up(unsigned long data)
 	synth_done();
 }
 
-static const char *synth_immediate(const char *buf)
+static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 {
 	u_char ch;
 	u_char synth_status;
@@ -187,7 +188,7 @@ static struct synth_settings *synth_interrogate(void)
 	static char buf[sizeof(struct synth_settings) + 1];
 	int total, i;
 	static struct synth_settings status;
-	synth_immediate("\x18\x01?");
+	synth_immediate(&MY_SYNTH, "\x18\x01?");
 	for (total = 0, i = 0; i < 50; i++) {
 		buf[total] = synth_read_tts();
 		if (total > 2 && buf[total] == 0x7f)

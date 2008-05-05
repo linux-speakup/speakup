@@ -35,7 +35,6 @@
 #define PROCSPEECH '\r'
 
 static int synth_probe(void);
-static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -60,6 +59,7 @@ static struct spk_synth synth_acntsa = {
 	.version = DRV_VERSION,
 	.long_name = "Accent-SA",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 400,
 	.trigger = 5,
 	.jiffies = 30,
@@ -71,7 +71,7 @@ static struct spk_synth synth_acntsa = {
 	.num_vars = numvars,
 	.probe = synth_probe,
 	.release = spk_serial_release,
-	.synth_immediate = synth_immediate,
+	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
@@ -111,21 +111,6 @@ static void do_catch_up(unsigned long data)
 	synth_done();
 }
 
-static const char *synth_immediate(const char *buff)
-{
-	u_char ch;
-	while ((ch = *buff)) {
-		if (ch == 0x0a)
-			ch = PROCSPEECH;
-		if (wait_for_xmitr())
-			outb(ch, speakup_info.port_tts);
-		else
-			return buff;
-		buff++;
-	}
-	return 0;
-}
-
 static void synth_flush(void)
 {
 	spk_serial_out(SYNTH_CLEAR);
@@ -137,7 +122,7 @@ static int synth_probe(void)
 
 	failed = serial_synth_probe();
 	if (failed == 0) {
-		synth_immediate("\033=R\r");
+		spk_synth_immediate(&MY_SYNTH, "\033=R\r");
 		mdelay(100);
 	}
 	return failed;

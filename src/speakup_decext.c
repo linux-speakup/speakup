@@ -33,7 +33,6 @@
 #define PROCSPEECH 0x0b
 #define synth_full() (spk_serial_in() == 0x13)
 
-static const char *synth_immediate(const char *buf);
 static void do_catch_up(unsigned long data);
 static void synth_flush(void);
 static int synth_is_alive(void);
@@ -60,6 +59,7 @@ static struct spk_synth synth_decext = {
 	.version = DRV_VERSION,
 	.long_name = "Dectalk External",
 	.init = init_string,
+	.procspeech = PROCSPEECH,
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
@@ -71,7 +71,7 @@ static struct spk_synth synth_decext = {
 	.num_vars = numvars,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
-	.synth_immediate = synth_immediate,
+	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
 	.start = NULL,
 	.flush = synth_flush,
@@ -122,25 +122,10 @@ static void do_catch_up(unsigned long data)
 		spk_serial_out(PROCSPEECH);
 }
 
-static const char *synth_immediate(const char *buf)
-{
-	u_char ch;
-	while ((ch = *buf)) {
-		if (ch == '\n')
-			ch = PROCSPEECH;
-		if (wait_for_xmitr())
-			outb(ch, speakup_info.port_tts);
-		else
-			return buf;
-		buf++;
-	}
-	return 0;
-}
-
 static void synth_flush(void)
 {
 	in_escape = 0;
-	synth_immediate("\033P;10z\033\\");
+	spk_synth_immediate(&MY_SYNTH, "\033P;10z\033\\");
 }
 
 static int synth_is_alive(void)

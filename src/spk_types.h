@@ -129,6 +129,7 @@ struct spk_synth {
 	const char *version;
 	const char *long_name;
 	const char *init;
+	char procspeech;
 	short delay;
 	short trigger;
 	short jiffies;
@@ -140,7 +141,7 @@ struct spk_synth {
 	struct st_num_var *num_vars;
 	int (*probe)(void);
 	void (*release)(void);
-	const char *(*synth_immediate)(const char *buff);
+	const char *(*synth_immediate)(struct spk_synth *synth, const char *buff);
 	void (*catch_up)(u_long data);
 	void (*start)(void);
 	void (*flush)(void);
