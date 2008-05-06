@@ -24,7 +24,7 @@
  */
 #include "spk_priv.h"
 
-#define DRV_VERSION "1.10"
+#define DRV_VERSION "1.11"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
@@ -75,6 +75,7 @@ static struct spk_synth synth_txprt = {
 	}
 };
 
+module_param_named(ser, synth_txprt.ser, int, S_IRUGO);
 module_param_named(start, synth_txprt.flags, short, S_IRUGO);
 
 static int __init txprt_init(void)

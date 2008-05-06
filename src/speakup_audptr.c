@@ -25,7 +25,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
@@ -115,6 +115,7 @@ static int synth_probe(struct spk_synth *synth)
 	return 0;
 }
 
+module_param_named(ser, synth_audptr.ser, int, S_IRUGO);
 module_param_named(start, synth_audptr.flags, short, S_IRUGO);
 
 static int __init audptr_init(void)

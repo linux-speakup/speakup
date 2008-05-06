@@ -28,7 +28,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
@@ -40,6 +40,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_lpc;
+static int port_forced;
 static unsigned int synth_portlist[] =
 		{ 0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0 };
 static u_char synth_status;
@@ -213,8 +214,8 @@ static int synth_probe(struct spk_synth *synth)
 	int i = 0;
 	struct synth_settings *sp;
 	pr_info("Probing for DoubleTalk.\n");
-	if (speakup_info.port_forced) {
-		speakup_info.port_tts = speakup_info.port_forced;
+	if (port_forced) {
+		speakup_info.port_tts = port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
 				speakup_info.port_tts);
 		if (synth_request_region(speakup_info.port_tts-1,
@@ -261,6 +262,7 @@ static void dtlk_release(void)
 	speakup_info.port_tts = 0;
 }
 
+module_param_named(port, port_forced, int, S_IRUGO);
 module_param_named(start, synth_dtlk.flags, short, S_IRUGO);
 
 static int __init dtlk_init(void)

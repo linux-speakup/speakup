@@ -70,12 +70,6 @@ module_param_named(synth, synth_name, charp, 0);
 
 module_param_named(quiet, quiet_boot, bool, S_IRUGO);
 
-int param_ser;
-module_param_named(ser, param_ser, int, S_IRUGO);
-
-static int param_port;
-module_param_named(port, param_port, int, S_IRUGO);
-
 special_func special_handler;
 
 short pitch_shift, synth_flags;
@@ -1399,9 +1393,6 @@ static void __init speakup_open(struct vc_data *vc,
 {
 	int i;
 	struct st_num_var *n_var;
-
-	if (param_port)
-		speakup_info.port_forced = param_port;
 
 	reset_default_chars();
 	reset_default_chartab();

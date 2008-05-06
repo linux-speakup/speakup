@@ -25,7 +25,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -86,6 +86,7 @@ static void synth_flush(struct spk_synth *synth)
 	outb(SYNTH_CLEAR, speakup_info.port_tts);
 }
 
+module_param_named(ser, synth_spkout.ser, int, S_IRUGO);
 module_param_named(start, synth_spkout.flags, short, S_IRUGO);
 
 static int __init spkout_init(void)

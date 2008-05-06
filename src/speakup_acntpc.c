@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -41,6 +41,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_port_control;
+static int port_forced;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
 static struct st_string_var stringvars[] = {
@@ -146,8 +147,8 @@ static int synth_probe(struct spk_synth *synth)
 	unsigned int port_val = 0;
 	int i = 0;
 	pr_info("Probing for %s.\n", synth->long_name);
-	if (speakup_info.port_forced) {
-		speakup_info.port_tts = speakup_info.port_forced;
+	if (port_forced) {
+		speakup_info.port_tts = port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
 				speakup_info.port_tts);
 		if (synth_request_region(speakup_info.port_tts-1,
@@ -195,6 +196,7 @@ static void accent_release(void)
 	speakup_info.port_tts = 0;
 }
 
+module_param_named(port, port_forced, int, S_IRUGO);
 module_param_named(start, synth_acntpc.flags, short, S_IRUGO);
 
 static int __init acntpc_init(void)

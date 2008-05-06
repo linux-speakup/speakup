@@ -26,7 +26,7 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define synth_full() (spk_serial_in() == 'F')
 #define PROCSPEECH '\r'
 
@@ -91,6 +91,7 @@ static int synth_probe(struct spk_synth *synth)
 	return failed;
 }
 
+module_param_named(ser, synth_acntsa.ser, int, S_IRUGO);
 module_param_named(start, synth_acntsa.flags, short, S_IRUGO);
 
 static int __init acntsa_init(void)

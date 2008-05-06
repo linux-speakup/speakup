@@ -136,6 +136,7 @@ struct spk_synth {
 	short jiffies;
 	short full;
 	short flush_wait;
+	int ser;
 	short flags;
 	const int checkval; /* for validating a proper synth module */
 	struct st_string_var *string_vars;
@@ -156,7 +157,6 @@ struct spk_synth {
 struct speakup_info_t {
 	spinlock_t spinlock;
 	int port_tts;
-	int port_forced;
 	short delay_time;
 	short jiffy_delta;
 	short full_time;

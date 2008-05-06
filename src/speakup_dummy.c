@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define PROCSPEECH '\n'
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define SYNTH_CLEAR 0x18
 
 static struct st_string_var stringvars[] = {
@@ -77,6 +77,7 @@ static struct spk_synth synth_dummy = {
 	}
 };
 
+module_param_named(ser, synth_dummy.ser, int, S_IRUGO);
 module_param_named(start, synth_dummy.flags, short, S_IRUGO);
 
 static int __init dummy_init(void)

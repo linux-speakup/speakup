@@ -24,7 +24,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "1.7"
+#define DRV_VERSION "1.8"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -40,6 +40,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_port;
+static int port_forced;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
 static struct st_string_var stringvars[] = {
@@ -177,8 +178,8 @@ static int synth_probe(struct spk_synth *synth)
 	unsigned int port_val = 0;
 	int i = 0;
 	pr_info("Probing for %s.\n", synth->long_name);
-	if (speakup_info.port_forced) {
-		synth_port = speakup_info.port_forced;
+	if (port_forced) {
+		synth_port = port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
 				synth_port);
 		if (synth_request_region(synth_port-1, SYNTH_IO_EXTENT)) {
@@ -220,6 +221,7 @@ static void keynote_release(void)
 	synth_port = 0;
 }
 
+module_param_named(port, port_forced, int, S_IRUGO);
 module_param_named(start, synth_keypc.flags, short, S_IRUGO);
 
 static int __init keypc_init(void)

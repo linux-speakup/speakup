@@ -24,7 +24,7 @@
  */
 #include "spk_priv.h"
 
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -75,6 +75,7 @@ static struct spk_synth synth_bns = {
 	}
 };
 
+module_param_named(ser, synth_bns.ser, int, S_IRUGO);
 module_param_named(start, synth_bns.flags, short, S_IRUGO);
 
 static int __init bns_init(void)

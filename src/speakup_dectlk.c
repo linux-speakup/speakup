@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.13"
+#define DRV_VERSION "1.14"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (spk_serial_in() == 0x13)
@@ -182,6 +182,7 @@ static void synth_flush(struct spk_synth *synth)
 	is_flushing = 5; /* if no ctl-a in 4, send data anyway */
 }
 
+module_param_named(ser, synth_dectlk.ser, int, S_IRUGO);
 module_param_named(start, synth_dectlk.flags, short, S_IRUGO);
 
 static int __init dectlk_init(void)

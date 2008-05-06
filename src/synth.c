@@ -118,8 +118,8 @@ int serial_synth_probe(struct spk_synth *synth)
 	struct serial_state *ser;
 	int failed = 0;
 
-	if ((param_ser >= SPK_LO_TTY) && (param_ser <= SPK_HI_TTY)) {
-		ser = spk_serial_init(param_ser);
+	if ((synth->ser >= SPK_LO_TTY) && (synth->ser <= SPK_HI_TTY)) {
+		ser = spk_serial_init(synth->ser);
 		if (ser == NULL) {
 			failed = -1;
 		} else {
@@ -129,14 +129,14 @@ int serial_synth_probe(struct spk_synth *synth)
 	}
 	} else {
 		failed = -1;
-		pr_warn("ttyS%i is an invalid port\n", param_ser);
+		pr_warn("ttyS%i is an invalid port\n", synth->ser);
 	}
 	if (failed) {
 		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
 	pr_info("%s: ttyS%i, Driver Version %s\n",
-			synth->long_name, param_ser, synth->version);
+			synth->long_name, synth->ser, synth->version);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(serial_synth_probe);

@@ -26,7 +26,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
-#define DRV_VERSION "1.9"
+#define DRV_VERSION "1.10"
 #define PROCSPEECH 0x0d
 #define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
@@ -114,6 +114,7 @@ static int synth_probe(struct spk_synth *synth)
 	return failed;
 }
 
+module_param_named(ser, synth_ltlk.ser, int, S_IRUGO);
 module_param_named(start, synth_ltlk.flags, short, S_IRUGO);
 
 static int __init ltlk_init(void)
