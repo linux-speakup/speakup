@@ -27,10 +27,10 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.10"
+#define DRV_VERSION "1.11"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-#define synth_full() (spk_serial_in() == 0x13)
+#define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data);
 static void synth_flush(struct spk_synth *synth);
