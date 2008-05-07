@@ -69,7 +69,7 @@ static struct spk_synth synth_acntpc = {
 	.jiffies = 50,
 	.full = 1000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -197,7 +197,7 @@ static void accent_release(void)
 }
 
 module_param_named(port, port_forced, int, S_IRUGO);
-module_param_named(start, synth_acntpc.flags, short, S_IRUGO);
+module_param_named(start, synth_acntpc.startup, short, S_IRUGO);
 
 static int __init acntpc_init(void)
 {

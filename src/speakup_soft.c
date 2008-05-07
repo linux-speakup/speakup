@@ -70,7 +70,7 @@ static struct spk_synth synth_soft = {
 	.jiffies = 0,
 	.full = 0,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -240,7 +240,7 @@ static int softsynth_is_alive(struct spk_synth *synth)
 	return 0;
 }
 
-module_param_named(start, synth_soft.flags, short, S_IRUGO);
+module_param_named(start, synth_soft.startup, short, S_IRUGO);
 
 
 static int __init soft_init(void)

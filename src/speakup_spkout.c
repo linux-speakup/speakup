@@ -57,7 +57,7 @@ static struct spk_synth synth_spkout = {
 	.jiffies = 50,
 	.full = 5000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -87,7 +87,7 @@ static void synth_flush(struct spk_synth *synth)
 }
 
 module_param_named(ser, synth_spkout.ser, int, S_IRUGO);
-module_param_named(start, synth_spkout.flags, short, S_IRUGO);
+module_param_named(start, synth_spkout.startup, short, S_IRUGO);
 
 static int __init spkout_init(void)
 {

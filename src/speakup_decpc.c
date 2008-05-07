@@ -169,7 +169,8 @@ static struct spk_synth synth_dec_pc = {
 	.jiffies = 50,
 	.full = 1000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.flags = SF_DEC,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -391,7 +392,7 @@ static void dtpc_release(void)
 	speakup_info.port_tts = 0;
 }
 
-module_param_named(start, synth_dec_pc.flags, short, S_IRUGO);
+module_param_named(start, synth_dec_pc.startup, short, S_IRUGO);
 
 static int __init decpc_init(void)
 {

@@ -55,7 +55,7 @@ static struct spk_synth synth_dummy = {
 	.jiffies = 50,
 	.full = 5000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -78,7 +78,7 @@ static struct spk_synth synth_dummy = {
 };
 
 module_param_named(ser, synth_dummy.ser, int, S_IRUGO);
-module_param_named(start, synth_dummy.flags, short, S_IRUGO);
+module_param_named(start, synth_dummy.startup, short, S_IRUGO);
 
 static int __init dummy_init(void)
 {

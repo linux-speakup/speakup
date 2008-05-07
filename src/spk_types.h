@@ -138,6 +138,7 @@ struct spk_synth {
 	short flush_wait;
 	int ser;
 	short flags;
+	short startup;
 	const int checkval; /* for validating a proper synth module */
 	struct st_string_var *string_vars;
 	struct st_num_var *num_vars;

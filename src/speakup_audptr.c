@@ -58,7 +58,7 @@ static struct spk_synth synth_audptr = {
 	.jiffies = 30,
 	.full = 5000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -116,7 +116,7 @@ static int synth_probe(struct spk_synth *synth)
 }
 
 module_param_named(ser, synth_audptr.ser, int, S_IRUGO);
-module_param_named(start, synth_audptr.flags, short, S_IRUGO);
+module_param_named(start, synth_audptr.startup, short, S_IRUGO);
 
 static int __init audptr_init(void)
 {

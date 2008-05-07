@@ -57,7 +57,7 @@ static struct spk_synth synth_acntsa = {
 	.jiffies = 30,
 	.full = 1000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -92,7 +92,7 @@ static int synth_probe(struct spk_synth *synth)
 }
 
 module_param_named(ser, synth_acntsa.ser, int, S_IRUGO);
-module_param_named(start, synth_acntsa.flags, short, S_IRUGO);
+module_param_named(start, synth_acntsa.startup, short, S_IRUGO);
 
 static int __init acntsa_init(void)
 {

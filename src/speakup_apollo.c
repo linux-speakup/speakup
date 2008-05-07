@@ -59,7 +59,7 @@ static struct spk_synth synth_apollo = {
 	.jiffies = 50,
 	.full = 5000,
 	.flush_wait = 0,
-	.flags = SYNTH_START,
+	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.string_vars = stringvars,
 	.num_vars = numvars,
@@ -107,7 +107,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 }
 
 module_param_named(ser, synth_apollo.ser, int, S_IRUGO);
-module_param_named(start, synth_apollo.flags, short, S_IRUGO);
+module_param_named(start, synth_apollo.startup, short, S_IRUGO);
 
 static int __init apollo_init(void)
 {
