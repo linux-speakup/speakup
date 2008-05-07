@@ -1,19 +1,15 @@
 #!/bin/bash
 # Makes a tarball release
-
-DIRS="doc patches src"
-DOCS="Bugs.txt INSTALLATION README To-Do"
-FILES="install version"
 SPKVER=$(./version)
-RELDIR=speakup-${SPKVER}
-REL=${RELDIR}.tar.bz2
+PREFIX=speakup-${SPKVER}
+REL=${1:-v${SPKVER}}
 
-mkdir -p ${RELDIR}
-cp -R ${DIRS} ${DOCS} ${FILES} ${RELDIR}
+TIMESTAMP=
+if [ "$REL" != "v${SPKVER}" ]; then
+	TIMESTAMP="_p`date +%Y%m%d`"
+fi
 
-rm -rf ${RELDIR}/src/*.ko ${RELDIR}/src/*.o ${RELDIR}/src/*.mod.c
+TARFILE=${PREFIX}${TIMESTAMP}.tar.bz2
 
-tar -cjf ${REL} ${RELDIR}
-echo "Produced ${REL}"
-rm -rf ${RELDIR}
-
+git archive --format=tar --prefix=${PREFIX}/ $REL | bzip2 > ${TARFILE}
+echo "Produced ${TARFILE}"
