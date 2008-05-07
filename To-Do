@@ -5,12 +5,6 @@ help by submitting patches to implement them.  If you can think of
 better ways of implementing any of these please speakup!
 
 
-The install script will need to be made smarter so that the correct
-speakup version can be checked out for the correct linux kernel
-version.  It also needs some way to actually create a reject file when
-it fails so it's easier to hunt down the patching trouble.
-
-
 Various methods have been discussed on how to best rewrite portions of
 speakup to implement the tty discipline for serial synths.  Currently
 we have kludged the io port method we've always used by supplying the
@@ -19,12 +13,6 @@ This however is only a temporary fix except for synths which use
 non-standard rs232c ports.  Samuel has suggested using filp_open() for
 module built speakup and possibly a virtual file system for the
 built-in case.
-
-
-Need to re examen synth probing to attempt to identify the synth by
-the probing sequence it responds to.  It is at least important to
-identify that you have the synth you have requested to prevent getting
-the wrong serial port.
 
 
 Speakup needs to be made into a kernel thread so kernel preemption and
