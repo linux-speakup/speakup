@@ -28,7 +28,6 @@
 
 #define DRV_VERSION "1.10"
 #define PROCSPEECH 0x0d
-#define synth_full() (!(inb(speakup_info.port_tts + UART_MSR) & UART_MSR_CTS))
 
 static int synth_probe(struct spk_synth *synth);
 
