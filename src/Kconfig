@@ -1,23 +1,8 @@
 menu "Speakup console speech"
+
 config SPEAKUP
-	bool "Speakup console speech"
-	---help---
-		This enables configuring speakup, the Linux kernel based
-		screen review system. speakup supports a variety of
-		hardware speech synthesizers and can also drive
-		userspace speech software synthesizers.
-
-		For more info, see http://www.linux-speakup.org
-
-		This option alone doesn't affect your kernel; it just
-		enables the options below so you can configure speakup.
-
-		If you are not sure you need this, say n.
-
-config SPEAKUP_CORE
 	depends on VT
-	depends on SPEAKUP
-	tristate "Speakup engine"
+	tristate "Speakup core"
 	---help---
 		This is the Speakup screen reader.  Think of it as a
 		video console for blind people.  If built in to the
@@ -54,8 +39,8 @@ config SPEAKUP_CORE
 		If you are not a blind person, or don't have access to
 		one of the listed synthesizers, you should say n.
 
+if SPEAKUP
 config SPEAKUP_SYNTH_ACNTSA
-	depends on SPEAKUP_CORE
 	tristate "Accent SA synthesizer support"
 	---help---
 		This is the Speakup driver for the Accent SA
@@ -64,7 +49,6 @@ config SPEAKUP_SYNTH_ACNTSA
 		help on the Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_ACNTPC
-	depends on SPEAKUP_CORE
 	tristate "Accent PC synthesizer support"
 	---help---
 		This is the Speakup driver for the accent pc
@@ -73,7 +57,6 @@ config SPEAKUP_SYNTH_ACNTPC
 		help on the Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_APOLLO
-	depends on SPEAKUP_CORE
 	tristate "Apollo II synthesizer support"
 	---help---
 		This is the Speakup driver for the Apollo II
@@ -82,7 +65,6 @@ config SPEAKUP_SYNTH_APOLLO
 		help on the Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_AUDPTR
-	depends on SPEAKUP_CORE
 	tristate "Audapter synthesizer support"
 	---help---
 		This is the Speakup driver for the Audapter synthesizer.
@@ -91,7 +73,6 @@ config SPEAKUP_SYNTH_AUDPTR
 		Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_BNS
-	depends on SPEAKUP_CORE
 	tristate "Braille 'n' Speak synthesizer support"
 	---help---
 		This is the Speakup driver for the Braille 'n' Speak
@@ -100,7 +81,6 @@ config SPEAKUP_SYNTH_BNS
 		help on the Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_DECTLK
-	depends on SPEAKUP_CORE
 	tristate "DECtalk Express synthesizer support"
 	---help---
 		
@@ -110,7 +90,6 @@ config SPEAKUP_SYNTH_DECTLK
 		help on the Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_DECEXT
-	depends on SPEAKUP_CORE
 	tristate "DECtalk External (old) synthesizer support"
 	---help---
 		
@@ -121,7 +100,7 @@ config SPEAKUP_SYNTH_DECEXT
 		info.
 
 config SPEAKUP_SYNTH_DECPC
-	depends on SPEAKUP_CORE
+	depends on m
 	tristate "DECtalk PC (big ISA card) synthesizer support"
 	---help---
 		
@@ -143,7 +122,6 @@ config SPEAKUP_SYNTH_DECPC
 		details.
 
 config SPEAKUP_SYNTH_DTLK
-	depends on SPEAKUP_CORE
 	tristate "DoubleTalk PC synthesizer support"
 	---help---
 		
@@ -154,7 +132,6 @@ config SPEAKUP_SYNTH_DTLK
 		info.
 
 config SPEAKUP_SYNTH_KEYPC
-	depends on SPEAKUP_CORE
 	tristate "Keynote Gold PC synthesizer support"
 	---help---
 		
@@ -165,7 +142,6 @@ config SPEAKUP_SYNTH_KEYPC
 		info.
 
 config SPEAKUP_SYNTH_LTLK
-	depends on SPEAKUP_CORE
 	tristate "DoubleTalk LT/LiteTalk synthesizer support"
 ---help---
 
@@ -176,7 +152,6 @@ config SPEAKUP_SYNTH_LTLK
 		info.
 
 config SPEAKUP_SYNTH_SOFT
-	depends on SPEAKUP_CORE
 	tristate "Userspace software synthesizer support"
 	---help---
 
@@ -188,7 +163,6 @@ config SPEAKUP_SYNTH_SOFT
 		it built-in to the kernel or loaded as a module.
 
 config SPEAKUP_SYNTH_SPKOUT
-	depends on SPEAKUP_CORE
 	tristate "Speak Out synthesizer support"
 	---help---
 		
@@ -198,7 +172,6 @@ config SPEAKUP_SYNTH_SPKOUT
 		Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_TXPRT
-	depends on SPEAKUP_CORE
 	tristate "Transport synthesizer support"
 	---help---
 		
@@ -208,8 +181,7 @@ config SPEAKUP_SYNTH_TXPRT
 		help on the Speakup choice above for more info.
 
 config SPEAKUP_SYNTH_DUMMY
-	depends on SPEAKUP_CORE
-	tristate "Dummy, dummy"
+	tristate "Dummy synthesizer driver (for testing)"
 	---help---
 		
 		This is a dummy Speakup driver for plugging a mere serial
@@ -218,5 +190,5 @@ config SPEAKUP_SYNTH_DUMMY
 		the kernel, or m to build it as a module.  See the
 		configuration help on the Speakup choice above for more info.
 
+endif	# SPEAKUP
 endmenu
-
