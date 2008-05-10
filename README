@@ -8,8 +8,7 @@ an interface for driving software-based synthesizers in userspace.
 For installation instructions, see INSTALLATION.
 For usage documentation, see the files in the doc/ subdirectory.
 
-This release is intended to apply against Linux 2.6.24. Other kernels are
-probably not supported by this release.
+This release is intended to apply against Linux 2.6.18 or later.
 
 Homepage: http://www.linux-speakup.org
 Support is provided through a mailing list on the above site.
