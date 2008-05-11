@@ -94,6 +94,9 @@ static int synth_probe(struct spk_synth *synth)
 module_param_named(ser, synth_acntsa.ser, int, S_IRUGO);
 module_param_named(start, synth_acntsa.startup, short, S_IRUGO);
 
+MODULE_PARM_DESC(ser, "Set the serial port for the synthesizer (0-based).");
+MODULE_PARM_DESC(start, "Start the synthesizer once it is loaded.");
+
 static int __init acntsa_init(void)
 {
 	return synth_add(&synth_acntsa);

@@ -265,6 +265,9 @@ static void dtlk_release(void)
 module_param_named(port, port_forced, int, S_IRUGO);
 module_param_named(start, synth_dtlk.startup, short, S_IRUGO);
 
+MODULE_PARM_DESC(port, "Set the port for the synthesizer (override probing).");
+MODULE_PARM_DESC(start, "Start the synthesizer once it is loaded.");
+
 static int __init dtlk_init(void)
 {
 	return synth_add(&synth_dtlk);

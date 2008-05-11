@@ -130,6 +130,9 @@ static void synth_flush(struct spk_synth *synth)
 module_param_named(ser, synth_decext.ser, int, S_IRUGO);
 module_param_named(start, synth_decext.startup, short, S_IRUGO);
 
+MODULE_PARM_DESC(ser, "Set the serial port for the synthesizer (0-based).");
+MODULE_PARM_DESC(start, "Start the synthesizer once it is loaded.");
+
 static int __init decext_init(void)
 {
 	return synth_add(&synth_decext);

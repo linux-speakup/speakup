@@ -242,6 +242,8 @@ static int softsynth_is_alive(struct spk_synth *synth)
 
 module_param_named(start, synth_soft.startup, short, S_IRUGO);
 
+MODULE_PARM_DESC(start, "Start the synthesizer once it is loaded.");
+
 
 static int __init soft_init(void)
 {

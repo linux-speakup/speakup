@@ -70,6 +70,9 @@ module_param_named(synth, synth_name, charp, 0);
 
 module_param_named(quiet, quiet_boot, bool, S_IRUGO);
 
+MODULE_PARM_DESC(synth, "Synth to start if speakup is built in.");
+MODULE_PARM_DESC(quiet, "Do not announce when the synthesizer is found.");
+
 special_func special_handler;
 
 short pitch_shift, synth_flags;
