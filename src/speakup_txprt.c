@@ -78,6 +78,9 @@ static struct spk_synth synth_txprt = {
 module_param_named(ser, synth_txprt.ser, int, S_IRUGO);
 module_param_named(start, synth_txprt.startup, short, S_IRUGO);
 
+MODULE_PARM_DESC(ser, "Set the serial port for the synthesizer (0-based).");
+MODULE_PARM_DESC(start, "Start the synthesizer once it is loaded.");
+
 static int __init txprt_init(void)
 {
 	return synth_add(&synth_txprt);

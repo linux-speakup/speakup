@@ -394,6 +394,8 @@ static void dtpc_release(void)
 
 module_param_named(start, synth_dec_pc.startup, short, S_IRUGO);
 
+MODULE_PARM_DESC(start, "Start the synthesizer once it is loaded.");
+
 static int __init decpc_init(void)
 {
 	return synth_add(&synth_dec_pc);
