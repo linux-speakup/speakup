@@ -38,7 +38,7 @@ static struct st_string_var stringvars[] = {
 	V_LAST_STRING
 };
 static struct st_num_var numvars[] = {
-	{ RATE, "\x05[r%d]", 10, 0, 20, -100, 10, 0 },
+	{ RATE, "\x05[r%d]", 10, 0, 20, 100, -10, 0 },
 	{ PITCH, "\x05[f%d]", 80, 39, 4500, 0, 0, 0 },
 	{ VOL, "\x05[g%d]", 21, 0, 40, 0, 0, 0 },
 	{ TONE, "\x05[s%d]", 9, 0, 63, 0, 0, 0 },
