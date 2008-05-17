@@ -660,7 +660,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		return -EINVAL;
 
 	param = var_header_by_name(strip_prefix(kp->name));
-	if (param == NULL)
+	if ((param == NULL) || (param->p_val == NULL) || (param->data == NULL))
 		return -EINVAL;
 
 	ret = 0;
@@ -720,6 +720,9 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 		return -EINVAL;
 
 	n_var = (struct st_num_var *) param->data;
+	if (n_var == NULL)
+		return -EINVAL;
+
 	switch (param->var_type) {
 	case VAR_NUM:
 	case VAR_TIME:
