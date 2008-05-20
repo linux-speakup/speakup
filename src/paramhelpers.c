@@ -660,7 +660,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		return -EINVAL;
 
 	param = var_header_by_name(strip_prefix(kp->name));
-	if ((param == NULL) || (param->p_val == NULL) || (param->data == NULL))
+	if ((param == NULL) || (param->data == NULL))
 		return -EINVAL;
 
 	ret = 0;
