@@ -1,15 +1,3 @@
-diff --git a/drivers/char/consolemap.c b/drivers/char/consolemap.c
-index 4b3916f..37c7980 100644
---- a/drivers/char/consolemap.c
-+++ b/drivers/char/consolemap.c
-@@ -277,6 +277,7 @@ u16 inverse_translate(struct vc_data *conp, int glyph, int use_unicode)
- 			return p->inverse_translations[m][glyph];
- 	}
- }
-+EXPORT_SYMBOL_GPL(inverse_translate);
- 
- static void update_user_maps(void)
- {
 diff --git a/drivers/char/keyboard.c b/drivers/char/keyboard.c
 index 2ce0af1..bc59c5c 100644
 --- a/drivers/char/keyboard.c
@@ -52,15 +40,7 @@ index 2ce0af1..bc59c5c 100644
 +}
 +EXPORT_SYMBOL_GPL(unregister_keyboard_notifier);
 +
-@@ -240,6 +259,7 @@ void kd_mksound(unsigned int hz, unsigned int ticks)
- 	} else
- 		kd_nosound(0);
- }
-+EXPORT_SYMBOL_GPL(kd_mksound);
- 
- /*
-  * Setting the keyboard rate.
-@@ -1119,6 +1139,7 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
+@@ -1119,6 +1138,7 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
  	unsigned char type, raw_mode;
  	struct tty_struct *tty;
  	int shift_final;
@@ -68,7 +48,7 @@ index 2ce0af1..bc59c5c 100644
  
  	tty = vc->vc_tty;
  
-@@ -1206,10 +1227,11 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
+@@ -1206,10 +1226,11 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
  		return;
  	}
  
@@ -82,7 +62,7 @@ index 2ce0af1..bc59c5c 100644
  		compute_shiftstate();
  		kbd->slockstate = 0;
  		return;
-@@ -1226,6 +1248,9 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
+@@ -1226,6 +1247,9 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
  	type = KTYP(keysym);
  
  	if (type < 0xf0) {
@@ -92,7 +72,7 @@ index 2ce0af1..bc59c5c 100644
  		if (down && !raw_mode)
  			to_utf8(vc, keysym);
  		return;
-@@ -1233,9 +1258,6 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
+@@ -1233,9 +1257,6 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
  
  	type -= 0xf0;
  
@@ -102,7 +82,7 @@ index 2ce0af1..bc59c5c 100644
  	if (type == KT_LETTER) {
  		type = KT_LATIN;
  		if (vc_kbd_led(kbd, VC_CAPSLOCK)) {
-@@ -1244,9 +1266,18 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
+@@ -1244,9 +1265,18 @@ static void kbd_keycode(unsigned int keycode, int down, int hw_raw)
  				keysym = key_map[keycode];
  		}
  	}
@@ -274,14 +254,6 @@ index edb7002..7d6beb1 100644
  
  quit:
  	clear_bit(0, &printing);
-@@ -3934,6 +3977,7 @@ u16 screen_glyph(struct vc_data *vc, int offset)
- 		c |= 0x100;
- 	return c;
- }
-+EXPORT_SYMBOL_GPL(screen_glyph);
- 
- /* used by vcs - note the word offset */
- unsigned short *screen_pos(struct vc_data *vc, int w_offset, int viewed)
 diff --git a/include/linux/keyboard.h b/include/linux/keyboard.h
 index 7ddbc30..2c2b105 100644
 --- a/include/linux/keyboard.h
