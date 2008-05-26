@@ -23,6 +23,7 @@
 */
 
 #include <linux/kernel.h>
+#include <linux/version.h>
 #include <linux/vt.h>
 #include <linux/tty.h>
 #include <linux/mm.h> /* __get_free_page() and friends */
@@ -54,7 +55,9 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,23)
 #define inverse_translate(vc, c) inverse_translate(vc, c, 0)
+#endif
 
 #define MAX_DELAY ((500 * HZ) / 1000)
 #define MINECHOCHAR SPACE
