@@ -48,21 +48,25 @@ if [ $VERSION -lt 2 -o $PATCHLEVEL -lt 6 -o $SUBLEVEL -lt 18 ]; then
 fi
 
 if [ $SUBLEVEL -lt 26 ]; then
-	BLDPATCH="$SPKDIR/patches/kernel-integration-2.6.24-build.patch"
+	BLDPATCH="$SPKDIR/patches/build-integration-2.6.25-and-below.patch"
 	SRCDIR="${KDIR}/drivers/char/speakup"
 else
-	BLDPATCH="$SPKDIR/patches/kernel-integration-2.6.26-build.patch"
+	BLDPATCH="$SPKDIR/patches/build-integration-2.6.26.patch"
 	SRCDIR="${KDIR}/drivers/accessibility/speakup"
 fi
 
 if [ $SUBLEVEL -le 18 ]; then
-	SRCPATCH="$SPKDIR/patches/notifier-integration-2.6.18-and-below.patch"
+	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.18-and-below.patch"
 elif [ $SUBLEVEL -ge 19 -a $SUBLEVEL -le 21 ]; then
-	SRCPATCH="$SPKDIR/patches/notifier-integration-2.6.21-and-below.patch"
+	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.19-21.patch"
 elif [ $SUBLEVEL -ge 22 -a $SUBLEVEL -le 23 ]; then
-	SRCPATCH="$SPKDIR/patches/notifier-integration.patch"
-elif [ $SUBLEVEL -ge 24 -a $SUBLEVEL -le 25 ]; then
-	SRCPATCH="$SPKDIR/patches/kernel-integration-2.6.24-source.patch"
+	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.22-23.patch"
+else
+	NOTPATCH="none"
+	fi
+
+if [ $SUBLEVEL -le 25 ]; then
+	SRCPATCH="$SPKDIR/patches/source-integration-2.6.25-and-below.patch"
 else
 	SRCPATCH="none"
 fi
@@ -74,6 +78,10 @@ fi
 
 if [ "${BLDPATCH}" != "none" ]; then
 	apply "${BLDPATCH}" "${KDIR}"
+fi
+
+if [ "${NOTPATCH}" != "none" ]; then
+	apply "${NOTPATCH}" "${KDIR}"
 fi
 
 if [ "${SRCPATCH}" != "none" ]; then
