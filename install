@@ -1,8 +1,12 @@
 #!/bin/bash
-# Installs speakup to kernel sources
-# Usage: ./install <KERNELDIR>
 
-LOGFILE=install.log
+usage() {
+	echo "Usage:  $0 [-c] [-l logfile] [kerneldir]"
+	echo "c : copy (don't symlink) the source into the kernel tree."
+	echo "l logfile : create install log (the default is install.log)."
+	echo "[kerneldir] - the kernel tree to install to (default is /usr/src/linux)"
+	exit 1
+}
 
 log() {
 	echo $* | tee -a $LOGFILE
@@ -37,8 +41,25 @@ get_kv() {
 }
 
 set -o pipefail
+
+while getopts ":cl:" opt; do
+	case $opt in
+		c) COPY_INSTALL=1
+			;;
+		l) LOGFILE=$OPTARG
+			;;
+		*) usage
+			;;
+	esac
+done
+shift $(($OPTIND - 1))
+
 KDIR=${1:-/usr/src/linux}
 SPKDIR="$(readlink -f "$(dirname "$0")")"
+
+if [ -z "$LOGFILE" ]; then
+	LOGFILE=install.log
+fi
 
 check_kdir "${KDIR}"
 get_kv "${KDIR}"
@@ -61,35 +82,37 @@ elif [ $SUBLEVEL -ge 19 -a $SUBLEVEL -le 21 ]; then
 	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.19-21.patch"
 elif [ $SUBLEVEL -ge 22 -a $SUBLEVEL -le 23 ]; then
 	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.22-23.patch"
-else
-	NOTPATCH="none"
 	fi
 
 if [ $SUBLEVEL -le 25 ]; then
 	SRCPATCH="$SPKDIR/patches/source-integration-2.6.25-and-below.patch"
-else
-	SRCPATCH="none"
 fi
 
-if [ -d "${SRCDIR}" ]; then
+if [ -f "${SRCDIR}" ]; then
 	log It appears that speakup is already installed into this kernel.
 	die Please start with a fresh kernel tree.
 fi
 
-if [ "${BLDPATCH}" != "none" ]; then
+if [ -n "${BLDPATCH}" ]; then
 	apply "${BLDPATCH}" "${KDIR}"
 fi
 
-if [ "${NOTPATCH}" != "none" ]; then
+if [ -n "${NOTPATCH}" ]; then
 	apply "${NOTPATCH}" "${KDIR}"
 fi
 
-if [ "${SRCPATCH}" != "none" ]; then
+if [ -n "${SRCPATCH}" ]; then
 	apply "${SRCPATCH}" "${KDIR}"
 fi
 
+if [ -n "$COPY_INSTALL" ]; then
+	CMD="cp -a"
+else
+	CMD="ln -s"
+fi
+
 log Installing user documentation.
-cp -a "${SPKDIR}/doc" "${KDIR}/Documentation/speakup"
+$CMD "${SPKDIR}/doc" "${KDIR}/Documentation/speakup"
 log Installing speakup source.
-cp -a "${SPKDIR}/src" "${SRCDIR}"
+$CMD "${SPKDIR}/src" "${SRCDIR}"
 log Speakup has been installed to ${KDIR}
