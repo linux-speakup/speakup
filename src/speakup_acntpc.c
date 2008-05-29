@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "1.8"
+#define DRV_VERSION "2.0"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -109,27 +109,17 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
-	synth_stop_timer();
+
 	while (speakup_info.buff_out < speakup_info.buff_in) {
-		if (synth_full()) {
-			synth_delay(speakup_info.full_time);
+		if (synth_full()) 
 			return;
-		}
 		while (synth_writable())
 			cpu_relax();
 		ch = *speakup_info.buff_out++;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
-		if (jiffies >= jiff_max && ch == SPACE) {
-			while (synth_writable())
-				cpu_relax();
-			outb_p(PROCSPEECH, speakup_info.port_tts);
-			synth_delay(speakup_info.delay_time);
-			return;
-		}
 	}
 	while (synth_writable())
 		cpu_relax();

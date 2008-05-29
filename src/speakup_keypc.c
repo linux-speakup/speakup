@@ -1,6 +1,6 @@
 /*
-* written by David Borowski
-
+ * written by David Borowski
+ *
  * Copyright (C) 2003 David Borowski.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "1.8"
+#define DRV_VERSION "2.0"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -113,7 +113,7 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 			if (--timeout <= 0)
 				return (char *) oops();
 		outb_p(ch, synth_port);
-		SWAIT;
+		udelay(70);
 		buf++;
 	}
 	return 0;
@@ -121,13 +121,11 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
 	int timeout;
-	synth_stop_timer();
+
 	while (speakup_info.buff_out < speakup_info.buff_in) {
 		if (synth_full()) {
-			synth_delay(speakup_info.full_time);
 			return;
 		}
 		timeout = 1000;
@@ -142,20 +140,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
-		SWAIT;
-		if (jiffies >= jiff_max && ch == SPACE) {
-			timeout = 1000;
-			while (synth_writable())
-				if (--timeout <= 0)
-					break;
-			if (timeout <= 0) {
-				oops();
-				break;
-			}
-			outb_p(PROCSPEECH, synth_port);
-			synth_delay(speakup_info.delay_time);
-			return;
-		}
+		udelay(70);
 	}
 	timeout = 1000;
 	while (synth_writable())

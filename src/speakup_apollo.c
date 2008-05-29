@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.11"
+#define DRV_VERSION "2.0"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -83,24 +83,17 @@ static struct spk_synth synth_apollo = {
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
-	synth_stop_timer();
+
 	while (speakup_info.buff_out < speakup_info.buff_in) {
 		ch = *speakup_info.buff_out;
 		if (!spk_serial_out(ch)) {
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
-			synth_delay(speakup_info.full_time);
 			return;
 		}
 		speakup_info.buff_out++;
-		if (jiffies >= jiff_max && ch == SPACE) {
-			spk_serial_out(PROCSPEECH);
-			synth_delay(speakup_info.delay_time);
-			return;
-		}
 	}
 	spk_serial_out(PROCSPEECH);
 	synth_done();

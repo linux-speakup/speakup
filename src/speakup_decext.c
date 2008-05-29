@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "1.11"
+#define DRV_VERSION "2.0"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -88,16 +88,14 @@ static struct spk_synth synth_decext = {
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
 	static u_char last = '\0';
-	synth_stop_timer();
+
 	while (speakup_info.buff_out < speakup_info.buff_in) {
 		ch = *speakup_info.buff_out;
 		if (ch == '\n')
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
-			synth_delay(speakup_info.full_time);
 			return;
 		}
 		speakup_info.buff_out++;
@@ -108,12 +106,6 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		else if (ch <= SPACE) {
 			if (!in_escape && strchr(",.!?;:", last))
 				spk_serial_out(PROCSPEECH);
-			if (jiffies >= jiff_max) {
-				if (!in_escape)
-					spk_serial_out(PROCSPEECH);
-				synth_delay(speakup_info.delay_time);
-				return;
-			}
 		}
 		last = ch;
 	}

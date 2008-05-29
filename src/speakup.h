@@ -3,7 +3,7 @@
 
 #include "spk_types.h"
 
-#define SPEAKUP_VERSION "3.0.2"
+#define SPEAKUP_VERSION "3.0.3"
 #define KEY_MAP_VER 119
 #define SHIFT_TBL_SIZE 64
 #define MAX_DESC_LEN 72
@@ -48,6 +48,8 @@
 #define E_TOOLONG -2
 #define E_UNDEF -1
 
+extern int speakup_thread(void *data);
+extern void synth_catch_up(u_long data);
 extern void reset_default_chars(void);
 extern void reset_default_chartab(void);
 extern int set_key_info(const u_char *key_info, u_char *k_buffer);

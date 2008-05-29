@@ -32,7 +32,7 @@
 #include <linux/selection.h>
 #include <linux/unistd.h>
 #include <linux/jiffies.h>
-
+#include <linux/kthread.h>
 #include <linux/keyboard.h>	/* for KT_SHIFT */
 #include <linux/kbd_kern.h> /* for vc_kbd_* and friends */
 #include <linux/input.h>
@@ -247,6 +247,7 @@ ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, B_SYM, /* 240-247 */
 ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA /* 248-255 */
 };
 
+static struct task_struct *thread_task;
 static int spk_keydown;
 static u_char spk_lastkey, spk_close_press, keymap_flags;
 static u_char last_keycode, this_speakup_key;
@@ -2394,6 +2395,7 @@ static void __exit speakup_exit(void)
 {
 	int i;
 
+	kthread_stop(thread_task);
 	unregister_keyboard_notifier(&keyboard_notifier_block);
 	unregister_vt_notifier(&vt_notifier_block);
 	mutex_lock(&spk_mutex);
@@ -2421,6 +2423,11 @@ static int __init speakup_init(void)
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);
 	speakup_dev_init(synth_name);
+	thread_task = kthread_create(speakup_thread, NULL, "speakup");
+	if ( ! IS_ERR(thread_task))
+		wake_up_process(thread_task);
+	else
+		return -ENOMEM;
 	return 0;
 }
 

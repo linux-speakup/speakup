@@ -29,13 +29,11 @@ static struct serial_state rs_table[] = {
 #define MAXSYNTHS       16      /* Max number of synths in array. */
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
-static int synth_timer_active;	/* indicates when a timer is set */
 	static struct miscdevice synth_device;
 static int misc_registered;
 char pitch_buff[32] = "";
 declare_sleeper(synth_sleeping_list);
 static int module_status;
-static declare_timer(synth_timer);
 int quiet_boot;
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
 static u_char *buffer_highwater = synth_buffer+synthBufferSize-100;
@@ -259,23 +257,15 @@ EXPORT_SYMBOL_GPL(spk_serial_release);
 
 void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	unsigned long jiff_max = jiffies+speakup_info.jiffy_delta;
 	u_char ch;
-	synth_stop_timer();
+
 	while (speakup_info.buff_out < speakup_info.buff_in) {
 		ch = *speakup_info.buff_out;
 		if (ch == '\n')
 			ch = synth->procspeech;
-		if (!spk_serial_out(ch)) {
-			synth_delay(speakup_info.full_time);
+		if (!spk_serial_out(ch)) 
 			return;
-		}
 		speakup_info.buff_out++;
-		if (jiffies >= jiff_max && ch == SPACE) {
-			spk_serial_out(synth->procspeech);
-			synth_delay(speakup_info.delay_time);
-			return;
-		}
 	}
 	spk_serial_out(synth->procspeech);
 	synth_done();
@@ -341,33 +331,6 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/* sleep for ms milliseconds */
-void
-synth_delay(int val)
-{
-	if (val == 0)
-		return;
-	synth_timer.expires = jiffies + val;
-	start_timer(synth_timer);
-	synth_timer_active++;
-}
-EXPORT_SYMBOL_GPL(synth_delay);
-
-static void synth_dummy_catchup(unsigned long data)
-{
-	synth_stop_timer();
-	synth_done();
-} /* a bogus catchup if no synth */
-
-void
-synth_stop_timer(void)
-{
-	if (synth_timer_active)
-		stop_timer(synth_timer);
-	synth_timer_active = 0;
-}
-EXPORT_SYMBOL_GPL(synth_stop_timer);
-
 int synth_done(void)
 {
 	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
@@ -385,18 +348,14 @@ static void synth_start(void)
 		synth_done();
 	else if (synth->start)
 		synth->start();
-	else if (synth_timer_active == 0)
-		synth_delay(synth_trigger_time);
 }
 
 void do_flush(void)
 {
-	synth_stop_timer();
+
 	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
 	if (speakup_info.alive) {
 		synth->flush(synth);
-		if (synth->flush_wait)
-			synth_delay((synth->flush_wait * HZ) / 1000);
 		if (pitch_shift) {
 			synth_printf("%s", pitch_buff);
 			pitch_shift = 0;
@@ -566,7 +525,7 @@ int synth_init(char *synth_name)
 	return ret;
 }
 
-static void synth_catch_up(u_long data)
+void synth_catch_up(u_long data)
 {
 	unsigned long flags;
 	spk_lock(flags);
@@ -595,9 +554,6 @@ static int do_synth_init(struct spk_synth *in_synth)
 	synth_time_vars[1].default_val = synth->trigger;
 	synth_time_vars[2].default_val = synth->jiffies;
 	synth_time_vars[3].default_val = synth->full;
-	synth_timer.function = synth_catch_up;
-	synth_timer.entry.prev = NULL;
-	init_timer(&synth_timer);
 	for (n_var = synth_time_vars; n_var->var_id >= 0; n_var++)
 		speakup_register_var(n_var);
 	speakup_info.alive = 1;
@@ -626,8 +582,6 @@ synth_release(void)
 		speakup_unregister_var(n_var->var_id);
 	for (n_var = synth->num_vars; n_var->var_id >= 0; n_var++)
 		speakup_unregister_var(n_var->var_id);
-	synth_dummy_catchup((unsigned long) NULL);
-	synth_timer.function = synth_dummy_catchup;
 	stop_serial_interrupt();
 	synth->release();
 	synth = NULL;
