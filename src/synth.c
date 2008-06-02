@@ -36,6 +36,8 @@ declare_sleeper(synth_sleeping_list);
 static int module_status;
 int quiet_boot;
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
+volatile u_char *buff_in = synth_buffer;
+volatile u_char *buff_out = synth_buffer;
 u_char *buffer_end = synth_buffer+synthBufferSize-1;
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static struct serial_state *serstate;
@@ -46,8 +48,6 @@ struct speakup_info_t speakup_info = {
 	.delay_time = 500,
 	.jiffy_delta = 50,
 	.full_time = 1000,
-	.buff_in = synth_buffer,
-	.buff_out = synth_buffer,
 };
 EXPORT_SYMBOL_GPL(speakup_info);
 
@@ -333,7 +333,7 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 
 int synth_done(void)
 {
-	speakup_info.buff_out = speakup_info.buff_in;
+	buff_out = buff_in;
 	if (waitqueue_active(&synth_sleeping_list)) {
 		wake_up_interruptible(&synth_sleeping_list);
 		return 0;
@@ -352,7 +352,7 @@ static void synth_start(void)
 
 void do_flush(void)
 {
-	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
+	buff_out = buff_in = synth_buffer;
 	if (speakup_info.alive) {
 		synth->flush(synth);
 		if (pitch_shift) {
@@ -366,35 +366,35 @@ void do_flush(void)
 
 void synth_buffer_add(char ch)
 {
-	if (((speakup_info.buff_in > speakup_info.buff_out)
-		&& (speakup_info.buff_in - speakup_info.buff_out >= synthBufferSize - 100))
-		|| ((speakup_info.buff_in < speakup_info.buff_out)
-		&& (speakup_info.buff_out - speakup_info.buff_in <= 100))) {
+	if (((buff_in > buff_out)
+		&& (buff_in - buff_out >= synthBufferSize - 100))
+		|| ((buff_in < buff_out)
+		&& (buff_out - buff_in <= 100))) {
 		synth_start();
 		if (!waitqueue_active(&synth_sleeping_list))
 			interruptible_sleep_on(&synth_sleeping_list);
 	}
-	*speakup_info.buff_in++ = ch;
-	if (speakup_info.buff_in > buffer_end)
-		speakup_info.buff_in = synth_buffer;
+	*buff_in++ = ch;
+	if (buff_in > buffer_end)
+		buff_in = synth_buffer;
 }
 
 char synth_buffer_getc(void)
 {
 	char ch;
 
-	if (speakup_info.buff_out == speakup_info.buff_in)
+	if (buff_out == buff_in)
 		return 0;
-	ch = *speakup_info.buff_out++;
-	if (speakup_info.buff_out > buffer_end)
-		speakup_info.buff_out = synth_buffer;
+	ch = *buff_out++;
+	if (buff_out > buffer_end)
+		buff_out = synth_buffer;
 	return ch;
 }
 EXPORT_SYMBOL_GPL(synth_buffer_getc);
 
 int synth_buffer_empty(void)
 {
-	return (speakup_info.buff_in == speakup_info.buff_out);
+	return (buff_in == buff_out);
 }
 EXPORT_SYMBOL_GPL(synth_buffer_empty);
 

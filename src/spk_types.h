@@ -162,8 +162,6 @@ struct speakup_info_t {
 	short jiffy_delta;
 	short full_time;
 	int alive;
-	volatile u_char *buff_in;
-	volatile u_char *buff_out;
 };
 
 /* FIXME: for mainline inclusion, just make the source code use proper names. */
