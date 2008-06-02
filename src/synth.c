@@ -25,7 +25,7 @@ static struct serial_state rs_table[] = {
 };
 
 
-#define synthBufferSize 200	/* currently 8K bytes */
+#define synthBufferSize 8192	/* currently 8K bytes */
 #define MAXSYNTHS       16      /* Max number of synths in array. */
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
