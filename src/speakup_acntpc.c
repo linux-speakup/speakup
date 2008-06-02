@@ -1,7 +1,7 @@
 /*
- * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
+ * originally written by: Kirk Reiser <kirk@braille.uwo.ca>
  * this version considerably modified by David Borowski, david575@rogers.com
-
+ *
  * Copyright (C) 1998-99  Kirk Reiser.
  * Copyright (C) 2003 David Borowski.
  *
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+ *
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.
  */
@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -111,12 +111,12 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	u_char ch;
 
-	while (speakup_info.buff_out < speakup_info.buff_in) {
+	while (! synth_buffer_empty()) {
 		if (synth_full()) 
 			return;
 		while (synth_writable())
 			cpu_relax();
-		ch = *speakup_info.buff_out++;
+		ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);

@@ -1,7 +1,7 @@
 /*
  * originally written by: Kirk Reiser <kirk@braille.uwo.ca>
 * this version considerably modified by David Borowski, david575@rogers.com
-
+ *
  * Copyright (C) 1998-99  Kirk Reiser.
  * Copyright (C) 2003 David Borowski.
  *
@@ -26,7 +26,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define PROCSPEECH 0x0d
 
 static int synth_probe(struct spk_synth *synth);

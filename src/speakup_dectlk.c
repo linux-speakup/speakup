@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -131,7 +131,7 @@ static void read_buff_add(u_char c)
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	u_char ch;
+	static u_char ch = 0;
 	static u_char last = '\0';
 
 	if (is_flushing) {
@@ -141,14 +141,14 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 			return;
 		}
 	}
-	while (speakup_info.buff_out < speakup_info.buff_in) {
-		ch = *speakup_info.buff_out;
+	while (! synth_buffer_empty()) {
+		if (! ch)
+			ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
 			return;
 		}
-		speakup_info.buff_out++;
 		if (ch == '[')
 			in_escape = 1;
 		else if (ch == ']')
@@ -158,6 +158,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 				spk_serial_out(PROCSPEECH);
 		}
 		last = ch;
+		ch = 0;
 	}
 	if (synth_done() || !in_escape)
 		spk_serial_out(PROCSPEECH);

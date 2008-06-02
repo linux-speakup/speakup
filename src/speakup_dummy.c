@@ -1,8 +1,8 @@
 /*
- * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
-* this version considerably modified by David Borowski, david575@rogers.com
-* eventually modified by Samuel Thibault <samuel.thibault@ens-lyon.org>
-
+ * originally written by: Kirk Reiser <kirk@braille.uwo.ca>
+ * this version considerably modified by David Borowski, david575@rogers.com
+ * eventually modified by Samuel Thibault <samuel.thibault@ens-lyon.org>
+ *
  * Copyright (C) 1998-99  Kirk Reiser.
  * Copyright (C) 2003 David Borowski.
  * Copyright (C) 2007 Samuel Thibault.
@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define PROCSPEECH '\n'
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define SYNTH_CLEAR 0x18
 
 static struct st_string_var stringvars[] = {

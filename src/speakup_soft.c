@@ -1,7 +1,7 @@
 /* speakup_soft.c - speakup driver to register and make available
  * a user space device for software synthesizers.  written by: Kirk
  * Reiser <kirk@braille.uwo.ca>
-
+ *
  * Copyright (C) 2003  Kirk Reiser.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+ *
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.  */
 
@@ -26,7 +26,7 @@
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -113,11 +113,13 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 			      loff_t *pos)
 {
 	int chars_sent = 0;
+	char *cp;
+	char ch;
 	unsigned long flags;
 	DEFINE_WAIT(wait);
 
 	spk_lock(flags);
-	while (speakup_info.buff_in == speakup_info.buff_out) {
+	while (synth_buffer_empty()) {
 		prepare_to_wait(&wait_on_output, &wait, TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (fp->f_flags & O_NONBLOCK) {
@@ -133,15 +135,18 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	}
 	finish_wait(&wait_on_output, &wait);
 
-	chars_sent = (count > speakup_info.buff_in-speakup_info.buff_out)
-		? speakup_info.buff_in-speakup_info.buff_out : count;
-	if (copy_to_user(buf, (char *) speakup_info.buff_out, chars_sent)) {
-		spk_unlock(flags);
-		return -EFAULT;
+	cp = buf;
+	while ((chars_sent <= count) && (! synth_buffer_empty())) {
+		ch = synth_buffer_getc();
+		if (copy_to_user(cp, &ch, 1)) {
+			spk_unlock(flags);
+			return -EFAULT;
+		}
+		chars_sent++;
+		cp++;
 	}
-	speakup_info.buff_out += chars_sent;
 	*pos += chars_sent;
-	if (speakup_info.buff_out >= speakup_info.buff_in) {
+	if (synth_buffer_empty()) {
 		synth_done();
 		*pos = 0;
 	}
@@ -174,7 +179,7 @@ static unsigned int softsynth_poll(struct file *fp,
 	poll_wait(fp, &wait_on_output, wait);
 
 	spk_lock(flags);
-	if (speakup_info.buff_out < speakup_info.buff_in)
+	if (! synth_buffer_empty())
 		ret = POLLIN | POLLRDNORM;
 	spk_unlock(flags);
 	return ret;

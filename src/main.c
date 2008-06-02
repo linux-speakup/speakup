@@ -1172,7 +1172,6 @@ static void spkup_write(const char *in_buf, int count)
 	static int rep_count = 0;
 	static u_char ch = '\0', old_ch = '\0';
 	static u_short char_type = 0, last_type = 0;
-	static u_char *exn_ptr = NULL;
 	int in_count = count;
 	spk_keydown = 0;
 	while (count--) {
@@ -1192,8 +1191,6 @@ static void spkup_write(const char *in_buf, int count)
 				synth_printf(" times %d . ", ++rep_count);
 			rep_count = 0;
 		}
-		if (!(char_type&B_NUM))
-				exn_ptr = NULL;
 		if (ch == spk_lastkey) {
 			rep_count = 0;
 			if (key_echo == 1 && ch >= MINECHOCHAR)
@@ -1204,12 +1201,6 @@ static void spkup_write(const char *in_buf, int count)
 			synth_printf("%c", ch);
 		} else if (char_type & B_NUM) {
 			rep_count = 0;
-			if ((last_type & B_EXNUM) &&
-					speakup_info.buff_in == exn_ptr+1) {
-				speakup_info.buff_in--;
-				synth_buffer_add(old_ch);
-				exn_ptr = NULL;
-			}
 			synth_printf("%c", ch);
 		} else if (char_type&punc_mask) {
 			speak_char(ch);
@@ -1223,8 +1214,6 @@ static void spkup_write(const char *in_buf, int count)
 			else
 				rep_count = 0;
 		} else {
-			if (char_type&B_EXNUM)
-				exn_ptr = (u_char *)speakup_info.buff_in;
 /* send space and record position, if next is num overwrite space */
 			if (old_ch != ch)
 				synth_buffer_add(SPACE);

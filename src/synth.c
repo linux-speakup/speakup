@@ -25,7 +25,7 @@ static struct serial_state rs_table[] = {
 };
 
 
-#define synthBufferSize 8192	/* currently 8K bytes */
+#define synthBufferSize 200	/* currently 8K bytes */
 #define MAXSYNTHS       16      /* Max number of synths in array. */
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
@@ -36,7 +36,6 @@ declare_sleeper(synth_sleeping_list);
 static int module_status;
 int quiet_boot;
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
-static u_char *buffer_highwater = synth_buffer+synthBufferSize-100;
 u_char *buffer_end = synth_buffer+synthBufferSize-1;
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static struct serial_state *serstate;
@@ -257,15 +256,16 @@ EXPORT_SYMBOL_GPL(spk_serial_release);
 
 void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	u_char ch;
+	static u_char ch = 0;
 
-	while (speakup_info.buff_out < speakup_info.buff_in) {
-		ch = *speakup_info.buff_out;
+	while (! synth_buffer_empty()) {
+		if (! ch)
+			ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) 
 			return;
-		speakup_info.buff_out++;
+		ch = 0;
 	}
 	spk_serial_out(synth->procspeech);
 	synth_done();
@@ -333,7 +333,7 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 
 int synth_done(void)
 {
-	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
+	speakup_info.buff_out = speakup_info.buff_in;
 	if (waitqueue_active(&synth_sleeping_list)) {
 		wake_up_interruptible(&synth_sleeping_list);
 		return 0;
@@ -352,7 +352,6 @@ static void synth_start(void)
 
 void do_flush(void)
 {
-
 	speakup_info.buff_out = speakup_info.buff_in = synth_buffer;
 	if (speakup_info.alive) {
 		synth->flush(synth);
@@ -365,18 +364,39 @@ void do_flush(void)
 		wake_up_interruptible(&synth_sleeping_list);
 }
 
-void
-synth_buffer_add(char ch)
+void synth_buffer_add(char ch)
 {
-	if (speakup_info.buff_in >= buffer_highwater) {
+	if (((speakup_info.buff_in > speakup_info.buff_out)
+		&& (speakup_info.buff_in - speakup_info.buff_out >= synthBufferSize - 100))
+		|| ((speakup_info.buff_in < speakup_info.buff_out)
+		&& (speakup_info.buff_out - speakup_info.buff_in <= 100))) {
 		synth_start();
 		if (!waitqueue_active(&synth_sleeping_list))
 			interruptible_sleep_on(&synth_sleeping_list);
-		if (speakup_info.buff_in >= buffer_end)
-			return;
 	}
 	*speakup_info.buff_in++ = ch;
+	if (speakup_info.buff_in > buffer_end)
+		speakup_info.buff_in = synth_buffer;
 }
+
+char synth_buffer_getc(void)
+{
+	char ch;
+
+	if (speakup_info.buff_out == speakup_info.buff_in)
+		return 0;
+	ch = *speakup_info.buff_out++;
+	if (speakup_info.buff_out > buffer_end)
+		speakup_info.buff_out = synth_buffer;
+	return ch;
+}
+EXPORT_SYMBOL_GPL(synth_buffer_getc);
+
+int synth_buffer_empty(void)
+{
+	return (speakup_info.buff_in == speakup_info.buff_out);
+}
+EXPORT_SYMBOL_GPL(synth_buffer_empty);
 
 void
 synth_write(const char *buf, size_t count)

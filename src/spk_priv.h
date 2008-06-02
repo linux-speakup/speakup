@@ -51,6 +51,8 @@ extern unsigned char spk_serial_in(void);
 extern unsigned char spk_serial_in_nowait(void);
 extern int spk_serial_out(const char ch);
 extern void spk_serial_release(void);
+extern char synth_buffer_getc(void);
+extern int synth_buffer_empty(void);
 extern const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);
 extern void spk_do_catch_up(struct spk_synth *synth, unsigned long data);
 extern void spk_synth_flush(struct spk_synth *synth);

@@ -1,7 +1,7 @@
 /*
- * originially written by: Kirk Reiser <kirk@braille.uwo.ca>
+ * originally written by: Kirk Reiser <kirk@braille.uwo.ca>
 * this version considerably modified by David Borowski, david575@rogers.com
-
+ *
  * Copyright (C) 1998-99  Kirk Reiser.
  * Copyright (C) 2003 David Borowski.
  *
@@ -28,7 +28,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
@@ -111,11 +111,11 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	u_char ch;
 
 	synth_status = inb_p(speakup_info.port_tts);
-	while (speakup_info.buff_out < speakup_info.buff_in) {
+	while (! synth_buffer_empty()) {
 		if (synth_status & TTS_ALMOST_FULL) {
 			return;
 		}
-		ch = *speakup_info.buff_out++;
+		ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		spk_out(ch);

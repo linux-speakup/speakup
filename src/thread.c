@@ -8,7 +8,7 @@
 int speakup_thread(void *data)
 {
 	while ( ! kthread_should_stop()) {
-		if (speakup_info.buff_in != speakup_info.buff_out)
+		if (! synth_buffer_empty())
 			synth_catch_up((unsigned long ) 0);
 		msleep_interruptible(50);
 	}

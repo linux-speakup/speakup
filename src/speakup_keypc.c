@@ -24,7 +24,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.0"
+#define DRV_VERSION "2.1"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -124,7 +124,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	u_char ch;
 	int timeout;
 
-	while (speakup_info.buff_out < speakup_info.buff_in) {
+	while (! synth_buffer_empty()) {
 		if (synth_full()) {
 			return;
 		}
@@ -136,7 +136,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 			oops();
 			break;
 		}
-		ch = *speakup_info.buff_out++;
+		ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
