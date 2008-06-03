@@ -371,8 +371,11 @@ void synth_buffer_add(char ch)
 		|| ((buff_in < buff_out)
 		&& (buff_out - buff_in <= 100))) {
 		synth_start();
+		/* Sleep if we can, otherwise drop the character. */
 		if (!waitqueue_active(&synth_sleeping_list) && ! in_atomic())
 			interruptible_sleep_on(&synth_sleeping_list);
+		else
+			return;
 	}
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
