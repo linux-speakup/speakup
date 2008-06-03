@@ -333,11 +333,7 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 
 int synth_done(void)
 {
-	unsigned long flags;
-
-	spk_lock(flags);
 	buff_out = buff_in;
-	spk_unlock(flags);
 	if (waitqueue_active(&synth_sleeping_list)) {
 		wake_up_interruptible(&synth_sleeping_list);
 		return 0;
@@ -356,11 +352,7 @@ static void synth_start(void)
 
 void do_flush(void)
 {
-	unsigned long flags;
-
-	spk_lock(flags);
 	buff_out = buff_in = synth_buffer;
-	spk_unlock(flags);
 	if (speakup_info.alive) {
 		synth->flush(synth);
 		if (pitch_shift) {
@@ -374,14 +366,10 @@ void do_flush(void)
 
 void synth_buffer_add(char ch)
 {
-	unsigned long flags;
-
-	spk_lock(flags);
 	if (((buff_in > buff_out)
 		&& (buff_in - buff_out >= synthBufferSize - 100))
 		|| ((buff_in < buff_out)
 		&& (buff_out - buff_in <= 100))) {
-		spk_unlock(flags);
 		synth_start();
 		/* Sleep if we can, otherwise drop the character. */
 		if (!waitqueue_active(&synth_sleeping_list) && ! in_atomic())
@@ -389,7 +377,6 @@ void synth_buffer_add(char ch)
 		else
 			return;
 	}
-	spk_lock(flags);
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
 		buff_in = synth_buffer;
@@ -400,30 +387,19 @@ void synth_buffer_add(char ch)
 char synth_buffer_getc(void)
 {
 	char ch;
-	unsigned long flags;
 
-	spk_lock(flags);
-	if (buff_out != buff_in) {
-		ch = *buff_out++;
-		if (buff_out > buffer_end)
-			buff_out = synth_buffer;
-	} else {
-		ch = 0;
-	}
-	spk_unlock(flags);
+	if (buff_out == buff_in)
+		return 0;
+	ch = *buff_out++;
+	if (buff_out > buffer_end)
+		buff_out = synth_buffer;
 	return ch;
 }
 EXPORT_SYMBOL_GPL(synth_buffer_getc);
 
 int synth_buffer_empty(void)
 {
-	unsigned long flags;
-	int rc;
-
-	spk_lock(flags);
-	rc = (buff_in == buff_out);
-	spk_unlock(flags);
-	return rc;
+	return (buff_in == buff_out);
 }
 EXPORT_SYMBOL_GPL(synth_buffer_empty);
 
@@ -576,8 +552,11 @@ int synth_init(char *synth_name)
 
 void synth_catch_up(u_long data)
 {
+	unsigned long flags;
+	spk_lock(flags);
 	if (synth->catch_up)
 		synth->catch_up(synth, data);
+	spk_unlock(flags);
 }
 
 /* called by: synth_add() */
