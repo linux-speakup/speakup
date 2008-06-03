@@ -356,7 +356,7 @@ static void speakup_parked(struct vc_data *vc)
 /* defined in selection.c must not be disallocated */
 static struct vc_data *spk_sel_cons;
 /* cleared by clear_selection */
-static volatile int sel_start = -1;
+static int sel_start = -1;
 static int sel_end;
 static int sel_buffer_lth;
 static char *sel_buffer;

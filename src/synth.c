@@ -366,6 +366,8 @@ void do_flush(void)
 
 void synth_buffer_add(char ch)
 {
+	unsigned long flags;
+
 	if (((buff_in > buff_out)
 		&& (buff_in - buff_out >= synthBufferSize - 100))
 		|| ((buff_in < buff_out)
@@ -377,20 +379,25 @@ void synth_buffer_add(char ch)
 		else
 			return;
 	}
+	spk_lock(flags);
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
 		buff_in = synth_buffer;
+	spk_unlock(flags);
 }
 
 char synth_buffer_getc(void)
 {
 	char ch;
+	unsigned long flags;
 
 	if (buff_out == buff_in)
 		return 0;
+	spk_lock(flags);
 	ch = *buff_out++;
 	if (buff_out > buffer_end)
 		buff_out = synth_buffer;
+	spk_unlock(flags);
 	return ch;
 }
 EXPORT_SYMBOL_GPL(synth_buffer_getc);
