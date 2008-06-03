@@ -333,7 +333,11 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 
 int synth_done(void)
 {
+	unsigned long flags;
+
+	spk_lock(flags);
 	buff_out = buff_in;
+	spk_unlock(flags);
 	if (waitqueue_active(&synth_sleeping_list)) {
 		wake_up_interruptible(&synth_sleeping_list);
 		return 0;
@@ -557,11 +561,8 @@ int synth_init(char *synth_name)
 
 void synth_catch_up(u_long data)
 {
-	unsigned long flags;
-	spk_lock(flags);
 	if (synth->catch_up)
 		synth->catch_up(synth, data);
-	spk_unlock(flags);
 }
 
 /* called by: synth_add() */
