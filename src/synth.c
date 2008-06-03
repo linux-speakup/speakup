@@ -377,6 +377,7 @@ void synth_buffer_add(char ch)
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
 		buff_in = synth_buffer;
+	wake_up(&speakup_event);
 }
 
 char synth_buffer_getc(void)
