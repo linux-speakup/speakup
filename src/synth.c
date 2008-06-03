@@ -36,8 +36,8 @@ declare_sleeper(synth_sleeping_list);
 static int module_status;
 int quiet_boot;
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
-volatile u_char *buff_in = synth_buffer;
-volatile u_char *buff_out = synth_buffer;
+u_char *buff_in = synth_buffer;
+u_char *buff_out = synth_buffer;
 u_char *buffer_end = synth_buffer+synthBufferSize-1;
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static struct serial_state *serstate;
@@ -371,13 +371,13 @@ void synth_buffer_add(char ch)
 		|| ((buff_in < buff_out)
 		&& (buff_out - buff_in <= 100))) {
 		synth_start();
-		if (!waitqueue_active(&synth_sleeping_list))
+		if (!waitqueue_active(&synth_sleeping_list) && ! in_atomic())
 			interruptible_sleep_on(&synth_sleeping_list);
 	}
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
 		buff_in = synth_buffer;
-	wake_up(&speakup_event);
+	wake_up_interruptible(&speakup_event);
 }
 
 char synth_buffer_getc(void)
