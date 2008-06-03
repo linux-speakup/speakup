@@ -79,7 +79,6 @@ extern int synth_supports_indexing(void);
 extern int speakup_dev_init(char *synth_name);
 
 extern declare_sleeper(synth_sleeping_list);
-extern wait_queue_head_t speakup_event;
 
 extern const u_char key_defaults[];
 
