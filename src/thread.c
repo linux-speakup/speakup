@@ -9,6 +9,15 @@ wait_queue_head_t speakup_event;
 
 int speakup_thread(void *data)
 {
+	int i;
+	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
+		GFP_KERNEL);
+
+	spin_lock_init(&speakup_info.spinlock);
+	speakup_open(vc_cons[fg_console].d, first_console);
+	for (i = 0; vc_cons[i].d; i++)
+		speakup_allocate(vc_cons[i].d);
+	speakup_dev_init(synth_name);
 	init_waitqueue_head(&speakup_event);
 	while ( ! kthread_should_stop()) {
 		wait_event_interruptible(speakup_event,

@@ -380,7 +380,6 @@ void synth_buffer_add(char ch)
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
 		buff_in = synth_buffer;
-	spk_unlock(flags);
 	wake_up_interruptible(&speakup_event);
 }
 

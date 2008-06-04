@@ -1384,7 +1384,7 @@ static void cursor_done(u_long data);
 static declare_timer(cursor_timer);
 
 /* called by: speakup_init() */
-static void __init speakup_open(struct vc_data *vc,
+void __init speakup_open(struct vc_data *vc,
 				struct st_spk_t *first_console)
 {
 	int i;
@@ -2404,14 +2404,6 @@ static void __exit speakup_exit(void)
 /* call by: module_init() */
 static int __init speakup_init(void)
 {
-	int i;
-	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
-		GFP_KERNEL);
-	spin_lock_init(&speakup_info.spinlock);
-	speakup_open(vc_cons[fg_console].d, first_console);
-	for (i = 0; vc_cons[i].d; i++)
-		speakup_allocate(vc_cons[i].d);
-	speakup_dev_init(synth_name);
 	thread_task = kthread_create(speakup_thread, NULL, "speakup");
 	if ( ! IS_ERR(thread_task))
 		wake_up_process(thread_task);

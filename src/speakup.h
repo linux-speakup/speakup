@@ -50,6 +50,8 @@
 
 extern int speakup_thread(void *data);
 extern void synth_catch_up(u_long data);
+extern void __init speakup_open(struct vc_data *, struct st_spk_t *);
+extern void speakup_allocate(struct vc_data *);
 extern void reset_default_chars(void);
 extern void reset_default_chartab(void);
 extern int set_key_info(const u_char *key_info, u_char *k_buffer);
@@ -103,5 +105,7 @@ extern short spell_delay, key_echo, punc_mask;
 extern short synth_trigger_time;
 extern short cursor_timeout, pitch_shift, synth_flags;
 extern int quiet_boot;
+extern char *synth_name;
+
 
 #endif
