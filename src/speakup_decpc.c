@@ -10,7 +10,7 @@
  * Linux DECtalk PC driver:
  *      Copyright (c) 1997 Nicolas Pitre <nico@cam.org>
  *
- * speakup DECtalk PC driver:
+ * speakup DECtalk PC Internal driver:
  *      Copyright (c) 2003 David Borowski <david575@golden.net>
  *
  * All rights reserved.
