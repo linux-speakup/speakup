@@ -50,7 +50,7 @@
 
 extern int speakup_thread(void *data);
 extern void synth_catch_up(u_long data);
-extern void __init speakup_open(struct vc_data *, struct st_spk_t *);
+extern void speakup_open(struct vc_data *, struct st_spk_t *);
 extern void speakup_allocate(struct vc_data *);
 extern void reset_default_chars(void);
 extern void reset_default_chartab(void);

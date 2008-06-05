@@ -1381,7 +1381,7 @@ void reset_default_chartab(void)
 }
 
 /* called by: speakup_init() */
-void __init speakup_open(struct vc_data *vc,
+void speakup_open(struct vc_data *vc,
 				struct st_spk_t *first_console)
 {
 	int i;
