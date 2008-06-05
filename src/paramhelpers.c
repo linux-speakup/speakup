@@ -75,22 +75,10 @@ module_param_call(vol, set_vars, get_vars, NULL, 0664);
  */
 static int strings, rejects, updates;
 
-/* indicates when timer is set */
-static int chars_timer_active;
-static declare_timer(chars_timer);
-
-static void chars_stop_timer(void)
-{
-	mb();
-	if (chars_timer_active)
-		stop_timer(chars_timer);
-}
-
 static void show_char_results(u_long data)
 {
 	int len;
 	char buf[80];
-	chars_stop_timer();
 	len = snprintf(buf, sizeof(buf),
 		       " updated %d of %d character descriptions\n",
 		       updates, strings);
@@ -100,6 +88,8 @@ static void show_char_results(u_long data)
 			 rejects, rejects > 1 ? "s" : "");
 	printk(buf);
 }
+
+static DEFINE_TIMER(chars_timer, show_char_results, 0, 0);
 
 /*
  * This function returns the portion of a string that follows the last period.
@@ -197,12 +187,7 @@ get_more:
 	strings++;
 	if (i < count)
 		goto get_more;
-	chars_stop_timer();
-	init_timer(&chars_timer);
-	chars_timer.function = show_char_results;
-	chars_timer.expires = jiffies + 5;
-	start_timer(chars_timer);
-	chars_timer_active++;
+	mod_timer(&chars_timer, jiffies + 5);
 out:
 	spk_unlock(flags);
 	return count;
@@ -298,12 +283,7 @@ get_more:
 	strings++;
 	if (i < count)
 		goto get_more;
-	chars_stop_timer();
-	init_timer(&chars_timer);
-	chars_timer.function = show_char_results;
-	chars_timer.expires = jiffies + 5;
-	start_timer(chars_timer);
-	chars_timer_active++;
+	mod_timer(&chars_timer, jiffies + 5);
 out:
 	spk_unlock(flags);
 	return count;

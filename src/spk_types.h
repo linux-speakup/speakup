@@ -164,13 +164,4 @@ struct speakup_info_t {
 	int alive;
 };
 
-/* FIXME: for mainline inclusion, just make the source code use proper names. */
-#define declare_timer(name) struct timer_list name;
-/* FIXME: couldn't this just be mod_timer? */
-#define start_timer(name) if (!timer_pending(&name)) add_timer(&name)
-#define stop_timer(name) del_timer(&name)
-
-#define declare_sleeper(name) wait_queue_head_t name
-#define init_sleeper(name) 	init_waitqueue_head(&name)
-
 #endif

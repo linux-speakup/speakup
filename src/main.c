@@ -1238,7 +1238,8 @@ static char *ctl_key_ids[] = {
 #define NUM_CTL_LABELS 9
 
 static void read_all_doc(struct vc_data *vc);
-static void cursor_stop_timer(void);
+static void cursor_done(u_long data);
+static DEFINE_TIMER(cursor_timer, cursor_done, 0, 0);
 
 static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 {
@@ -1249,13 +1250,13 @@ static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 	if (cursor_track == read_all_mode) {
 		switch (value) {
 		case KVAL(K_SHIFT):
-			cursor_stop_timer();
+			del_timer(&cursor_timer);
 			spk_shut_up &= 0xfe;
 			do_flush();
 			read_all_doc(vc);
 			break;
 		case KVAL(K_CTRL):
-			cursor_stop_timer();
+			del_timer(&cursor_timer);
 			cursor_track = prev_cursor_track;
 			spk_shut_up &= 0xfe;
 			do_flush();
@@ -1379,10 +1380,6 @@ void reset_default_chartab(void)
 	memcpy(spk_chartab, default_chartab, sizeof(default_chartab));
 }
 
-static void cursor_done(u_long data);
-
-static declare_timer(cursor_timer);
-
 /* called by: speakup_init() */
 static void __init speakup_open(struct vc_data *vc,
 				struct st_spk_t *first_console)
@@ -1398,10 +1395,6 @@ static void __init speakup_open(struct vc_data *vc,
 	speakup_console[vc->vc_num] = first_console;
 	speakup_date(vc);
 	pr_info("speakup %s: initialized\n", SPEAKUP_VERSION);
-	init_timer(&cursor_timer);
-	cursor_timer.entry.prev = NULL;
-	cursor_timer.function = cursor_done;
-	init_sleeper(synth_sleeping_list);
 	strlwr(synth_name);
 	spk_num_vars[0].high = vc->vc_cols;
 	for (n_var = spk_num_vars; n_var->var_id >= 0; n_var++)
@@ -1465,15 +1458,6 @@ void speakup_deallocate(struct vc_data *vc)
 static u_char is_cursor;
 static u_long old_cursor_pos, old_cursor_x, old_cursor_y;
 static int cursor_con;
-static int cursor_timer_active;
-
-static void cursor_stop_timer(void)
-{
-	if (!cursor_timer_active)
-		return;
-	stop_timer(cursor_timer);
-	cursor_timer_active = 0;
-}
 
 static void reset_highlight_buffers(struct vc_data *);
 
@@ -1499,7 +1483,7 @@ enum {
 static void
 kbd_fakekey2(struct vc_data *vc, int v, int command)
 {
-	cursor_stop_timer();
+	del_timer(&cursor_timer);
 	k_handler[KT_CUR](vc, v, 0);
 	k_handler[KT_CUR](vc, v, 1);
 	start_read_all_timer(vc, command);
@@ -1528,7 +1512,7 @@ read_all_doc(struct vc_data *vc)
 static void
 stop_read_all(struct vc_data *vc)
 {
-	cursor_stop_timer();
+	del_timer(&cursor_timer);
 	cursor_track = prev_cursor_track;
 	spk_shut_up &= 0xfe;
 	do_flush();
@@ -1538,10 +1522,8 @@ static void
 start_read_all_timer(struct vc_data *vc, int command)
 {
 	cursor_con = vc->vc_num;
-	cursor_timer.expires = jiffies + cursor_timeout;
 	read_all_key = command;
-	start_timer(cursor_timer);
-	cursor_timer_active++;
+	mod_timer(&cursor_timer, jiffies + cursor_timeout);
 }
 
 static void
@@ -1626,7 +1608,7 @@ static int pre_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 			spk_unlock(flags);
 			return NOTIFY_STOP;
 		}
-		cursor_stop_timer();
+		del_timer(&cursor_timer);
 		spk_shut_up &= 0xfe;
 		do_flush();
 		start_read_all_timer(vc, value+1);
@@ -1657,13 +1639,9 @@ static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	old_cursor_y = vc->vc_y;
 	speakup_console[vc->vc_num]->ht.cy = vc->vc_y;
 	cursor_con = vc->vc_num;
-	cursor_stop_timer();
-	cursor_timer.expires = jiffies + cursor_timeout;
 	if (cursor_track == CT_Highlight)
 		reset_highlight_buffers(vc);
-	read_all_key = value + 1;
-	start_timer(cursor_timer);
-	cursor_timer_active++;
+	mod_timer(&cursor_timer, jiffies + cursor_timeout);
 	spk_unlock(flags);
 }
 
@@ -1794,7 +1772,7 @@ cursor_done(u_long data)
 {
 	struct vc_data *vc = vc_cons[cursor_con].d;
 	unsigned long flags;
-	cursor_stop_timer();
+	del_timer(&cursor_timer);
 	spk_lock(flags);
 	if (cursor_con != fg_console) {
 		is_cursor = 0;
