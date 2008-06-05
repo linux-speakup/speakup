@@ -1,5 +1,5 @@
 /*
- * originally written by: Kirk Reiser <kirk@braille.uwo.ca>
+ * written by: Kirk Reiser <kirk@braille.uwo.ca>
  * this version considerably modified by David Borowski, david575@rogers.com
  *
  * Copyright (C) 1998-99  Kirk Reiser.
@@ -21,6 +21,7 @@
  *
  * this code is specificly written as a driver for the speakup screenreview
  * package and is not a general device driver.
+ * This driver is for the Aicom Acent PC internal synthesizer.
  */
 
 #include <linux/jiffies.h>

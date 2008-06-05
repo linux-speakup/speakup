@@ -20,7 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * specificly written as a driver for the speakup screenreview
- * s not a general device driver.
+ * package it's not a general device driver.
+ * This driver is for the RC Systems DoubleTalk PC internal synthesizer.
  */
 #include <linux/jiffies.h>
 

@@ -32,7 +32,7 @@ struct spk_synth *synth = NULL;
 	static struct miscdevice synth_device;
 static int misc_registered;
 char pitch_buff[32] = "";
-declare_sleeper(synth_sleeping_list);
+static DECLARE_WAIT_QUEUE_HEAD(synth_sleeping_list);
 static int module_status;
 int quiet_boot;
 u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
@@ -360,8 +360,7 @@ void do_flush(void)
 			pitch_shift = 0;
 		}
 	}
-	if (waitqueue_active(&synth_sleeping_list))
-		wake_up_interruptible(&synth_sleeping_list);
+	wake_up_interruptible(&synth_sleeping_list);
 }
 
 void synth_buffer_add(char ch)
@@ -372,7 +371,7 @@ void synth_buffer_add(char ch)
 		&& (buff_out - buff_in <= 100))) {
 		synth_start();
 		/* Sleep if we can, otherwise drop the character. */
-		if (!waitqueue_active(&synth_sleeping_list) && ! in_atomic())
+		if (!in_atomic())
 			interruptible_sleep_on(&synth_sleeping_list);
 		else
 			return;

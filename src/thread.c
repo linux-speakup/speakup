@@ -5,7 +5,7 @@
 #include "speakup.h"
 #include "spk_priv.h"
 
-wait_queue_head_t speakup_event;
+DECLARE_WAIT_QUEUE_HEAD(speakup_event);
 
 int speakup_thread(void *data)
 {
@@ -18,7 +18,6 @@ int speakup_thread(void *data)
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);
 	speakup_dev_init(synth_name);
-	init_waitqueue_head(&speakup_event);
 	while ( ! kthread_should_stop()) {
 		wait_event_interruptible(speakup_event,
 			(kthread_should_stop() || ! synth_buffer_empty()));
