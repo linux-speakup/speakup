@@ -40,7 +40,6 @@ static unsigned char get_index(void);
 
 static int in_escape;
 static int is_flushing;
-static atomic_t dectest = ATOMIC_INIT(0);
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[:dv ap 200]" },
@@ -114,10 +113,9 @@ static void read_buff_add(u_char c)
 {
 	static int ind = -1;
 
-	if (c == 0x01) {
+	if (c == 0x01)
 		is_flushing = 0;
-		atomic_set(&dectest, 0);
-	} else if (is_indnum(&c)) {
+	else if (is_indnum(&c)) {
 		if (ind == -1)
 			ind = c;
 		else
