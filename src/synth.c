@@ -45,6 +45,7 @@ static int timeouts;
 
 short synth_trigger_time = 50;
 struct speakup_info_t speakup_info = {
+	.spinlock = SPIN_LOCK_UNLOCKED,
 	.delay_time = 500,
 	.jiffy_delta = 50,
 	.full_time = 1000,

@@ -2387,7 +2387,6 @@ static int __init speakup_init(void)
 	int i;
 	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
 		GFP_KERNEL);
-	spin_lock_init(&speakup_info.spinlock);
 	speakup_open(vc_cons[fg_console].d, first_console);
 	for (i = 0; vc_cons[i].d; i++)
 		speakup_allocate(vc_cons[i].d);
