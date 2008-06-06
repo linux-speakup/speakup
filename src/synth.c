@@ -56,7 +56,7 @@ static void start_serial_interrupt(int irq);
 static void speakup_register_devsynth(void);
 static int do_synth_init(struct spk_synth *in_synth);
 
-struct serial_state *spk_serial_init(int index)
+static struct serial_state *spk_serial_init(int index)
 {
 	int baud = 9600, quot = 0;
 	unsigned int cval = 0;
@@ -109,7 +109,6 @@ struct serial_state *spk_serial_init(int index)
 
 	return ser;
 }
-EXPORT_SYMBOL_GPL(spk_serial_init);
 
 int serial_synth_probe(struct spk_synth *synth)
 {
