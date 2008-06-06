@@ -142,7 +142,8 @@ get_more:
 	if (state < 2)
 		goto out;
 	cp = desc;
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
+	while (*cp && (unsigned char)(*cp) <= SPACE)
+		cp++;
 	if ((!cnt) || strchr("dDrR", *cp)) {
 		reset_default_chars();
 		pr_info("character descriptions reset to defaults\n");
@@ -154,7 +155,8 @@ get_more:
 		goto get_more;
 	num = -1;
 	cp = speakup_s2i(cp, &num);
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
+	while (*cp && (unsigned char)(*cp) <= SPACE)
+		cp++;
 	if (num < 0 || num > 255) {
 		/* not in range */
 		rejects++;
@@ -243,7 +245,8 @@ get_more:
 	if (state < 2)
 		goto out;
 	cp = desc;
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
+	while (*cp && (unsigned char)(*cp) <= SPACE)
+		cp++;
 	if ((!cnt) || strchr("dDrR", *cp)) {
 		reset_default_chartab();
 		pr_info("character descriptions reset to defaults\n");
@@ -255,7 +258,8 @@ get_more:
 		goto get_more;
 	num = -1;
 	cp = speakup_s2i(cp, &num);
-	while (*cp && (unsigned char)(*cp) <= SPACE) cp++;
+	while (*cp && (unsigned char)(*cp) <= SPACE)
+		cp++;
 	if (num < 0 || num > 255) {
 		/* not in range */
 		rejects++;
