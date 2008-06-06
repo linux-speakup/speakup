@@ -110,11 +110,15 @@ static void spk_out(const char ch)
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	u_char ch;
+	unsigned long flags;
 
+	spk_lock(flags);
 	synth_status = inb_p(speakup_info.port_tts);
 	while (! synth_buffer_empty()) {
 		if (synth_status & TTS_ALMOST_FULL) {
-			return;
+			spk_unlock(flags);
+			msleep(speakup_info.delay_time);
+			spk_lock(flags);
 		}
 		ch = synth_buffer_getc();
 		if (ch == '\n')
@@ -123,6 +127,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	}
 	spk_out(PROCSPEECH);
 	synth_done();
+	spk_unlock(flags);
 }
 
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)

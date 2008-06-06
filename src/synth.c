@@ -45,6 +45,7 @@ static int timeouts;
 
 short synth_trigger_time = 50;
 struct speakup_info_t speakup_info = {
+	.spinlock = SPIN_LOCK_UNLOCKED,
 	.delay_time = 500,
 	.jiffy_delta = 50,
 	.full_time = 1000,
@@ -257,18 +258,24 @@ EXPORT_SYMBOL_GPL(spk_serial_release);
 void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	static u_char ch = 0;
+	unsigned long flags;
 
+	spk_lock(flags);
 	while (! synth_buffer_empty()) {
 		if (! ch)
 			ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = synth->procspeech;
-		if (!spk_serial_out(ch)) 
-			return;
+		if (!spk_serial_out(ch)) {
+			spk_unlock(flags);
+			msleep(speakup_info.full_time);
+			spk_lock(flags);
+		}
 		ch = 0;
 	}
 	spk_serial_out(synth->procspeech);
 	synth_done();
+	spk_unlock(flags);
 }
 EXPORT_SYMBOL_GPL(spk_do_catch_up);
 
@@ -548,13 +555,11 @@ int synth_init(char *synth_name)
 	return ret;
 }
 
+/* It is up to the callee to take the lock, so that it can sleep whenever it likes */
 void synth_catch_up(u_long data)
 {
-	unsigned long flags;
-	spk_lock(flags);
 	if (synth->catch_up)
 		synth->catch_up(synth, data);
-	spk_unlock(flags);
 }
 
 /* called by: synth_add() */

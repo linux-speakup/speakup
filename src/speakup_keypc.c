@@ -124,10 +124,14 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	u_char ch;
 	int timeout;
+	unsigned long flags;
 
+	spk_lock(flags);
 	while (! synth_buffer_empty()) {
 		if (synth_full()) {
-			return;
+			spk_unlock(flags);
+			msleep(speakup_info.delay_time);
+			spk_lock(flags);
 		}
 		timeout = 1000;
 		while (synth_writable())
@@ -141,7 +145,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
-		udelay(70);
+		SWAIT;
 	}
 	timeout = 1000;
 	while (synth_writable())
@@ -152,6 +156,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	else
 		outb_p(PROCSPEECH, synth_port);
 	synth_done();
+	spk_unlock(flags);
 }
 
 static void synth_flush(struct spk_synth *synth)

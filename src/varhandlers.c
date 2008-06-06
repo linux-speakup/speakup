@@ -146,7 +146,8 @@ char *xlate(char *s)
 		} else
 			*p++ = *p1++;
 		p2 = p;
-		while (*p1) *p2++ = *p1++;
+		while (*p1)
+			*p2++ = *p1++;
 		*p2 = '\0';
 	}
 	return s;

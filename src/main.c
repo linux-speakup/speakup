@@ -487,7 +487,9 @@ static int speakup_paste_selection(struct tty_struct *tty)
 	while (sel_buffer && sel_buffer_lth > pasted) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		if (test_bit(TTY_THROTTLED, &tty->flags)) {
-			/* FIXME: can't be performed in an interrupt handler! */
+			if (in_atomic())
+				/* can't be performed in an interrupt handler, abort */
+				break;
 			schedule();
 			continue;
 		}
