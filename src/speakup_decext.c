@@ -90,14 +90,18 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	static u_char ch = 0;
 	static u_char last = '\0';
+	unsigned long flags;
 
+	spk_lock(flags);
 	while (! synth_buffer_empty()) {
 		if (! ch)
 			ch = synth_buffer_getc();
 		if (ch == '\n')
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
-			return;
+			spk_unlock(flags);
+			msleep(speakup_info.delay_time);
+			spk_lock(flags);
 		}
 		if (ch == '[')
 			in_escape = 1;
@@ -112,6 +116,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	}
 	if (synth_done() || !in_escape)
 		spk_serial_out(PROCSPEECH);
+	spk_unlock(flags);
 }
 
 static void synth_flush(struct spk_synth *synth)

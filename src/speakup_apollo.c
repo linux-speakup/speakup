@@ -84,7 +84,9 @@ static struct spk_synth synth_apollo = {
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	static u_char ch = 0;
+	unsigned long flags;
 
+	spk_lock(flags);
 	while (! synth_buffer_empty()) {
 		if (! ch)
 			ch = synth_buffer_getc();
@@ -92,12 +94,15 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
-			return;
+			spk_unlock(flags);
+			msleep(speakup_info.full_time);
+			spk_lock(flags);
 		}
 		ch = 0;
 	}
 	spk_serial_out(PROCSPEECH);
 	synth_done();
+	spk_unlock(flags);
 }
 
 module_param_named(ser, synth_apollo.ser, int, S_IRUGO);
