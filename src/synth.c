@@ -7,14 +7,9 @@
 #include <linux/interrupt.h>
 #include <linux/delay.h>	/* for loops_per_sec */
 #include <linux/wait.h>		/* for wait_queue */
-#include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/kmod.h>
 #include <linux/jiffies.h>
 #include <linux/uaccess.h> /* for copy_from_user */
-
-#ifndef SYNTH_MINOR
-#define SYNTH_MINOR 25
-#endif
 
 #include "spk_priv.h"
 #include "speakup.h"
@@ -28,8 +23,6 @@ static struct serial_state rs_table[] = {
 #define MAXSYNTHS       16      /* Max number of synths in array. */
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
-	static struct miscdevice synth_device;
-static int misc_registered;
 char pitch_buff[32] = "";
 DECLARE_WAIT_QUEUE_HEAD(synth_sleeping_list);
 static int module_status;
@@ -48,7 +41,6 @@ struct speakup_info_t speakup_info = {
 EXPORT_SYMBOL_GPL(speakup_info);
 
 static void start_serial_interrupt(int irq);
-static void speakup_register_devsynth(void);
 static int do_synth_init(struct spk_synth *in_synth);
 
 static struct serial_state *spk_serial_init(int index)
@@ -365,16 +357,14 @@ void do_flush(void)
 	wake_up_interruptible(&synth_sleeping_list);
 }
 
-void
-synth_write(const char *buf, size_t count)
+void synth_write(const char *buf, size_t count)
 {
 	while (count--)
 		synth_buffer_add(*buf++);
 	synth_start();
 }
 
-void
-synth_printf(const char *fmt, ...)
+void synth_printf(const char *fmt, ...)
 {
 	va_list args;
 	unsigned char buf[80], *p;
@@ -396,8 +386,7 @@ EXPORT_SYMBOL_GPL(synth_printf);
 static int index_count = 0;
 static int sentence_count = 0;
 
-void
-reset_index_count(int sc)
+void reset_index_count(int sc)
 {
 	static int first = 1;
 	if (first)
@@ -408,16 +397,14 @@ reset_index_count(int sc)
 	sentence_count = sc;
 }
 
-int
-synth_supports_indexing(void)
+int synth_supports_indexing(void)
 {
 	if (synth->get_index != NULL)
 		return 1;
 	return 0;
 }
 
-void
-synth_insert_next_index(int sent_num)
+void synth_insert_next_index(int sent_num)
 {
 	int out;
 	if (speakup_info.alive) {
@@ -435,8 +422,7 @@ synth_insert_next_index(int sent_num)
 	}
 }
 
-void
-get_index_count(int *linecount, int *sentcount)
+void get_index_count(int *linecount, int *sentcount)
 {
 	int ind = synth->get_index();
 	if (ind) {
@@ -553,8 +539,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	return 0;
 }
 
-void
-synth_release(void)
+void synth_release(void)
 {
 	struct st_num_var *n_var;
 	struct st_string_var *s_var;
@@ -633,90 +618,5 @@ void speakup_remove(void)
 	for (i = 0; i < MAXVARS; i++)
 		speakup_unregister_var(i);
 
-	pr_info("speakup: unregistering synth device /dev/synth\n");
-	misc_deregister(&synth_device);
-	misc_registered = 0;
-}
-
-/* provide a file to users, so people can send to /dev/synth */
-
-static ssize_t
-speakup_file_write(struct file *fp, const char *buffer,
-		   size_t nbytes, loff_t *ppos)
-{
-	size_t count = nbytes;
-	const char *ptr = buffer;
-	int bytes;
-	unsigned long flags;
-	u_char buf[256];
-	if (synth == NULL)
-		return -ENODEV;
-	while (count > 0) {
-		bytes = min_t(size_t, count, sizeof(buf));
-		if (copy_from_user(buf, ptr, bytes))
-			return -EFAULT;
-		count -= bytes;
-		ptr += bytes;
-		spk_lock(flags);
-		synth_write(buf, bytes);
-		spk_unlock(flags);
-	}
-	return (ssize_t) nbytes;
-}
-
-static int
-speakup_file_ioctl(struct inode *inode, struct file *file,
-		   unsigned int cmd, unsigned long arg)
-{
-	return 0;		/* silently ignore */
-}
-
-static ssize_t
-speakup_file_read(struct file *fp, char *buf, size_t nbytes, loff_t *ppos)
-{
-	return 0;
-}
-
-static int synth_file_inuse;
-
-static int
-speakup_file_open(struct inode *ip, struct file *fp)
-{
-	if (synth_file_inuse)
-		return -EBUSY;
-	else if (synth == NULL)
-		return -ENODEV;
-	synth_file_inuse++;
-	return 0;
-}
-
-static int
-speakup_file_release(struct inode *ip, struct file *fp)
-{
-	synth_file_inuse = 0;
-	return 0;
-}
-
-static struct file_operations synth_fops = {
-	.read = speakup_file_read,
-	.write = speakup_file_write,
-	.ioctl = speakup_file_ioctl,
-	.open = speakup_file_open,
-	.release = speakup_file_release,
-};
-
-static void speakup_register_devsynth(void)
-{
-	if (misc_registered != 0)
-		return;
-	misc_registered = 1;
-	memset(&synth_device, 0, sizeof(synth_device));
-/* zero it so if register fails, deregister will not ref invalid ptrs */
-	synth_device.minor = SYNTH_MINOR;
-	synth_device.name = "synth";
-	synth_device.fops = &synth_fops;
-	if (misc_register(&synth_device))
-		pr_warn("Couldn't initialize miscdevice /dev/synth.\n");
-	else
-		pr_info("initialized device: /dev/synth, node (MAJOR 10, MINOR 25)\n");
+	speakup_unregister_devsynth();
 }

@@ -78,6 +78,8 @@ extern void synth_release(void);
 extern void do_flush(void);
 extern void synth_buffer_add(char ch);
 extern void synth_buffer_clear(void);
+extern void speakup_register_devsynth(void);
+extern void speakup_unregister_devsynth(void);
 extern void synth_write(const char *buf, size_t count);
 extern int synth_supports_indexing(void);
 extern int speakup_dev_init(char *synth_name);
