@@ -25,20 +25,15 @@ static struct serial_state rs_table[] = {
 };
 
 
-#define synthBufferSize 8192	/* currently 8K bytes */
 #define MAXSYNTHS       16      /* Max number of synths in array. */
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
 	static struct miscdevice synth_device;
 static int misc_registered;
 char pitch_buff[32] = "";
-static DECLARE_WAIT_QUEUE_HEAD(synth_sleeping_list);
+DECLARE_WAIT_QUEUE_HEAD(synth_sleeping_list);
 static int module_status;
 int quiet_boot;
-u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
-u_char *buff_in = synth_buffer;
-u_char *buff_out = synth_buffer;
-u_char *buffer_end = synth_buffer+synthBufferSize-1;
 static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static struct serial_state *serstate;
 static int timeouts;
@@ -342,7 +337,7 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 
 int synth_done(void)
 {
-	buff_out = buff_in;
+	synth_buffer_clear();
 	if (waitqueue_active(&synth_sleeping_list)) {
 		wake_up_interruptible(&synth_sleeping_list);
 		return 0;
@@ -351,7 +346,7 @@ int synth_done(void)
 }
 EXPORT_SYMBOL_GPL(synth_done);
 
-static void synth_start(void)
+void synth_start(void)
 {
 	if (!speakup_info.alive)
 		synth_done();
@@ -362,7 +357,7 @@ static void synth_start(void)
 
 void do_flush(void)
 {
-	buff_out = buff_in = synth_buffer;
+	synth_buffer_clear();
 	if (speakup_info.alive) {
 		synth->flush(synth);
 		if (pitch_shift) {
@@ -372,43 +367,6 @@ void do_flush(void)
 	}
 	wake_up_interruptible(&synth_sleeping_list);
 }
-
-void synth_buffer_add(char ch)
-{
-	if (((buff_in > buff_out)
-		&& (buff_in - buff_out >= synthBufferSize - 100))
-		|| ((buff_in < buff_out)
-		&& (buff_out - buff_in <= 100))) {
-		synth_start();
-		/* Sleep if we can, otherwise drop the character. */
-		if (!in_atomic())
-			interruptible_sleep_on(&synth_sleeping_list);
-		else
-			return;
-	}
-	*buff_in++ = ch;
-	if (buff_in > buffer_end)
-		buff_in = synth_buffer;
-}
-
-char synth_buffer_getc(void)
-{
-	char ch;
-
-	if (buff_out == buff_in)
-		return 0;
-	ch = *buff_out++;
-	if (buff_out > buffer_end)
-		buff_out = synth_buffer;
-	return ch;
-}
-EXPORT_SYMBOL_GPL(synth_buffer_getc);
-
-int synth_buffer_empty(void)
-{
-	return (buff_in == buff_out);
-}
-EXPORT_SYMBOL_GPL(synth_buffer_empty);
 
 void
 synth_write(const char *buf, size_t count)
