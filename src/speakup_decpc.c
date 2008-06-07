@@ -130,7 +130,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "2.1"
+#define DRV_VERSION "2.2"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -340,7 +340,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		last = ch;
 		ch = 0;
 	}
-	if (synth_done() || !in_escape)
+	synth_done();
+	if (!in_escape)
 		dt_sendchar(PROCSPEECH);
 	spk_unlock(flags);
 }

@@ -335,14 +335,11 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-int synth_done(void)
+void synth_done(void)
 {
 	synth_buffer_clear();
-	if (waitqueue_active(&synth_sleeping_list)) {
-		wake_up_interruptible(&synth_sleeping_list);
-		return 0;
-	}
-	return 1;
+	wake_up_interruptible(&synth_sleeping_list);
+	return;
 }
 EXPORT_SYMBOL_GPL(synth_done);
 

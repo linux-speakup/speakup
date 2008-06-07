@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.1"
+#define DRV_VERSION "2.2"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -114,7 +114,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		last = ch;
 		ch = 0;
 	}
-	if (synth_done() || !in_escape)
+	synth_done();
+	if (!in_escape)
 		spk_serial_out(PROCSPEECH);
 	spk_unlock(flags);
 }
