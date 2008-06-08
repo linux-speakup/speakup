@@ -7,14 +7,29 @@
 
 #define synthBufferSize 8192	/* currently 8K bytes */
 
-static int synth_buffer_free(void);
-
 extern wait_queue_head_t synth_sleeping_list;
 
 static u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
 static u_char *buff_in = synth_buffer;
 static u_char *buff_out = synth_buffer;
 static u_char *buffer_end = synth_buffer+synthBufferSize-1;
+
+static int synth_buffer_free(void)
+{
+	int bytesFree;
+
+	if (buff_in >= buff_out)
+		bytesFree = synthBufferSize - (buff_in - buff_out);
+	else
+		bytesFree = buff_out - buff_in;
+	return bytesFree;
+}
+
+int synth_buffer_empty(void)
+{
+	return (buff_in == buff_out);
+}
+EXPORT_SYMBOL_GPL(synth_buffer_empty);
 
 void synth_buffer_add(char ch)
 {
@@ -43,25 +58,6 @@ char synth_buffer_getc(void)
 	return ch;
 }
 EXPORT_SYMBOL_GPL(synth_buffer_getc);
-
-static int synth_buffer_free(void)
-{
-	int bytesFree;
-
-	if (buff_in > buff_out)
-		bytesFree = synthBufferSize - (buff_in - buff_out);
-	else if (buff_in < buff_out)
-		bytesFree = buff_out - buff_in;
-	else
-		bytesFree = synthBufferSize;
-	return bytesFree;
-}
-
-int synth_buffer_empty(void)
-{
-	return (buff_in == buff_out);
-}
-EXPORT_SYMBOL_GPL(synth_buffer_empty);
 
 void synth_buffer_clear(void)
 {
