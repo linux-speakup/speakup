@@ -7,6 +7,8 @@
 
 #define synthBufferSize 8192	/* currently 8K bytes */
 
+static int synth_buffer_free(void);
+
 extern wait_queue_head_t synth_sleeping_list;
 
 static u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
@@ -16,10 +18,7 @@ static u_char *buffer_end = synth_buffer+synthBufferSize-1;
 
 void synth_buffer_add(char ch)
 {
-	if (((buff_in > buff_out)
-		&& (buff_in - buff_out >= synthBufferSize - 100))
-		|| ((buff_in < buff_out)
-		&& (buff_out - buff_in <= 100))) {
+	if (synth_buffer_free() <= 100) {
 		synth_start();
 		/* Sleep if we can, otherwise drop the character. */
 		if (!in_atomic())
@@ -44,6 +43,19 @@ char synth_buffer_getc(void)
 	return ch;
 }
 EXPORT_SYMBOL_GPL(synth_buffer_getc);
+
+static int synth_buffer_free(void)
+{
+	int bytesFree;
+
+	if (buff_in > buff_out)
+		bytesFree = synthBufferSize - (buff_in - buff_out);
+	else if (buff_in < buff_out)
+		bytesFree = buff_out - buff_in;
+	else
+		bytesFree = synthBufferSize;
+	return bytesFree;
+}
 
 int synth_buffer_empty(void)
 {
