@@ -21,6 +21,7 @@ speakup-objs := \
 	main.o \
 	keyhelp.o \
 	paramhelpers.o \
+	serialio.o \
 	synth.o \
 	thread.o \
 	varhandlers.o
