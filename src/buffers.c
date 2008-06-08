@@ -1,3 +1,5 @@
+#include <linux/console.h>
+#include <linux/smp_lock.h>
 #include <linux/interrupt.h> /* for in_atomic */
 #include <linux/types.h>
 #include <linux/wait.h>
@@ -7,12 +9,34 @@
 
 #define synthBufferSize 8192	/* currently 8K bytes */
 
-extern wait_queue_head_t synth_sleeping_list;
-
 static u_char synth_buffer[synthBufferSize];	/* guess what this is for! */
 static u_char *buff_in = synth_buffer;
 static u_char *buff_out = synth_buffer;
 static u_char *buffer_end = synth_buffer+synthBufferSize-1;
+
+void speakup_start_ttys(void)
+{
+	int i;
+
+	lock_kernel();
+	for (i = 0; i < MAX_NR_CONSOLES; i++)
+		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
+			start_tty(vc_cons[i].d->vc_tty);
+	unlock_kernel();
+	return;
+}
+
+static void speakup_stop_ttys(void)
+{
+	int i;
+
+	lock_kernel();
+	for (i = 0; i < MAX_NR_CONSOLES; i++)
+		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
+			stop_tty(vc_cons[i].d->vc_tty);
+	unlock_kernel();
+	return;
+}
 
 static int synth_buffer_free(void)
 {
@@ -35,11 +59,7 @@ void synth_buffer_add(char ch)
 {
 	if (synth_buffer_free() <= 100) {
 		synth_start();
-		/* Sleep if we can, otherwise drop the character. */
-		if (!in_atomic())
-			interruptible_sleep_on(&synth_sleeping_list);
-		else
-			return;
+		speakup_stop_ttys();
 	}
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)

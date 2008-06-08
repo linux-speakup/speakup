@@ -19,7 +19,6 @@
 static struct spk_synth *synths[MAXSYNTHS];
 struct spk_synth *synth = NULL;
 char pitch_buff[32] = "";
-DECLARE_WAIT_QUEUE_HEAD(synth_sleeping_list);
 static int module_status;
 int quiet_boot;
 
@@ -133,7 +132,7 @@ EXPORT_SYMBOL_GPL(spk_synth_is_alive_restart);
 void synth_done(void)
 {
 	synth_buffer_clear();
-	wake_up_interruptible(&synth_sleeping_list);
+	speakup_start_ttys();
 	return;
 }
 EXPORT_SYMBOL_GPL(synth_done);
@@ -157,7 +156,7 @@ void do_flush(void)
 			pitch_shift = 0;
 		}
 	}
-	wake_up_interruptible(&synth_sleeping_list);
+	speakup_start_ttys();
 }
 
 void synth_write(const char *buf, size_t count)

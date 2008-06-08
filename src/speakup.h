@@ -76,6 +76,7 @@ extern int synth_init(char *name);
 extern void synth_release(void);
 
 extern void do_flush(void);
+extern void speakup_start_ttys(void);
 extern void synth_buffer_add(char ch);
 extern void synth_buffer_clear(void);
 extern void speakup_register_devsynth(void);
