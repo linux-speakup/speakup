@@ -1,5 +1,6 @@
 #ifndef _SPEAKUP_H
 #define _SPEAKUP_H
+#include <linux/version.h>
 
 #include "spk_types.h"
 
@@ -38,6 +39,10 @@
 #define A_CTL (B_CTL+SYNTH_OK)
 #define B_SYM 0x0800
 #define B_CAPSYM (B_CAP|B_SYM)
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,23)
+#define inverse_translate(vc, c) inverse_translate(vc, c, 0)
+#endif
 
 #define IS_WDLM(x) (spk_chartab[((u_char)x)]&B_WDLM)
 #define IS_CHAR(x, type) (spk_chartab[((u_char)x)]&type)
@@ -79,11 +84,17 @@ extern void do_flush(void);
 extern void speakup_start_ttys(void);
 extern void synth_buffer_add(char ch);
 extern void synth_buffer_clear(void);
+extern void speakup_clear_selection(void);
+extern int speakup_set_selection(struct tty_struct *tty);
+extern int speakup_paste_selection(struct tty_struct *tty);
 extern void speakup_register_devsynth(void);
 extern void speakup_unregister_devsynth(void);
 extern void synth_write(const char *buf, size_t count);
 extern int synth_supports_indexing(void);
 extern int speakup_dev_init(char *synth_name);
+
+extern struct vc_data *spk_sel_cons;
+extern unsigned short xs, ys, xe, ye; /* our region points */
 
 extern wait_queue_head_t speakup_event;
 extern const u_char key_defaults[];
@@ -109,6 +120,5 @@ extern short synth_trigger_time;
 extern short cursor_timeout, pitch_shift, synth_flags;
 extern int quiet_boot;
 extern char *synth_name;
-
 
 #endif
