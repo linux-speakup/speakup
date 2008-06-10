@@ -6,7 +6,6 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-static irqreturn_t synth_readbuf_handler(int irq, void *dev_id);
 static void start_serial_interrupt(int irq);
 
 static struct serial_state rs_table[] = {
