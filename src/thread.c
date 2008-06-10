@@ -22,6 +22,7 @@ int speakup_thread(void *data)
 			(kthread_should_stop() || ! synth_buffer_empty()));
 		if (! synth_buffer_empty())
 			synth_catch_up((unsigned long ) 0);
+		speakup_start_ttys();
 	}
 	return 0;
 }

@@ -18,11 +18,15 @@ void speakup_start_ttys(void)
 {
 	int i;
 
-	lock_kernel();
+	if (!in_atomic())
+		lock_kernel();
+	else if (!current->lock_depth)
+		return;
 	for (i = 0; i < MAX_NR_CONSOLES; i++)
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			start_tty(vc_cons[i].d->vc_tty);
-	unlock_kernel();
+	if (!in_atomic())
+		unlock_kernel();
 	return;
 }
 
@@ -30,11 +34,15 @@ static void speakup_stop_ttys(void)
 {
 	int i;
 
-	lock_kernel();
+	if (!in_atomic())
+		lock_kernel();
+	else if (!current->lock_depth)
+		return;
 	for (i = 0; i < MAX_NR_CONSOLES; i++)
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			stop_tty(vc_cons[i].d->vc_tty);
-	unlock_kernel();
+	if (!in_atomic())
+		unlock_kernel();
 	return;
 }
 
