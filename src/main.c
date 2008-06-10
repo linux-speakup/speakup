@@ -1438,7 +1438,7 @@ void speakup_allocate(struct vc_data *vc)
 	vc_num = vc->vc_num;
 	if (speakup_console[vc_num] == NULL) {
 		speakup_console[vc_num] = kzalloc(sizeof(*speakup_console[0]),
-			GFP_KERNEL);
+			GFP_ATOMIC);
 		if (speakup_console[vc_num] == NULL)
 			return;
 		speakup_date(vc);
