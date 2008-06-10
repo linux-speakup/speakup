@@ -94,11 +94,10 @@ static struct spk_synth synth_soft = {
 
 static int softsynth_open(struct inode *inode, struct file *fp)
 {
-	if (dev_opened)
-		return -EBUSY;
 	/*if ((fp->f_flags & O_ACCMODE) != O_RDONLY) */
 	/*	return -EPERM; */
-	dev_opened++;
+	if (xchg(&dev_opened, 1))
+		return -EBUSY;
 	return 0;
 }
 
@@ -235,7 +234,10 @@ static void softsynth_release(void)
 
 static void softsynth_start(void)
 {
-	wake_up_interruptible(&wait_on_output);
+	if (dev_opened)
+		wake_up_interruptible(&wait_on_output);
+	else
+		synth_done();
 }
 
 static int softsynth_is_alive(struct spk_synth *synth)
