@@ -1,7 +1,6 @@
 #include <linux/errno.h>
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/types.h>
-#include <asm/semaphore.h>
 
 #include "speakup.h"
 #include "spk_priv.h"
@@ -11,7 +10,7 @@
 #endif
 
 static int misc_registered;
-static DECLARE_MUTEX(synth_mutex);
+static int dev_opened;
 
 static ssize_t speakup_file_write(struct file *fp, const char *buffer,
 		   size_t nbytes, loff_t *ppos)
@@ -45,14 +44,14 @@ static int speakup_file_open(struct inode *ip, struct file *fp)
 {
 	if (synth == NULL)
 		return -ENODEV;
-	if (down_trylock(&synth_mutex))
+	if (xchg(&dev_opened, 1))
 		return -EBUSY;
 	return 0;
 }
 
 static int speakup_file_release(struct inode *ip, struct file *fp)
 {
-	up(&synth_mutex);
+	dev_opened = 0;
 	return 0;
 }
 
