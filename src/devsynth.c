@@ -1,6 +1,7 @@
 #include <linux/errno.h>
 #include <linux/miscdevice.h>	/* for misc_register, and SYNTH_MINOR */
 #include <linux/types.h>
+#include <asm/semaphore.h>
 
 #include "speakup.h"
 #include "spk_priv.h"
@@ -9,9 +10,8 @@
 #define SYNTH_MINOR 25
 #endif
 
-static struct miscdevice synth_device;
 static int misc_registered;
-static int synth_file_inuse;
+static DECLARE_MUTEX(synth_mutex);
 
 static ssize_t speakup_file_write(struct file *fp, const char *buffer,
 		   size_t nbytes, loff_t *ppos)
@@ -36,12 +36,6 @@ static ssize_t speakup_file_write(struct file *fp, const char *buffer,
 	return (ssize_t) nbytes;
 }
 
-static int speakup_file_ioctl(struct inode *inode, struct file *file,
-		   unsigned int cmd, unsigned long arg)
-{
-	return 0;		/* silently ignore */
-}
-
 static ssize_t speakup_file_read(struct file *fp, char *buf, size_t nbytes, loff_t *ppos)
 {
 	return 0;
@@ -49,46 +43,49 @@ static ssize_t speakup_file_read(struct file *fp, char *buf, size_t nbytes, loff
 
 static int speakup_file_open(struct inode *ip, struct file *fp)
 {
-	if (synth_file_inuse)
-		return -EBUSY;
-	else if (synth == NULL)
+	if (synth == NULL)
 		return -ENODEV;
-	synth_file_inuse++;
+	if (down_trylock(&synth_mutex))
+		return -EBUSY;
 	return 0;
 }
 
 static int speakup_file_release(struct inode *ip, struct file *fp)
 {
-	synth_file_inuse = 0;
+	up(&synth_mutex);
 	return 0;
 }
 
 static struct file_operations synth_fops = {
 	.read = speakup_file_read,
 	.write = speakup_file_write,
-	.ioctl = speakup_file_ioctl,
 	.open = speakup_file_open,
 	.release = speakup_file_release,
+};
+
+static struct miscdevice synth_device = {
+	.minor = SYNTH_MINOR,
+	.name = "synth",
+	.fops = &synth_fops,
 };
 
 void speakup_register_devsynth(void)
 {
 	if (misc_registered != 0)
 		return;
-	misc_registered = 1;
-	memset(&synth_device, 0, sizeof(synth_device));
 /* zero it so if register fails, deregister will not ref invalid ptrs */
-	synth_device.minor = SYNTH_MINOR;
-	synth_device.name = "synth";
-	synth_device.fops = &synth_fops;
 	if (misc_register(&synth_device))
 		pr_warn("Couldn't initialize miscdevice /dev/synth.\n");
-	else
-		pr_info("initialized device: /dev/synth, node (MAJOR 10, MINOR 25)\n");
+	else {
+		pr_info("initialized device: /dev/synth, node (MAJOR %d, MINOR %d)\n", MISC_MAJOR, SYNTH_MINOR);
+		misc_registered = 1;
+	}
 }
 
 void speakup_unregister_devsynth(void)
 {
+	if (!misc_registered)
+		return;
 	pr_info("speakup: unregistering synth device /dev/synth\n");
 	misc_deregister(&synth_device);
 	misc_registered = 0;
