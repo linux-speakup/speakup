@@ -269,7 +269,7 @@ static struct st_num_var synth_time_vars[] = {
 	V_LAST_NUM
 };
 
-/* called by: speakup_dev_init() */
+/* called by: speakup_init() */
 int synth_init(char *synth_name)
 {
 	int i;
@@ -298,13 +298,6 @@ int synth_init(char *synth_name)
 	mutex_unlock(&spk_mutex);
 
 	return ret;
-}
-
-/* It is up to the callee to take the lock, so that it can sleep whenever it likes */
-void synth_catch_up(u_long data)
-{
-	if (synth->catch_up)
-		synth->catch_up(synth, data);
 }
 
 /* called by: synth_add() */
@@ -338,6 +331,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	if (!quiet_boot)
 		synth_printf("%s found\n", synth->long_name);
 	synth_flags = synth->flags;
+	wake_up_interruptible(&speakup_event);
 	return 0;
 }
 
@@ -403,22 +397,3 @@ void synth_remove(struct spk_synth *in_synth)
 EXPORT_SYMBOL_GPL(synth_remove);
 
 short punc_masks[] = { 0, SOME, MOST, PUNC, PUNC|B_SYM };
-
-/* called by: speakup_init() */
-int speakup_dev_init(char *synth_name)
-{
-	pr_warn("synth name on entry is: %s\n", synth_name);
-	synth_init(synth_name);
-	speakup_register_devsynth();
-	return 0;
-}
-
-void speakup_remove(void)
-{
-	int i;
-
-	for (i = 0; i < MAXVARS; i++)
-		speakup_unregister_var(i);
-
-	speakup_unregister_devsynth();
-}

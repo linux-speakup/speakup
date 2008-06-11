@@ -1240,34 +1240,6 @@ void reset_default_chartab(void)
 	memcpy(spk_chartab, default_chartab, sizeof(default_chartab));
 }
 
-/* called by: speakup_init() */
-void speakup_open(struct vc_data *vc,
-				struct st_spk_t *first_console)
-{
-	int i;
-	struct st_num_var *n_var;
-
-	reset_default_chars();
-	reset_default_chartab();
-	memset(speakup_console, 0, sizeof(speakup_console));
-	if (first_console == NULL)
-		return;
-	speakup_console[vc->vc_num] = first_console;
-	speakup_date(vc);
-	pr_info("speakup %s: initialized\n", SPEAKUP_VERSION);
-	strlwr(synth_name);
-	spk_num_vars[0].high = vc->vc_cols;
-	for (n_var = spk_num_vars; n_var->var_id >= 0; n_var++)
-		speakup_register_var(n_var);
-	for (i = 1; punc_info[i].mask != 0; i++)
-		set_mask_bits(0, i, 2);
-	register_keyboard_notifier(&keyboard_notifier_block);
-	register_vt_notifier(&vt_notifier_block);
-	set_key_info(key_defaults, key_buf);
-	if (quiet_boot)
-		spk_shut_up |= 0x01;
-}
-
 static const struct st_bits_data *pb_edit = NULL;
 
 static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
@@ -2222,26 +2194,67 @@ static void __exit speakup_exit(void)
 {
 	int i;
 
-	kthread_stop(thread_task);
 	unregister_keyboard_notifier(&keyboard_notifier_block);
 	unregister_vt_notifier(&vt_notifier_block);
+	speakup_unregister_devsynth();
+
+	kthread_stop(thread_task);
 	mutex_lock(&spk_mutex);
 	synth_release();
 	mutex_unlock(&spk_mutex);
-	speakup_remove();
+
+	for (i = 0; i < MAXVARS; i++)
+		speakup_unregister_var(i);
+
 	for (i = 0; i < 256; i++) {
 		if (characters[i] != default_chars[i])
 			kfree(characters[i]);
 	}
-	for (i = 0; speakup_console[i]; i++) {
+	for (i = 0; speakup_console[i]; i++)
 		kfree(speakup_console[i]);
-		speakup_console[i] = NULL;
-	}
 }
 
 /* call by: module_init() */
 static int __init speakup_init(void)
 {
+	int i;
+	struct st_spk_t *first_console;
+	struct vc_data *vc = vc_cons[fg_console].d;
+	struct st_num_var *n_var;
+
+	first_console = kzalloc(sizeof(*first_console), GFP_KERNEL);
+	if (!first_console)
+		return -ENOMEM;
+
+	reset_default_chars();
+	reset_default_chartab();
+
+	speakup_console[vc->vc_num] = first_console;
+	speakup_date(vc);
+	pr_info("speakup %s: initialized\n", SPEAKUP_VERSION);
+
+	strlwr(synth_name);
+	spk_num_vars[0].high = vc->vc_cols;
+	for (n_var = spk_num_vars; n_var->var_id >= 0; n_var++)
+		speakup_register_var(n_var);
+	for (i = 1; punc_info[i].mask != 0; i++)
+		set_mask_bits(0, i, 2);
+
+	set_key_info(key_defaults, key_buf);
+	if (quiet_boot)
+		spk_shut_up |= 0x01;
+
+	register_keyboard_notifier(&keyboard_notifier_block);
+	register_vt_notifier(&vt_notifier_block);
+
+	for (i = 0; i < MAX_NR_CONSOLES; i++)
+		if (vc_cons[i].d)
+			speakup_allocate(vc_cons[i].d);
+
+	pr_warn("synth name on entry is: %s\n", synth_name);
+	synth_init(synth_name);
+	speakup_register_devsynth();
+
 	thread_task = kthread_create(speakup_thread, NULL, "speakup");
 	if ( ! IS_ERR(thread_task))
 		wake_up_process(thread_task);

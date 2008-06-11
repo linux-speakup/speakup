@@ -54,9 +54,6 @@
 #define E_UNDEF -1
 
 extern int speakup_thread(void *data);
-extern void synth_catch_up(u_long data);
-extern void speakup_open(struct vc_data *, struct st_spk_t *);
-extern void speakup_allocate(struct vc_data *);
 extern void reset_default_chars(void);
 extern void reset_default_chartab(void);
 extern void synth_start(void);
@@ -91,7 +88,6 @@ extern void speakup_register_devsynth(void);
 extern void speakup_unregister_devsynth(void);
 extern void synth_write(const char *buf, size_t count);
 extern int synth_supports_indexing(void);
-extern int speakup_dev_init(char *synth_name);
 
 extern struct vc_data *spk_sel_cons;
 extern unsigned short xs, ys, xe, ye; /* our region points */

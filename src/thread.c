@@ -9,19 +9,16 @@ DECLARE_WAIT_QUEUE_HEAD(speakup_event);
 
 int speakup_thread(void *data)
 {
-	int i;
-	struct st_spk_t *first_console = kzalloc(sizeof(*first_console),
-		GFP_KERNEL);
-
-	speakup_open(vc_cons[fg_console].d, first_console);
-	for (i = 0; vc_cons[i].d; i++)
-		speakup_allocate(vc_cons[i].d);
-	speakup_dev_init(synth_name);
 	while ( ! kthread_should_stop()) {
 		wait_event_interruptible(speakup_event,
-			(kthread_should_stop() || ! synth_buffer_empty()));
-		if (! synth_buffer_empty())
-			synth_catch_up((unsigned long ) 0);
+			(kthread_should_stop() ||
+			 (synth->catch_up && !synth_buffer_empty())));
+
+		if (synth->catch_up && !synth_buffer_empty())
+			/* It is up to the callee to take the lock, so that it
+			 * can sleep whenever it likes */
+			synth->catch_up(synth, 0);
+
 		speakup_start_ttys();
 	}
 	return 0;
