@@ -127,7 +127,7 @@ void stop_serial_interrupt(void)
 
 int wait_for_xmitr(void)
 {
-	int check, tmout = SPK_XMITR_TIMEOUT;
+	int tmout = SPK_XMITR_TIMEOUT;
 	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
 		speakup_info.alive = 0;
 		timeouts = 0;
@@ -139,16 +139,18 @@ int wait_for_xmitr(void)
 			timeouts++;
 			return 0;
 		}
+		udelay(1);
 	}
 	tmout = SPK_XMITR_TIMEOUT;
-	do {
+	while ((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS) {
 		/* CTS */
-		check = inb_p(speakup_info.port_tts + UART_MSR);
 		if (--tmout == 0) {
+			pr_warn("%s: timed out\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
-	} while ((check & UART_MSR_CTS) != UART_MSR_CTS);
+		udelay(1);
+	}
 	timeouts = 0;
 	return 1;
 }
@@ -156,16 +158,15 @@ int wait_for_xmitr(void)
 unsigned char spk_serial_in(void)
 {
 	int c;
-	int lsr;
 	int tmout = SPK_SERIAL_TIMEOUT;
 
-	do {
-		lsr = inb_p(speakup_info.port_tts + UART_LSR);
+	while (!(inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR)) {
 		if (--tmout == 0) {
 			pr_warn("time out while waiting for input.\n");
 			return 0xff;
 		}
-	} while (!(lsr & UART_LSR_DR));
+		udelay(1);
+	}
 	c = inb_p(speakup_info.port_tts + UART_RX);
 	return (unsigned char) c;
 }

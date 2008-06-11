@@ -7,9 +7,9 @@
 #include <linux/serialP.h>	/* for struct serial_state */
 #include <asm/serial.h>
 
-/* countdown values for serial timeouts */
+/* countdown values for serial timeouts in us */
 #define SPK_SERIAL_TIMEOUT 1000000
-/* countdown values transmitter/dsr timeouts */
+/* countdown values transmitter/dsr timeouts in us */
 #define SPK_XMITR_TIMEOUT 1000000
 /* check ttyS0 ... ttyS3 */
 #define SPK_LO_TTY 0
