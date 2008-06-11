@@ -150,7 +150,8 @@ void synth_start(void)
 		synth_done();
 	else if (synth->start)
 		synth->start();
-	mod_timer(&thread_timer, jiffies + (HZ * synth_trigger_time) / 1000);
+	if (!timer_pending(&thread_timer))
+		mod_timer(&thread_timer, jiffies + (HZ * synth_trigger_time) / 1000);
 }
 
 void do_flush(void)
@@ -338,7 +339,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	if (!quiet_boot)
 		synth_printf("%s found\n", synth->long_name);
 	synth_flags = synth->flags;
-	mod_timer(&thread_timer, jiffies + (HZ * synth_trigger_time) / 1000);
+	wake_up_interruptible(&speakup_event);
 	return 0;
 }
 
