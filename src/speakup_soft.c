@@ -135,7 +135,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	finish_wait(&wait_on_output, &wait);
 
 	cp = buf;
-	while ((chars_sent <= count) && (! synth_buffer_empty())) {
+	while ((chars_sent < count) && (! synth_buffer_empty())) {
 		ch = synth_buffer_getc();
 		if (copy_to_user(cp, &ch, 1)) {
 			spk_unlock(flags);
