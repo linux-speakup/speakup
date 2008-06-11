@@ -142,7 +142,7 @@ int wait_for_xmitr(void)
 		udelay(1);
 	}
 	tmout = SPK_XMITR_TIMEOUT;
-	while ((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS) {
+	while (!((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS)) {
 		/* CTS */
 		if (--tmout == 0) {
 			pr_warn("%s: timed out\n", synth->long_name);
