@@ -12,9 +12,9 @@ int speakup_thread(void *data)
 	while ( ! kthread_should_stop()) {
 		wait_event_interruptible(speakup_event,
 			(kthread_should_stop() ||
-			 (synth->catch_up && !synth_buffer_empty())));
+			 (synth && synth->catch_up && !synth_buffer_empty())));
 
-		if (synth->catch_up && !synth_buffer_empty())
+		if (synth && synth->catch_up && !synth_buffer_empty())
 			/* It is up to the callee to take the lock, so that it
 			 * can sleep whenever it likes */
 			synth->catch_up(synth, 0);
