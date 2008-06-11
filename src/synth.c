@@ -129,6 +129,13 @@ int spk_synth_is_alive_restart(struct spk_synth *synth)
 }
 EXPORT_SYMBOL_GPL(spk_synth_is_alive_restart);
 
+static void thread_wake_up(u_long data)
+{
+	wake_up_interruptible(&speakup_event);
+}
+
+static DEFINE_TIMER(thread_timer, thread_wake_up, 0, 0);
+
 void synth_done(void)
 {
 	synth_buffer_clear();
@@ -143,7 +150,7 @@ void synth_start(void)
 		synth_done();
 	else if (synth->start)
 		synth->start();
-	wake_up_interruptible(&speakup_event);
+	mod_timer(&thread_timer, jiffies + (HZ * synth_trigger_time) / 1000);
 }
 
 void do_flush(void)
@@ -331,7 +338,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	if (!quiet_boot)
 		synth_printf("%s found\n", synth->long_name);
 	synth_flags = synth->flags;
-	wake_up_interruptible(&speakup_event);
+	mod_timer(&thread_timer, jiffies + (HZ * synth_trigger_time) / 1000);
 	return 0;
 }
 
