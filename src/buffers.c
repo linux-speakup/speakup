@@ -22,9 +22,12 @@ void speakup_start_ttys(void)
 		lock_kernel();
 	else if (!current->lock_depth)
 		return;
-	for (i = 0; i < MAX_NR_CONSOLES; i++)
+	for (i = 0; i < MAX_NR_CONSOLES; i++) {
+		if (speakup_console[i] && speakup_console[i]->tty_stopped)
+			continue;
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			start_tty(vc_cons[i].d->vc_tty);
+	}
 	if (!in_atomic())
 		unlock_kernel();
 	return;

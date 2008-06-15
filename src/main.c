@@ -1717,15 +1717,17 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	switch (value) {
 	case KVAL(K_CAPS):
 		label = "caps lock";
-		on_off = (vc_kbd_led(kbd_table + fg_console, VC_CAPSLOCK));
+		on_off = (vc_kbd_led(kbd_table + vc->vc_num, VC_CAPSLOCK));
 		break;
 	case KVAL(K_NUM):
 		label = "num lock";
-		on_off = (vc_kbd_led(kbd_table + fg_console, VC_NUMLOCK));
+		on_off = (vc_kbd_led(kbd_table + vc->vc_num, VC_NUMLOCK));
 		break;
 	case KVAL(K_HOLD):
 		label = "scroll lock";
-		on_off = (vc_kbd_led(kbd_table + fg_console, VC_SCROLLOCK));
+		on_off = (vc_kbd_led(kbd_table + vc->vc_num, VC_SCROLLOCK));
+		if (speakup_console[vc->vc_num])
+			speakup_console[vc->vc_num]->tty_stopped = on_off;
 		break;
 	default:
 		spk_parked &= 0xfe;

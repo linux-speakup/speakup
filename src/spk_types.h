@@ -59,6 +59,7 @@ struct st_spk_t {
 	u_char reading_attr, old_attr;
 	char parked, shut_up;
 	struct spk_highlight_color_track ht;
+	int tty_stopped;
 };
 
 /* now some defines to make these easier to use. */
