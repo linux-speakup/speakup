@@ -156,15 +156,9 @@ void synth_start(void)
 
 void do_flush(void)
 {
+	do_flush_flag = 1;
 	synth_buffer_clear();
-	if (speakup_info.alive) {
-		synth->flush(synth);
-		if (pitch_shift) {
-			synth_printf("%s", pitch_buff);
-			pitch_shift = 0;
-		}
-	}
-	speakup_start_ttys();
+	wake_up_interruptible(&speakup_event);
 }
 
 void synth_write(const char *buf, size_t count)
