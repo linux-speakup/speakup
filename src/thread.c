@@ -20,16 +20,17 @@ int speakup_thread(void *data)
 
 		if (do_flush_flag) {
 			spk_lock(flags);
-		if (speakup_info.alive) {
-			synth->flush(synth);
-			if (pitch_shift) {
-				synth_printf("%s", pitch_buff);
-				pitch_shift = 0;
+			if (speakup_info.alive) {
+				synth->flush(synth);
+				if (pitch_shift) {
+					synth_printf("%s", pitch_buff);
+					pitch_shift = 0;
+				}
 			}
-		}
 			spk_unlock(flags);
-		do_flush_flag = 0;
-	}else if (synth && synth->catch_up && !synth_buffer_empty()) {
+			do_flush_flag = 0;
+		}
+		if (synth && synth->catch_up && !synth_buffer_empty()) {
 			/* It is up to the callee to take the lock, so that it
 			 * can sleep whenever it likes */
 			synth->catch_up(synth, 0);
