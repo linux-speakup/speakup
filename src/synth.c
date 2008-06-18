@@ -158,6 +158,7 @@ void do_flush(void)
 {
 	do_flush_flag = 1;
 	synth_buffer_clear();
+	speakup_start_ttys();
 	wake_up_interruptible(&speakup_event);
 }
 
