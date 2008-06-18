@@ -20,13 +20,8 @@ int speakup_thread(void *data)
 
 		if (do_flush_flag) {
 			spk_lock(flags);
-			if (speakup_info.alive) {
+			if (speakup_info.alive)
 				synth->flush(synth);
-				if (pitch_shift) {
-					synth_printf("%s", pitch_buff);
-					pitch_shift = 0;
-				}
-			}
 			spk_unlock(flags);
 			do_flush_flag = 0;
 		}
