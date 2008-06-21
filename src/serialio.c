@@ -135,7 +135,7 @@ int wait_for_xmitr(void)
 	}
 	while (spk_serial_tx_busy()) {
 		if (--tmout == 0) {
-			pr_warn("%s: timed out\n", synth->long_name);
+			pr_warn("%s: timed out (tx busy)\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
@@ -145,7 +145,7 @@ int wait_for_xmitr(void)
 	while (!((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS)) {
 		/* CTS */
 		if (--tmout == 0) {
-			pr_warn("%s: timed out\n", synth->long_name);
+			pr_warn("%s: timed out (cts)\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
