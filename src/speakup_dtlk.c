@@ -29,7 +29,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define DRV_VERSION "2.1"
+#define DRV_VERSION "2.2"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
@@ -114,7 +114,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 
 	spk_lock(flags);
 	synth_status = inb_p(speakup_info.port_tts);
-	while (! synth_buffer_empty()) {
+	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		if (synth_status & TTS_ALMOST_FULL) {
 			spk_unlock(flags);
 			msleep(speakup_info.delay_time);

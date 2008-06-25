@@ -25,7 +25,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.1"
+#define DRV_VERSION "2.2"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -127,7 +127,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	unsigned long flags;
 
 	spk_lock(flags);
-	while (! synth_buffer_empty()) {
+	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		if (synth_full()) {
 			spk_unlock(flags);
 			msleep(speakup_info.delay_time);

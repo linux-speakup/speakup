@@ -29,7 +29,7 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.1"
+#define DRV_VERSION "2.2"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -114,7 +114,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	unsigned long flags;
 
 	spk_lock(flags);
-	while (! synth_buffer_empty()) {
+	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		if (synth_full()) {
 			spk_unlock(flags);
 			msleep(speakup_info.full_time);

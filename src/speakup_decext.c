@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -93,7 +93,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	unsigned long flags;
 
 	spk_lock(flags);
-	while (! synth_buffer_empty()) {
+	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		if (! ch)
 			ch = synth_buffer_getc();
 		if (ch == '\n')

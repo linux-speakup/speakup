@@ -163,6 +163,7 @@ struct speakup_info_t {
 	short jiffy_delta;
 	short full_time;
 	int alive;
+	int flushing;
 };
 
 #endif

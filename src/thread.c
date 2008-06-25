@@ -6,7 +6,6 @@
 #include "spk_priv.h"
 
 DECLARE_WAIT_QUEUE_HEAD(speakup_event);
-int do_flush_flag = 0;
 
 int speakup_thread(void *data)
 {
@@ -15,15 +14,15 @@ int speakup_thread(void *data)
 	while ( ! kthread_should_stop()) {
 		wait_event_interruptible(speakup_event,
 			(kthread_should_stop() ||
-			do_flush_flag ||
+			speakup_info.flushing ||
 			 (synth && synth->catch_up && !synth_buffer_empty())));
 
-		if (do_flush_flag) {
+		if (speakup_info.flushing) {
 			spk_lock(flags);
 			if (speakup_info.alive)
 				synth->flush(synth);
 			spk_unlock(flags);
-			do_flush_flag = 0;
+			speakup_info.flushing = 0;
 		}
 		if (synth && synth->catch_up && !synth_buffer_empty()) {
 			/* It is up to the callee to take the lock, so that it

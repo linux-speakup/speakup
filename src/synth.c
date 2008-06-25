@@ -28,6 +28,7 @@ struct speakup_info_t speakup_info = {
 	.delay_time = 500,
 	.jiffy_delta = 50,
 	.full_time = 1000,
+	.flushing = 0,
 };
 EXPORT_SYMBOL_GPL(speakup_info);
 
@@ -67,7 +68,7 @@ void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 	unsigned long flags;
 
 	spk_lock(flags);
-	while (! synth_buffer_empty()) {
+	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		if (! ch)
 			ch = synth_buffer_getc();
 		if (ch == '\n')
@@ -156,7 +157,7 @@ void synth_start(void)
 
 void do_flush(void)
 {
-	do_flush_flag = 1;
+	speakup_info.flushing = 1;
 	synth_buffer_clear();
 	if (speakup_info.alive) {
 		if (pitch_shift) {
