@@ -24,7 +24,7 @@
  */
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 

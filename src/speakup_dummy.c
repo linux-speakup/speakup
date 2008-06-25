@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define PROCSPEECH '\n'
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define SYNTH_CLEAR 0x18
 
 static struct st_string_var stringvars[] = {

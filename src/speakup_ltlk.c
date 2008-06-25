@@ -26,7 +26,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define PROCSPEECH 0x0d
 
 static int synth_probe(struct spk_synth *synth);

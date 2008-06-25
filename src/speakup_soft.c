@@ -26,7 +26,7 @@
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.1"
+#define DRV_VERSION "2.2"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -136,11 +136,12 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 
 	cp = buf;
 	while ((chars_sent < count) && (! synth_buffer_empty())) {
-		ch = synth_buffer_getc();
+		ch = synth_buffer_peek();
 		if (copy_to_user(cp, &ch, 1)) {
 			spk_unlock(flags);
 			return -EFAULT;
 		}
+		synth_buffer_getc();
 		chars_sent++;
 		cp++;
 	}

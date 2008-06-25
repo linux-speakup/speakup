@@ -54,6 +54,7 @@ extern int spk_serial_out(const char ch);
 extern void spk_serial_release(void);
 
 extern char synth_buffer_getc(void);
+extern char synth_buffer_peek(void);
 extern int synth_buffer_empty(void);
 
 extern int serial_synth_probe(struct spk_synth *synth);

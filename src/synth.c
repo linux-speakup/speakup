@@ -64,21 +64,21 @@ EXPORT_SYMBOL_GPL(serial_synth_probe);
 
 void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	static u_char ch = 0;
+	u_char ch;
 	unsigned long flags;
 
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
-		if (! ch)
-			ch = synth_buffer_getc();
+		ch = synth_buffer_peek();
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
 			spk_unlock(flags);
 			msleep(speakup_info.full_time);
 			spk_lock(flags);
+		} else {
+			synth_buffer_getc();
 		}
-		ch = 0;
 	}
 	spk_serial_out(synth->procspeech);
 	synth_done();

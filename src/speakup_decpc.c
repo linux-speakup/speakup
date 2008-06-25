@@ -130,7 +130,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "2.3"
+#define DRV_VERSION "2.4"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -314,20 +314,21 @@ oops:	synth_release_region(speakup_info.port_tts, SYNTH_IO_EXTENT);
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
-	static u_char ch = 0;
+	u_char ch;
 	static u_char last = '\0';
 	unsigned long flags;
 
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
-		if (! ch)
-			ch = synth_buffer_getc();
+		ch = synth_buffer_peek();
 		if (ch == '\n')
 			ch = 0x0D;
 		if (dt_sendchar(ch)) {
 			spk_unlock(flags);
 			msleep(speakup_info.delay_time);
 			spk_lock(flags);
+		} else {
+			synth_buffer_getc();
 		}
 		if (ch == '[')
 			in_escape = 1;
