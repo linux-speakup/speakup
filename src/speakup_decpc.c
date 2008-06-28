@@ -324,12 +324,12 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
-		if (dt_sendchar(ch)) {
-			msleep(speakup_info.delay_time);
-		} else {
+		if (!dt_sendchar(ch)) {
 			spk_lock(flags);
 			synth_buffer_getc();
 			spk_unlock(flags);
+		} else {
+			msleep(speakup_info.delay_time);
 		}
 		if (ch == '[')
 			in_escape = 1;
