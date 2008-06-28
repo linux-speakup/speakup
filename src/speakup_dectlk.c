@@ -25,6 +25,7 @@
 #include <linux/unistd.h>
 #include <linux/proc_fs.h>
 #include <linux/jiffies.h>
+#include <linux/spinlock.h>
 #include "spk_priv.h"
 #include "serialio.h"
 
@@ -40,6 +41,9 @@ static unsigned char get_index(void);
 
 static int in_escape;
 static int is_flushing;
+
+static spinlock_t flush_lock;
+static DECLARE_WAIT_QUEUE_HEAD(flush);
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "[:dv ap 200]" },
@@ -113,9 +117,13 @@ static void read_buff_add(u_char c)
 {
 	static int ind = -1;
 
-	if (c == 0x01)
+	if (c == 0x01) {
+		unsigned long flags;
+		spin_lock_irqsave(&flush_lock, flags);
 		is_flushing = 0;
-	else if (is_indnum(&c)) {
+		wake_up_interruptible(&flush);
+		spin_unlock_irqrestore(&flush_lock, flags);
+	} else if (is_indnum(&c)) {
 		if (ind == -1)
 			ind = c;
 		else
@@ -132,14 +140,21 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	static u_char ch = 0;
 	static u_char last = '\0';
 	unsigned long flags;
+	unsigned long timeout = 4000 * HZ;
+	DEFINE_WAIT(wait);
 
-	if (is_flushing) {
-		if (--is_flushing == 0)
-			pr_warn("flush timeout\n");
-		else {
-			msleep(speakup_info.delay_time);
-		}
+	/* if no ctl-a in 4, send data anyway */
+	spin_lock_irqsave(&flush_lock, flags);
+	while (is_flushing && timeout) {
+		prepare_to_wait(&flush, &wait, TASK_INTERRUPTIBLE);
+		spin_unlock_irqrestore(&flush_lock, flags);
+		timeout = schedule_timeout(timeout);
+		spin_lock_irqsave(&flush_lock, flags);
 	}
+	finish_wait(&flush, &wait);
+	is_flushing = 0;
+	spin_unlock_irqrestore(&flush_lock, flags);
+
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		if (! ch)
@@ -179,8 +194,8 @@ static void synth_flush(struct spk_synth *synth)
 		spk_serial_out(']');
 	}
 	in_escape = 0;
+	is_flushing = 1;
 	spk_serial_out(SYNTH_CLEAR);
-	is_flushing = 5; /* if no ctl-a in 4, send data anyway */
 }
 
 module_param_named(ser, synth_dectlk.ser, int, S_IRUGO);
