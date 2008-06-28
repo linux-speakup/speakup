@@ -5,7 +5,9 @@
 				   serial_uart_config */
 #include <linux/serial_reg.h>	/* for more serial constants */
 #include <linux/serialP.h>	/* for struct serial_state */
+#ifndef __sparc__
 #include <asm/serial.h>
+#endif
 
 /* countdown values for serial timeouts in us */
 #define SPK_SERIAL_TIMEOUT 1000000
