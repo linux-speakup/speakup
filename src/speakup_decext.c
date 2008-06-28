@@ -95,14 +95,15 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		ch = synth_buffer_peek();
+		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
 		if (! synth_full() && spk_serial_out(ch)) {
-			synth_buffer_getc();
-		} else {
-			spk_unlock(flags);
-			msleep(speakup_info.delay_time);
 			spk_lock(flags);
+			synth_buffer_getc();
+			spk_unlock(flags);
+		} else {
+			msleep(speakup_info.delay_time);
 		}
 		if (ch == '[')
 			in_escape = 1;
@@ -113,11 +114,12 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 				spk_serial_out(PROCSPEECH);
 		}
 		last = ch;
+		spk_lock(flags);
 	}
 	synth_done();
+	spk_unlock(flags);
 	if (!in_escape)
 		spk_serial_out(PROCSPEECH);
-	spk_unlock(flags);
 }
 
 static void synth_flush(struct spk_synth *synth)

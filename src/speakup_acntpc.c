@@ -115,23 +115,24 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
-		if (synth_full()) {
-			spk_unlock(flags);
+		spk_unlock(flags);
+		if (synth_full())
 			msleep(speakup_info.full_time);
-			spk_lock(flags);
-		}
 		while (synth_writable())
 			cpu_relax();
+		spk_lock(flags);
 		ch = synth_buffer_getc();
+		spk_unlock(flags);
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
+		spk_lock(flags);
 	}
+	synth_done();
+	spk_unlock(flags);
 	while (synth_writable())
 		cpu_relax();
 	outb_p(PROCSPEECH, speakup_info.port_tts);
-	synth_done();
-	spk_unlock(flags);
 }
 
 static void synth_flush(struct spk_synth *synth)

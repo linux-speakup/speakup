@@ -321,14 +321,15 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		ch = synth_buffer_peek();
+		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
 		if (dt_sendchar(ch)) {
-			spk_unlock(flags);
 			msleep(speakup_info.delay_time);
-			spk_lock(flags);
 		} else {
+			spk_lock(flags);
 			synth_buffer_getc();
+			spk_unlock(flags);
 		}
 		if (ch == '[')
 			in_escape = 1;
@@ -340,11 +341,12 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		}
 		last = ch;
 		ch = 0;
+		spk_lock(flags);
 	}
 	synth_done();
+	spk_unlock(flags);
 	if (!in_escape)
 		dt_sendchar(PROCSPEECH);
-	spk_unlock(flags);
 }
 
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)

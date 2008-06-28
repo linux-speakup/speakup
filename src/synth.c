@@ -70,19 +70,21 @@ void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		ch = synth_buffer_peek();
+		spk_unlock(flags);
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
-			spk_unlock(flags);
 			msleep(speakup_info.full_time);
-			spk_lock(flags);
 		} else {
+			spk_lock(flags);
 			synth_buffer_getc();
+			spk_unlock(flags);
 		}
+		spk_lock(flags);
 	}
-	spk_serial_out(synth->procspeech);
 	synth_done();
 	spk_unlock(flags);
+	spk_serial_out(synth->procspeech);
 }
 EXPORT_SYMBOL_GPL(spk_do_catch_up);
 

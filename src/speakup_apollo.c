@@ -89,20 +89,21 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
 		ch = synth_buffer_peek();
+		spk_unlock(flags);
 		if (!spk_serial_out(ch)) {
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
-			spk_unlock(flags);
 			msleep(speakup_info.full_time);
 			spk_lock(flags);
 		} else {
+			spk_lock(flags);
 			synth_buffer_getc();
 		}
 	}
-	spk_serial_out(PROCSPEECH);
 	synth_done();
 	spk_unlock(flags);
+	spk_serial_out(PROCSPEECH);
 }
 
 module_param_named(ser, synth_apollo.ser, int, S_IRUGO);
