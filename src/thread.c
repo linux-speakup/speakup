@@ -29,12 +29,14 @@ int speakup_thread(void *data)
 		}
 		finish_wait(&speakup_event, &wait);
 
+		spk_lock(flags);
 		if (speakup_info.flushing) {
-			spk_lock(flags);
-			if (speakup_info.alive)
-				synth->flush(synth);
-			spk_unlock(flags);
 			speakup_info.flushing = 0;
+			if (speakup_info.alive)
+				spk_unlock(flags);
+				synth->flush(synth);
+			else
+				spk_unlock(flags);
 		}
 		if (synth && synth->catch_up && !synth_buffer_empty()) {
 			/* It is up to the callee to take the lock, so that it
