@@ -17,7 +17,8 @@ config SPEAKUP
 		external (old), Dectalk PC (full length isa board),
 		Dectalk express, Doubletalk, Doubletalk LT or
 		Litetalk, Keynote Gold internal PC, software
-		synthesizers, Speakout, and transport.
+		synthesizers, Speakout, transport, and a dummy module
+		that can be used with a plain text terminal.
 		
 		Speakup can either be built in or compiled as a module
 		by answering y or m.  If you answer y here, then you
