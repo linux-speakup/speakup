@@ -44,7 +44,7 @@ static struct st_num_var numvars[] = {
 	{ TONE, "\x01%dx", 1, 0, 2, 0, 0, 0 },
 	{ PUNCT, "\x01%db", 7, 0, 15, 0, 0, 0 },
 	{ VOICE, "\x01%do", 0, 0, 7, 0, 0, 0 },
-	{ FREQ, "\x01%df", 5, 0, 9, 0, 0, 0 },
+	{ FREQUENCY, "\x01%df", 5, 0, 9, 0, 0, 0 },
 	V_LAST_NUM
 };
 

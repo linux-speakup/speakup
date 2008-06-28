@@ -39,7 +39,7 @@ static struct st_var_header var_headers[] = {
   { "tone", TONE, VAR_NUM, USER_RW, 0, 0, 0 },
   { "punct", PUNCT, VAR_NUM, USER_RW, 0, 0, 0 },
   { "voice", VOICE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "freq", FREQ, VAR_NUM, USER_RW, 0, 0, 0 },
+  { "freq", FREQUENCY, VAR_NUM, USER_RW, 0, 0, 0 },
   { "lang", LANG, VAR_NUM, USER_RW, 0, 0, 0 },
   { "chartab", CHARTAB, VAR_PROC, USER_RW, 0, 0, 0 },
 };
