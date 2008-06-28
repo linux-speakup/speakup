@@ -32,10 +32,10 @@ int speakup_thread(void *data)
 		spk_lock(flags);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
-			if (speakup_info.alive)
+			if (speakup_info.alive) {
 				spk_unlock(flags);
 				synth->flush(synth);
-			else
+			} else
 				spk_unlock(flags);
 		}
 		if (synth && synth->catch_up && !synth_buffer_empty()) {
