@@ -12,10 +12,22 @@ int speakup_thread(void *data)
 	unsigned long flags;
 
 	while ( ! kthread_should_stop()) {
-		wait_event_interruptible(speakup_event,
-			(kthread_should_stop() ||
-			speakup_info.flushing ||
-			 (synth && synth->catch_up && !synth_buffer_empty())));
+		DEFINE_WAIT(wait);
+		while(1) {
+			spk_lock(flags);
+			prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
+			if (kthread_should_stop() ||
+				speakup_info.flushing ||
+				(synth && synth->catch_up && !synth_buffer_empty())) {
+				spk_unlock(flags);
+				break;
+			}
+			spk_unlock(flags);
+			if (signal_pending(current))
+				break;
+			schedule();
+		}
+		finish_wait(&speakup_event, &wait);
 
 		if (speakup_info.flushing) {
 			spk_lock(flags);
