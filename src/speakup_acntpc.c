@@ -118,6 +118,9 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		spk_unlock(flags);
 		if (synth_full())
 			msleep(speakup_info.full_time);
+			spk_lock(flags);
+			continue;
+		}
 		while (synth_writable())
 			cpu_relax();
 		spk_lock(flags);
