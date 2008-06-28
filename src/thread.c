@@ -37,7 +37,8 @@ int speakup_thread(void *data)
 				synth->flush(synth);
 			} else
 				spk_unlock(flags);
-		}
+		} else
+			spk_unlock(flags);
 		if (synth && synth->catch_up && !synth_buffer_empty()) {
 			/* It is up to the callee to take the lock, so that it
 			 * can sleep whenever it likes */
