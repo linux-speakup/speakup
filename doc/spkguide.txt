@@ -57,12 +57,12 @@ synthesizer set, or you would like to use a different synthesizer than
 the default one, then you may issue the following command at the boot
 prompt of your boot loader.
 
-linux speakup_synth=ltlk
+linux speakup.synth=ltlk
 
 This command would tell Speakup to look for and use a LiteTalk or
 DoubleTalk LT at boot up.  You may replace the ltlk synthesizer keyword
 with the keyword for whatever synthesizer you wish to use.  The
-speakup_synth parameter will accept the following keywords, provided
+speakup.synth parameter will accept the following keywords, provided
 that support for the related synthesizers has been built into the
 kernel.
 
@@ -78,6 +78,7 @@ keypc -- Keynote Gold PC
 ltlk -- DoubleTalk LT, LiteTalk, or external Tripletalk (db9 serial only)
 spkout -- Speak Out
 txprt -- Transport
+dummy -- Plain text terminal
 
 Note: Speakup does * NOT * support usb connections!  Speakup also does *
 NOT * support the internal Tripletalk!
@@ -92,7 +93,7 @@ soft -- One of several software synthesizers (not available at boot up)
 
 See the sections on loading modules and software synthesizers later in
 this manual for further details.  It should be noted here that the
-speakup_synth boot parameter will have no effect if Speakup has been
+speakup.synth boot parameter will have no effect if Speakup has been
 compiled as modules.  In order for Speakup modules to be loaded during
 the boot process, such action must be configured by your system
 administrator.  This will mean that you will hear some, but not all,  of
@@ -222,7 +223,7 @@ example, if you press the keypad 8 key, you will hear:
 
 You'll notice that some commands do not have keys assigned to them. 
 This is because they are very infrequently used commands, and are also
-accessible through the proc system.  We'll discuss the proc system later
+accessible through the sys system.  We'll discuss the sys system later
 in this manual.
 
 You'll also notice that some commands have two keys assigned to them. 
@@ -350,57 +351,64 @@ spk key_8 = speakup_paste
 shift spk key_m = say_first_char
  ctrl spk key_semicolon = say_last_char
 
-5.  The Speakup Proc System
+5.  The Speakup Sys System
 
 The Speakup screen reader also creates a speakup subdirectory as a part
-of the proc system.  You can see these entries by typing the command:
+of the sys system.
 
-ls -1 /proc/speakup/*
+As a convenience, run as root
+
+ln -s /sys/modules/speakup/parameters /speakup
+
+to directly access speakup parameters from /speakup. 
+You can see these entries by typing the command:
+
+ls -1 /speakup/*
 
 If you issue the above ls command, you will get back something like
 this:
 
-/proc/speakup/attrib_bleep
-/proc/speakup/bell_pos
-/proc/speakup/bleep_time
-/proc/speakup/bleeps
-/proc/speakup/caps_start
-/proc/speakup/caps_stop
-/proc/speakup/characters
-/proc/speakup/cursor_time
-/proc/speakup/delay_time
-/proc/speakup/delimiters
-/proc/speakup/ex_num
-/proc/speakup/freq
-/proc/speakup/full_time
-/proc/speakup/jiffy_delta
-/proc/speakup/key_echo
-/proc/speakup/keymap
-/proc/speakup/no_interrupt
-/proc/speakup/pitch
-/proc/speakup/punc_all
-/proc/speakup/punc_level
-/proc/speakup/punc_most
-/proc/speakup/punc_some
-/proc/speakup/punct
-/proc/speakup/rate
-/proc/speakup/reading_punc
-/proc/speakup/repeats
-/proc/speakup/say_control
-/proc/speakup/say_word_ctl
-/proc/speakup/silent
-/proc/speakup/spell_delay
-/proc/speakup/synth_direct
-/proc/speakup/synth_name
-/proc/speakup/tone
-/proc/speakup/trigger_time
-/proc/speakup/version
-/proc/speakup/voice
-/proc/speakup/vol
+/speakup/attrib_bleep
+/speakup/bell_pos
+/speakup/bleep_time
+/speakup/bleeps
+/speakup/caps_start
+/speakup/caps_stop
+/speakup/characters
+/speakup/cursor_time
+/speakup/delay_time
+/speakup/delimiters
+/speakup/ex_num
+/speakup/freq
+/speakup/full_time
+/speakup/jiffy_delta
+/speakup/key_echo
+/speakup/keymap
+/speakup/no_interrupt
+/speakup/pitch
+/speakup/punc_all
+/speakup/punc_level
+/speakup/punc_most
+/speakup/punc_some
+/speakup/punct
+/speakup/rate
+/speakup/reading_punc
+/speakup/repeats
+/speakup/say_control
+/speakup/say_word_ctl
+/speakup/silent
+/speakup/spell_delay
+/speakup/synth_direct
+/speakup/synth_name
+/speakup/tone
+/speakup/trigger_time
+/speakup/version
+/speakup/voice
+/speakup/vol
 
 In addition to using the Speakup hot keys to change such things as
 volume, pitch, and rate, you can also echo values to the appropriate
-entry in the /proc/speakup directory.  This is very useful, since it
+entry in the /speakup directory.  This is very useful, since it
 lets you control Speakup parameters from within a script.  How you
 would write such scripts is somewhat beyond the scope of this manual,
 but I will include a couple of simple examples here to give you a
@@ -414,29 +422,29 @@ might look something like this:
 #!/bin/bash
 # punc0
 # set punc and reading punc levels to 0
-echo 0 >/proc/speakup/punc_level
-echo 0 >/proc/speakup/reading_punc
+echo 0 >/speakup/punc_level
+echo 0 >/speakup/reading_punc
 echo Punctuation level set to 0.
 
 #!/bin/bash
 # punc1
 # set punc and reading punc levels to 1
-echo 1 >/proc/speakup/punc_level
-echo 1 >/proc/speakup/reading_punc
+echo 1 >/speakup/punc_level
+echo 1 >/speakup/reading_punc
 echo Punctuation level set to 1.
 
 #!/bin/bash
 # punc2
 # set punc and reading punc levels to 2
-echo 2 >/proc/speakup/punc_level
-echo 2 >/proc/speakup/reading_punc
+echo 2 >/speakup/punc_level
+echo 2 >/speakup/reading_punc
 echo Punctuation level set to 2.
 
 #!/bin/bash
 # punc3
 # set punc and reading punc levels to 3
-echo 3 >/proc/speakup/punc_level
-echo 3 >/proc/speakup/reading_punc
+echo 3 >/speakup/punc_level
+echo 3 >/speakup/reading_punc
 echo Punctuation level set to 3.
 
 If you were to store these four small scripts in a directory in your
@@ -450,45 +458,45 @@ I should note that the above scripts were written to work with bash, but
 regardless of which shell you use, you should be able to do something
 similar.
 
-The Speakup proc system also has another interesting use.  You can echo
-Speakup parameters into the proc system in a script during system
+The Speakup sys system also has another interesting use.  You can echo
+Speakup parameters into the sys system in a script during system
 startup, and speakup will return to your preferred parameters every time
 the system is rebooted.
 
-Most of the Speakup proc parameters can be manipulated by a regular user
+Most of the Speakup sys parameters can be manipulated by a regular user
 on the system.  However, there are a few parameters that are dangerous
 enough that they should only be manipulated by the root user on your
 system.  There are even some parameters that are read only, and cannot
 be written to at all.  For example, the version entry in the Speakup
-proc system is read only.  This is because there is no reason for a user
+sys system is read only.  This is because there is no reason for a user
 to tamper with the version number which is reported by Speakup.  Doing
-an ls -l on /proc/speakup/version will return this:
+an ls -l on /speakup/version will return this:
 
--r--r--r--    1 root     root            0 Mar 21 13:46 /proc/speakup/version
+-r--r--r--    1 root     root            0 Mar 21 13:46 /speakup/version
 
-As you can see, the version entry in the Speakup proc system is read
+As you can see, the version entry in the Speakup sys system is read
 only, is owned by root, and belongs to the root group.  Doing a cat of
-/proc/speakup/version will display the Speakup version number, like
+/speakup/version will display the Speakup version number, like
 this:
 
-cat /proc/speakup/version
+cat /speakup/version
 Speakup v-2.00 CVS: Thu Oct 21 10:38:21 EDT 2004 
 synth dtlk version 1.1
 
 The display shows the Speakup version number, along with the version
 number of the driver for the current synthesizer.
 
-Looking at entries in the Speakup proc system can be useful in many
+Looking at entries in the Speakup sys system can be useful in many
 ways.  For example, you might wish to know what level your volume is set
 at.  You could type:
 
-cat /proc/speakup/vol
+cat /speakup/vol
 5
 
 The number five which comes back is the level at which the synthesizer
 volume is set at.
 
-All the entries in the Speakup proc system are readable, some are
+All the entries in the Speakup sys system are readable, some are
 writable by root only, and some are writable by everyone.  Unless you
 know what you are doing, you should probably leave the ones that are
 writable by root only alone.  Most of the names are self explanatory. 
@@ -501,11 +509,11 @@ on the Speakup list.
 It is possible to change to a different synthesizer while speakup is
 running.  In other words, it is not necessary to reboot the system
 in order to use a different synthesizer.  You can simply echo the
-synthesizer keyword to the /proc/speakup/synth_name proc entry. 
+synthesizer keyword to the /speakup/synth_name sys entry. 
 Depending on your situation, you may wish to echo none to the synth_name
-proc entry, to disable speech while one synthesizer is disconnected and
+sys entry, to disable speech while one synthesizer is disconnected and
 a second one is connected in its place.  Then echo the keyword for the
-new synthesizer into the synth_name proc entry in order to start speech
+new synthesizer into the synth_name sys entry in order to start speech
 with the newly connected synthesizer.  See the list of synthesizer
 keywords in section 1 to find the keyword which matches your synth.
 
@@ -546,15 +554,15 @@ place of dectlk.
 But now, suppose we have a situation where the main Speakup component
 is built into the kernel, and some or all of the drivers are built as
 modules.  Since the main part of Speakup is compiled into the kernel, a
-partial Speakup proc system has been created which we can take advantage
+partial Speakup sys system has been created which we can take advantage
 of by simply echoing the synthesizer keyword into the
-/proc/speakup/synth_name proc entry.  This will cause the kernel to
+/speakup/synth_name sys entry.  This will cause the kernel to
 automatically load the appropriate driver module, and start Speakup
 talking.  To switch to another synth, just echo a new keyword to the
-synth_name proc entry.  For example, to load the DoubleTalk LT driver,
+synth_name sys entry.  For example, to load the DoubleTalk LT driver,
 you would type:
 
-echo ltlk >/proc/speakup/synth_name
+echo ltlk >/speakup/synth_name
 
 You can use the modprobe -r command to unload driver modules, regardless
 of whether the main part of Speakup has been built into the kernel or
@@ -589,9 +597,9 @@ You get it from the free(b)soft web site mentioned above.  After you've
 compiled and installed speechd-up, you are almost ready to begin using
 your software synthesizer.
 
-Before you can use a software synthesizer, you must have created the
-/dev/softsynth device.  If you have not already done so, issue the
-following commands as root:
+If your system does not have udev installed , before you can use a
+software synthesizer, you must have created the /dev/softsynth device.
+If you have not already done so, issue the following commands as root:
 
 cd /dev
 mknod softsynth c 10 26
@@ -604,9 +612,9 @@ issue the following command as root:
 mknod synth c 10 25
 
 Now you can begin using your software synthesizer.  In order to do so,
-echo the soft keyword to the synth_name proc entry like this:
+echo the soft keyword to the synth_name sys entry like this:
 
-echo soft >/proc/speakup/synth_name
+echo soft >/speakup/synth_name
 
 Next run the speechd_up command like this:
 
@@ -645,12 +653,12 @@ choice.
 
 You can now run the dtload command in order to load the DecTalk PC
 software onto the card.  After you have done this, echo the decpc
-keyword to the synth_name entry in the proc system like this:
+keyword to the synth_name entry in the sys system like this:
 
-echo decpc >/proc/speakup/synth_name
+echo decpc >/speakup/synth_name
 
 Your DecTalk PC should start talking, and then you can adjust the pitch,
-rate, volume, voice, etc.  The voice entry in the Speakup proc system
+rate, volume, voice, etc.  The voice entry in the Speakup sys system
 will accept a number from 0 through 7 for the DecTalk PC synthesizer,
 which will give you access to some of the DecTalk voices.
 
@@ -728,7 +736,7 @@ keypad slash key.
 
 12.  Changing the Pronunciation of Characters
 
-Through the /proc/speakup/chars proc entry, Speakup gives you the
+Through the /speakup/chars sys entry, Speakup gives you the
 ability to change how Speakup pronounces a given character.  You could,
 for example, change how some punctuation characters are spoken.  You can
 even change how Speakup will pronounce certain letters.
@@ -740,8 +748,8 @@ you might wish to use the zee pronunciation instead of zed.  You can
 change the pronunciation of both the upper and lower case z with the
 following two commands:
 
-echo 90 zee >/proc/speakup/characters
-echo 122 zee >/proc/speakup/characters
+echo 90 zee >/speakup/characters
+echo 122 zee >/speakup/characters
 
 Let's examine the parts of the two previous commands.  They are issued
 at the shell prompt, and could be placed in a startup script.
@@ -754,7 +762,7 @@ echo hello.
 
 You would get the word hello printed on your screen as soon as you
 pressed the enter key.  In this case, we are echoing strings that we
-want to be redirected into the proc system.
+want to be redirected into the sys system.
 
 The numbers 90 and 122 in the above echo commands are the ascii numeric
 values for the upper and lower case z, the characters we wish to change.
@@ -765,14 +773,14 @@ upper and lower case z.
 The > symbol redirects the output of the echo command to a file, just
 like in DOS, or at the Windows command prompt.
 
-And finally, /proc/speakup/chars is the file entry in the proc system
+And finally, /speakup/chars is the file entry in the sys system
 where we want the output to be directed.  Speakup looks at the numeric
 value of the character we want to change, and inserts the pronunciation
 string into an internal table.
 
 You can look at the whole table with the following command:
 
-cat /proc/speakup/chars
+cat /speakup/chars
 
 Speakup will then print out the entire character pronunciation table.  I
 won't display it here, but leave you to look at it at your convenience.
@@ -821,10 +829,10 @@ shell prompt.
 
 You are now ready to load your keymap with your swapped key assignments.
  Assuming that you saved your new keymap as the file newmap.map, you
-would load your keymap into the proc system like this:
+would load your keymap into the sys system like this:
 
 /usr/src/linux-<version_number>/drivers/char/speakup/genmap newmap.map
->/proc/speakup/keymap
+>/speakup/keymap
 
 Remember to substitute your kernel version number for the
 <version_number> in the above command.  Also note that although the
