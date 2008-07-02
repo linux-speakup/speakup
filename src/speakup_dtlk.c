@@ -99,12 +99,19 @@ static struct spk_synth synth_dtlk = {
 
 static void spk_out(const char ch)
 {
-	int tmout = 100000;
-	while (synth_writable() == 0)
-		cpu_relax();
+	int timeout = SPK_XMITR_TIMEOUT;
+	while (synth_writable() == 0) {
+		if (!--timeout)
+			break;
+		udelay(1);
+	}
 	outb_p(ch, speakup_info.port_tts);
-	while ((synth_writable != 0) && (--tmout != 0))
-		cpu_relax();
+	timeout = SPK_XMITR_TIMEOUT;
+	while (synth_writable() != 0) {
+		if (!--timeout)
+			break;
+		udelay(1);
+	}
 }
 
 static void do_catch_up(struct spk_synth *synth, unsigned long data)

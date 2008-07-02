@@ -96,12 +96,16 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 {
 	u_char ch;
 	while ((ch = *buf)) {
+		int timeout = SPK_XMITR_TIMEOUT;
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		if (synth_full())
 			return buf;
-		while (synth_writable())
-			cpu_relax();
+		while (synth_writable()) {
+			if (!--timeout)
+				return buf;
+			udelay(1);
+		}
 		outb_p(ch, speakup_info.port_tts);
 		buf++;
 	}
@@ -112,6 +116,7 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 {
 	u_char ch;
 	unsigned long flags;
+	int timeout;
 
 	spk_lock(flags);
 	while (! synth_buffer_empty() && ! speakup_info.flushing) {
@@ -121,8 +126,12 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 			spk_lock(flags);
 			continue;
 		}
-		while (synth_writable())
-			cpu_relax();
+		timeout = SPK_XMITR_TIMEOUT;
+		while (synth_writable()) {
+			if (!--timeout)
+				break;
+			udelay(1);
+		}
 		spk_lock(flags);
 		ch = synth_buffer_getc();
 		spk_unlock(flags);
@@ -133,8 +142,12 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	}
 	synth_done();
 	spk_unlock(flags);
-	while (synth_writable())
-		cpu_relax();
+	timeout = SPK_XMITR_TIMEOUT;
+	while (synth_writable()) {
+		if (!--timeout)
+			break;
+		udelay(1);
+	}
 	outb_p(PROCSPEECH, speakup_info.port_tts);
 }
 
