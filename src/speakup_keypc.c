@@ -25,7 +25,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -37,7 +37,7 @@
 static int synth_probe(struct spk_synth *synth);
 static void keynote_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_port;
@@ -120,17 +120,29 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 	return 0;
 }
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	int timeout;
 	unsigned long flags;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		spk_unlock(flags);
-		if (synth_full())
+		if (synth_full()) {
 			msleep(speakup_info.delay_time);
+			continue;
+		}
 		timeout = 1000;
 		while (synth_writable())
 			if (--timeout <= 0)
@@ -146,8 +158,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
 		SWAIT;
-		spk_lock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	timeout = 1000;

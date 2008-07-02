@@ -26,7 +26,7 @@
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -34,7 +34,6 @@
 static int softsynth_probe(struct spk_synth *synth);
 static void softsynth_release(void);
 static void softsynth_start(void);
-static void softsynth_flush(struct spk_synth *synth);
 static int softsynth_is_alive(struct spk_synth *synth);
 static unsigned char get_index(void);
 
@@ -79,7 +78,7 @@ static struct spk_synth synth_soft = {
 	.synth_immediate = NULL,
 	.catch_up = NULL,
 	.start = softsynth_start,
-	.flush = softsynth_flush,
+	.flush = NULL,
 	.is_alive = softsynth_is_alive,
 	.synth_adjust = NULL,
 	.read_buff_add = NULL,
@@ -118,7 +117,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	DEFINE_WAIT(wait);
 
 	spk_lock(flags);
-	while (synth_buffer_empty()) {
+	while (synth_buffer_empty() && !speakup_info.flushing) {
 		prepare_to_wait(&wait_on_output, &wait, TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (fp->f_flags & O_NONBLOCK) {
@@ -135,8 +134,15 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	finish_wait(&wait_on_output, &wait);
 
 	cp = buf;
-	while ((chars_sent < count) && (! synth_buffer_empty())) {
-		ch = synth_buffer_peek();
+	while (1) {
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			ch = '\x18';
+		} else if (synth_buffer_empty()) {
+			break;
+		} else {
+			ch = synth_buffer_peek();
+		}
 		spk_unlock(flags);
 		if (copy_to_user(cp, &ch, 1))
 			return -EFAULT;
@@ -179,15 +185,10 @@ static unsigned int softsynth_poll(struct file *fp,
 	poll_wait(fp, &wait_on_output, wait);
 
 	spk_lock(flags);
-	if (! synth_buffer_empty())
+	if (! synth_buffer_empty() || speakup_info.flushing)
 		ret = POLLIN | POLLRDNORM;
 	spk_unlock(flags);
 	return ret;
-}
-
-static void softsynth_flush(struct spk_synth *synth)
-{
-	synth_printf("%c", '\x18');
 }
 
 static unsigned char get_index(void)

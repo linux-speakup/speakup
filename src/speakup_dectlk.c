@@ -29,12 +29,12 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 static void read_buff_add(u_char c);
 static unsigned char get_index(void);
@@ -135,7 +135,7 @@ static void read_buff_add(u_char c)
 	}
 }
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	static u_char ch = 0;
 	static u_char last = '\0';
@@ -143,32 +143,41 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 	unsigned long timeout = 4000 * HZ;
 	DEFINE_WAIT(wait);
 
-	/* if no ctl-a in 4, send data anyway */
-	spin_lock_irqsave(&flush_lock, flags);
-	while (is_flushing && timeout) {
-		prepare_to_wait(&flush, &wait, TASK_INTERRUPTIBLE);
-		spin_unlock_irqrestore(&flush_lock, flags);
-		timeout = schedule_timeout(timeout);
+	while (1) {
+		/* if no ctl-a in 4, send data anyway */
 		spin_lock_irqsave(&flush_lock, flags);
-	}
-	finish_wait(&flush, &wait);
-	is_flushing = 0;
-	spin_unlock_irqrestore(&flush_lock, flags);
+		while (is_flushing && timeout) {
+			prepare_to_wait(&flush, &wait, TASK_INTERRUPTIBLE);
+			spin_unlock_irqrestore(&flush_lock, flags);
+			timeout = schedule_timeout(timeout);
+			spin_lock_irqsave(&flush_lock, flags);
+		}
+		finish_wait(&flush, &wait);
+		is_flushing = 0;
+		spin_unlock_irqrestore(&flush_lock, flags);
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
-		if (! ch)
-			ch = synth_buffer_peek();
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
+		ch = synth_buffer_peek();
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
-		if (! synth_full() && spk_serial_out(ch)) {
-			spk_lock(flags);
-			synth_buffer_getc();
-			spk_unlock(flags);
-		} else {
+		if (synth_full() || !spk_serial_out(ch)) {
 			msleep(speakup_info.delay_time);
+			continue;
 		}
+		spk_lock(flags);
+		synth_buffer_getc();
+		spk_unlock(flags);
 		if (ch == '[')
 			in_escape = 1;
 		else if (ch == ']')
@@ -178,9 +187,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 				spk_serial_out(PROCSPEECH);
 		}
 		last = ch;
-		ch = 0;
-		spk_lock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	if (!in_escape)

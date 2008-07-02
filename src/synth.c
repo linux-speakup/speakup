@@ -62,26 +62,36 @@ int serial_synth_probe(struct spk_synth *synth)
 }
 EXPORT_SYMBOL_GPL(serial_synth_probe);
 
-void spk_do_catch_up(struct spk_synth *synth, unsigned long data)
+void spk_do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		ch = synth_buffer_peek();
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
 			msleep(speakup_info.full_time);
-		} else {
-			spk_lock(flags);
-			synth_buffer_getc();
-			spk_unlock(flags);
+			continue;
 		}
 		spk_lock(flags);
+		synth_buffer_getc();
+		spk_unlock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	spk_serial_out(synth->procspeech);

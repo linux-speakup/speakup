@@ -29,7 +29,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_writable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_WRITABLE)
@@ -38,7 +38,7 @@
 static int synth_probe(struct spk_synth *synth);
 static void dtlk_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_lpc;
@@ -114,24 +114,36 @@ static void spk_out(const char ch)
 	}
 }
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		spk_unlock(flags);
-		while (synth_full())
+		if (synth_full()) {
 			msleep(speakup_info.delay_time);
+			continue;
+		}
 		spk_lock(flags);
 		ch = synth_buffer_getc();
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		spk_out(ch);
-		spk_lock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	spk_out(PROCSPEECH);

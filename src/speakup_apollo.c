@@ -27,11 +27,11 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.3"
+#define DRV_VERSION "2.4"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 
 static struct st_string_var stringvars[] = {
 	{ CAPS_START, "cap, " },
@@ -81,13 +81,23 @@ static struct spk_synth synth_apollo = {
 	}
 };
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		ch = synth_buffer_peek();
 		spk_unlock(flags);
 		if (!spk_serial_out(ch)) {
@@ -95,12 +105,13 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
 			msleep(speakup_info.full_time);
-			spk_lock(flags);
-		} else {
-			spk_lock(flags);
-			synth_buffer_getc();
+			continue;
 		}
+		spk_lock(flags);
+		synth_buffer_getc();
+		spk_unlock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	spk_serial_out(PROCSPEECH);

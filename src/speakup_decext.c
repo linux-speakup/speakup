@@ -27,12 +27,12 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 
 static int in_escape;
@@ -86,25 +86,35 @@ static struct spk_synth synth_decext = {
 	}
 };
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	static u_char last = '\0';
 	unsigned long flags;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		ch = synth_buffer_peek();
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
-		if (! synth_full() && spk_serial_out(ch)) {
-			spk_lock(flags);
-			synth_buffer_getc();
-			spk_unlock(flags);
-		} else {
+		if (synth_full() || !spk_serial_out(ch)) {
 			msleep(speakup_info.delay_time);
+			continue;
 		}
+		spk_lock(flags);
+		synth_buffer_getc();
+		spk_unlock(flags);
 		if (ch == '[')
 			in_escape = 1;
 		else if (ch == ']')
@@ -114,8 +124,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 				spk_serial_out(PROCSPEECH);
 		}
 		last = ch;
-		spk_lock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	if (!in_escape)

@@ -30,7 +30,7 @@
 #include "serialio.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.2"
+#define DRV_VERSION "2.3"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -39,7 +39,7 @@
 static int synth_probe(struct spk_synth *synth);
 static void accent_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_port_control;
@@ -113,18 +113,27 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 	return 0;
 }
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
 	int timeout;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		spk_unlock(flags);
 		if (synth_full()) {
 			msleep(speakup_info.full_time);
-			spk_lock(flags);
 			continue;
 		}
 		timeout = SPK_XMITR_TIMEOUT;
@@ -139,8 +148,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
-		spk_lock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	timeout = SPK_XMITR_TIMEOUT;

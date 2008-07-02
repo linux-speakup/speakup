@@ -59,7 +59,7 @@ extern int synth_buffer_empty(void);
 
 extern int serial_synth_probe(struct spk_synth *synth);
 extern const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);
-extern void spk_do_catch_up(struct spk_synth *synth, unsigned long data);
+extern void spk_do_catch_up(struct spk_synth *synth);
 extern void spk_synth_flush(struct spk_synth *synth);
 extern int spk_synth_is_alive_nop(struct spk_synth *synth);
 extern int spk_synth_is_alive_restart(struct spk_synth *synth);

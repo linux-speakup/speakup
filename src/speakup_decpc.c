@@ -130,14 +130,14 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
 static int synth_probe(struct spk_synth *synth);
 static void dtpc_release(void);
 static const char *synth_immediate(struct spk_synth *synth, const char *buf);
-static void do_catch_up(struct spk_synth *synth, unsigned long data);
+static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
 
 static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
@@ -312,25 +312,35 @@ oops:	synth_release_region(speakup_info.port_tts, SYNTH_IO_EXTENT);
 	return status;
 }
 
-static void do_catch_up(struct spk_synth *synth, unsigned long data)
+static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	static u_char last = '\0';
 	unsigned long flags;
 
-	spk_lock(flags);
-	while (! synth_buffer_empty() && ! speakup_info.flushing) {
+	while (1) {
+		spk_lock(flags);
+		if (speakup_info.flushing) {
+			speakup_info.flushing = 0;
+			spk_unlock(flags);
+			synth->flush(synth);
+			continue;
+		}
+		if (synth_buffer_empty()) {
+			spk_unlock(flags);
+			break;
+		}
 		ch = synth_buffer_peek();
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
-		if (!dt_sendchar(ch)) {
-			spk_lock(flags);
-			synth_buffer_getc();
-			spk_unlock(flags);
-		} else {
+		if (dt_sendchar(ch)) {
 			msleep(speakup_info.delay_time);
+			continue;
 		}
+		spk_lock(flags);
+		synth_buffer_getc();
+		spk_unlock(flags);
 		if (ch == '[')
 			in_escape = 1;
 		else if (ch == ']')
@@ -341,8 +351,8 @@ static void do_catch_up(struct spk_synth *synth, unsigned long data)
 		}
 		last = ch;
 		ch = 0;
-		spk_lock(flags);
 	}
+	spk_lock(flags);
 	synth_done();
 	spk_unlock(flags);
 	if (!in_escape)
