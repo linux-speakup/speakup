@@ -89,7 +89,7 @@ static struct spk_synth synth_keypc = {
 	}
 };
 
-static int oops(void)
+static char *oops(void)
 {
 	int s1, s2, s3, s4;
 	s1 = inb_p(synth_port);
@@ -97,7 +97,7 @@ static int oops(void)
 	s3 = inb_p(synth_port+2);
 	s4 = inb_p(synth_port+3);
 	pr_warn("synth timeout %d %d %d %d\n", s1, s2, s3, s4);
-	return 0;
+	return NULL;
 }
 
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)
@@ -112,7 +112,7 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 		timeout = 1000;
 		while (synth_writable())
 			if (--timeout <= 0)
-				return (char *) oops();
+				return oops();
 		outb_p(ch, synth_port);
 		udelay(70);
 		buf++;
