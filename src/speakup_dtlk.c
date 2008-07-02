@@ -154,7 +154,7 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 static void synth_flush(struct spk_synth *synth)
 {
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
-	while (synth_writable != 0)
+	while (synth_writable() != 0)
 		cpu_relax();
 }
 
