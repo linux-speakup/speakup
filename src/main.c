@@ -1645,7 +1645,9 @@ static void speakup_bs(struct vc_data *vc)
 	unsigned long flags;
 	if (!speakup_console[vc->vc_num])
 		return;
-	spk_lock(flags);
+	if (!spk_trylock(flags))
+		/* Speakup output, discard */
+		return;
 	if (!spk_parked)
 		speakup_date(vc);
 	if (spk_shut_up || synth == NULL) {
