@@ -154,13 +154,12 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 		} else if (synth_buffer_empty()) {
 			break;
 		} else {
-			ch = synth_buffer_peek();
+			ch = synth_buffer_getc();
 		}
 		spk_unlock(flags);
 		if (copy_to_user(cp, &ch, 1))
 			return -EFAULT;
 		spk_lock(flags);
-		synth_buffer_getc();
 		chars_sent++;
 		cp++;
 	}
