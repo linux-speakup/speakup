@@ -352,9 +352,6 @@ static void do_catch_up(struct spk_synth *synth)
 		last = ch;
 		ch = 0;
 	}
-	spk_lock(flags);
-	synth_done();
-	spk_unlock(flags);
 	if (!in_escape)
 		dt_sendchar(PROCSPEECH);
 }

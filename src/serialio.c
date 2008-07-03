@@ -130,6 +130,10 @@ int wait_for_xmitr(void)
 	int tmout = SPK_XMITR_TIMEOUT;
 	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
 		speakup_info.alive = 0;
+		/* No synth any more, so nobody will restart TTYs, and we thus
+		 * need to do it ourselves.  Now that there is no synth we can
+		 * let application flood anyway */
+		speakup_start_ttys();
 		timeouts = 0;
 		return 0;
 	}

@@ -149,9 +149,6 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
 	}
-	spk_lock(flags);
-	synth_done();
-	spk_unlock(flags);
 	timeout = SPK_XMITR_TIMEOUT;
 	while (synth_writable()) {
 		if (!--timeout)

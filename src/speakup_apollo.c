@@ -111,9 +111,6 @@ static void do_catch_up(struct spk_synth *synth)
 		synth_buffer_getc();
 		spk_unlock(flags);
 	}
-	spk_lock(flags);
-	synth_done();
-	spk_unlock(flags);
 	spk_serial_out(PROCSPEECH);
 }
 

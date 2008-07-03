@@ -62,6 +62,12 @@ int serial_synth_probe(struct spk_synth *synth)
 }
 EXPORT_SYMBOL_GPL(serial_synth_probe);
 
+/* Main loop of the progression thread: keep eating from the buffer
+ * and push to the serial port, waiting as needed
+ *
+ * For devices that have a "full" notification mecanism, the driver can
+ * adapt the loop the way they prefer.
+ */
 void spk_do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
@@ -91,9 +97,6 @@ void spk_do_catch_up(struct spk_synth *synth)
 		synth_buffer_getc();
 		spk_unlock(flags);
 	}
-	spk_lock(flags);
-	synth_done();
-	spk_unlock(flags);
 	spk_serial_out(synth->procspeech);
 }
 EXPORT_SYMBOL_GPL(spk_do_catch_up);
@@ -149,18 +152,10 @@ static void thread_wake_up(u_long data)
 
 static DEFINE_TIMER(thread_timer, thread_wake_up, 0, 0);
 
-void synth_done(void)
-{
-	synth_buffer_clear();
-	speakup_start_ttys();
-	return;
-}
-EXPORT_SYMBOL_GPL(synth_done);
-
 void synth_start(void)
 {
 	if (!speakup_info.alive)
-		synth_done();
+		synth_buffer_clear();
 	else if (synth->start)
 		synth->start();
 	if (!timer_pending(&thread_timer))
@@ -177,7 +172,6 @@ void do_flush(void)
 			pitch_shift = 0;
 		}
 	}
-	speakup_start_ttys();
 	wake_up_interruptible(&speakup_event);
 }
 

@@ -143,9 +143,6 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = PROCSPEECH;
 		spk_out(ch);
 	}
-	spk_lock(flags);
-	synth_done();
-	spk_unlock(flags);
 	spk_out(PROCSPEECH);
 }
 

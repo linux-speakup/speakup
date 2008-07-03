@@ -6,6 +6,7 @@
 #include "spk_priv.h"
 
 DECLARE_WAIT_QUEUE_HEAD(speakup_event);
+EXPORT_SYMBOL_GPL(speakup_event);
 
 int speakup_thread(void *data)
 {
@@ -18,8 +19,8 @@ int speakup_thread(void *data)
 			spk_lock(flags);
 			prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 			should_break = (kthread_should_stop() ||
-				(synth && synth->catch_up &&
-				 	(speakup_info.flushing || !synth_buffer_empty())));
+				speakup_info.flushing ||
+				(synth && synth->catch_up && !synth_buffer_empty()));
 			spk_unlock(flags);
 			if (should_break || signal_pending(current))
 				break;

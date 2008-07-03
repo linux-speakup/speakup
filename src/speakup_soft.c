@@ -25,6 +25,7 @@
 #include <linux/miscdevice.h> /* for misc_register, and SYNTH_MINOR */
 #include <linux/poll.h> /* for poll_wait() */
 #include "spk_priv.h"
+#include "speakup.h"
 
 #define DRV_VERSION "2.3"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
@@ -93,17 +94,28 @@ static struct spk_synth synth_soft = {
 
 static int softsynth_open(struct inode *inode, struct file *fp)
 {
+	unsigned long flags;
 	/*if ((fp->f_flags & O_ACCMODE) != O_RDONLY) */
 	/*	return -EPERM; */
-	if (xchg(&dev_opened, 1))
+	spk_lock(flags);
+	if (dev_opened) {
+		spk_unlock(flags);
 		return -EBUSY;
+	}
+	dev_opened = 1;
+	spk_unlock(flags);
 	return 0;
 }
 
 static int softsynth_close(struct inode *inode, struct file *fp)
 {
+	unsigned long flags;
 	fp->f_op = NULL;
+	spk_lock(flags);
 	dev_opened = 0;
+	spk_unlock(flags);
+	/* Make sure we let applications go before leaving */
+	speakup_start_ttys();
 	return 0;
 }
 
@@ -113,6 +125,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	int chars_sent = 0;
 	char *cp;
 	char ch;
+	int empty;
 	unsigned long flags;
 	DEFINE_WAIT(wait);
 
@@ -152,11 +165,12 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 		cp++;
 	}
 	*pos += chars_sent;
-	if (synth_buffer_empty()) {
-		synth_done();
+	empty = synth_buffer_empty();
+	spk_unlock(flags);
+	if (empty) {
+		speakup_start_ttys();
 		*pos = 0;
 	}
-	spk_unlock(flags);
 	return chars_sent;
 }
 
@@ -236,10 +250,15 @@ static void softsynth_release(void)
 
 static void softsynth_start(void)
 {
-	if (dev_opened)
+	if (dev_opened) {
 		wake_up_interruptible(&wait_on_output);
-	else
-		synth_done();
+	} else {
+		/* No synthesizer, drop data and have the thread restart TTYs
+		 * for us */
+		synth_buffer_clear();
+		speakup_info.flushing = 1;
+		wake_up_interruptible(&speakup_event);
+	}
 }
 
 static int softsynth_is_alive(struct spk_synth *synth)

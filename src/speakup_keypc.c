@@ -159,9 +159,6 @@ static void do_catch_up(struct spk_synth *synth)
 		outb_p(ch, synth_port);
 		SWAIT;
 	}
-	spk_lock(flags);
-	synth_done();
-	spk_unlock(flags);
 	timeout = 1000;
 	while (synth_writable())
 		if (--timeout <= 0)
