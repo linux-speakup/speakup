@@ -18,7 +18,7 @@ static struct st_var_header var_headers[] = {
   { "caps_start", CAPS_START, VAR_STRING, USER_RW, 0, str_caps_start, 0 },
   { "caps_stop", CAPS_STOP, VAR_STRING, USER_RW, 0, str_caps_stop, 0 },
   { "delay_time", DELAY, VAR_TIME, ROOT_W, 0, &speakup_info.delay_time, 0 },
-  { "trigger_time", TRIGGER, VAR_TIME, ROOT_W, 0, &synth_trigger_time, 0 },
+  { "trigger_time", TRIGGER, VAR_TIME, ROOT_W, 0, &speakup_info.trigger_time, 0 },
   { "jiffy_delta", JIFFY, VAR_TIME, ROOT_W, 0, &speakup_info.jiffy_delta, 0 },
   { "full_time", FULL, VAR_TIME, ROOT_W, 0, &speakup_info.full_time, 0 },
   { "spell_delay", SPELL_DELAY, VAR_NUM, USER_RW, 0, &spell_delay, 0 },

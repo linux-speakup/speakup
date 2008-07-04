@@ -109,7 +109,6 @@ extern short no_intr, say_ctrl, say_word_ctl, punc_level;
 extern short reading_punc, attrib_bleep, bleeps;
 extern short bleep_time, bell_pos;
 extern short spell_delay, key_echo, punc_mask;
-extern short synth_trigger_time;
 extern short cursor_timeout, pitch_shift, synth_flags;
 extern int quiet_boot;
 extern char *synth_name;

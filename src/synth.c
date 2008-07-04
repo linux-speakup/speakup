@@ -22,10 +22,10 @@ char pitch_buff[32] = "";
 static int module_status;
 int quiet_boot;
 
-short synth_trigger_time = 50;
 struct speakup_info_t speakup_info = {
 	.spinlock = SPIN_LOCK_UNLOCKED,
 	.delay_time = 500,
+	.trigger_time = 50,
 	.jiffy_delta = 50,
 	.full_time = 1000,
 	.flushing = 0,
@@ -159,7 +159,7 @@ void synth_start(void)
 	else if (synth->start)
 		synth->start();
 	if (!timer_pending(&thread_timer))
-		mod_timer(&thread_timer, jiffies + (HZ * synth_trigger_time) / 1000);
+		mod_timer(&thread_timer, jiffies + (HZ * speakup_info.trigger_time) / 1000);
 }
 
 void do_flush(void)
