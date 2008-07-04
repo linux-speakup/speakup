@@ -13,6 +13,8 @@
 #define SPK_SERIAL_TIMEOUT 1000000
 /* countdown values transmitter/dsr timeouts in us */
 #define SPK_XMITR_TIMEOUT 1000000
+/* countdown values cts timeouts in us */
+#define SPK_CTS_TIMEOUT 60000000
 /* check ttyS0 ... ttyS3 */
 #define SPK_LO_TTY 0
 #define SPK_HI_TTY 3
