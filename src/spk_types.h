@@ -17,7 +17,7 @@
 #include <linux/mutex.h>
 #include <linux/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
 
-enum {
+enum var_type_t {
 	VAR_NUM = 0,
 	VAR_TIME,
 	VAR_STRING,
@@ -100,8 +100,8 @@ struct st_spk_t {
 
 struct st_var_header {
 	char *name;
-	short var_id;
-	short var_type;
+	enum var_id_t var_id;
+	enum var_type_t var_type;
 	short proc_mode;
 	void *proc_entry;
 	void *p_val; /* ptr to programs variable to store value */
@@ -109,7 +109,7 @@ struct st_var_header {
 };
 
 struct st_num_var {
-	short var_id;
+	enum var_id_t var_id;
 	char *synth_fmt;
 	short default_val, low, high;
 	short offset, multiplier; /* for fiddling rates etc. */
@@ -118,12 +118,12 @@ struct st_num_var {
 };
 
 struct st_punc_var {
-	short var_id;
+	enum var_id_t var_id;
 	short value;
 };
 
 struct st_string_var {
-	short var_id;
+	enum var_id_t var_id;
 	char *default_val;
 };
 
