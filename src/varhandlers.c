@@ -84,12 +84,13 @@ int chartab_get_value(char *keyword)
 void speakup_register_var(struct st_num_var *var)
 {
 	static char nothing[2] = "\0";
-	int i, var_id = var->var_id;
+	int i;
+	enum var_id_t var_id = var->var_id;
+
 	struct st_var_header *p_header;
 	struct st_string_var *s_var;
 
-	if (var_id < 0 || var_id >= MAXVARS)
-		return;
+	BUG_ON(var_id < 0 || var_id >= MAXVARS);
 	if (var_ptrs[0] == 0) {
 		for (i = 0; i < MAXVARS; i++) {
 			p_header = &var_headers[i];
@@ -114,16 +115,15 @@ void speakup_register_var(struct st_num_var *var)
 	return;
 }
 
-void speakup_unregister_var(short var_id)
+void speakup_unregister_var(enum var_id_t var_id)
 {
 	struct st_var_header *p_header;
-	if (var_id < 0 || var_id >= MAXVARS)
-		return;
+	BUG_ON(var_id < 0 || var_id >= MAXVARS);
 	p_header = var_ptrs[var_id];
 	p_header->data = 0;
 }
 
-struct st_var_header *get_var_header(short var_id)
+struct st_var_header *get_var_header(enum var_id_t var_id)
 {
 	struct st_var_header *p_header;
 	if (var_id < 0 || var_id >= MAXVARS)
@@ -151,7 +151,7 @@ struct st_var_header *var_header_by_name(const char *name)
 	return where;
 }
 
-struct st_punc_var *get_punc_var(short var_id)
+struct st_punc_var *get_punc_var(enum var_id_t var_id)
 {
 	struct st_punc_var *rv = NULL;
 	struct st_punc_var *where;

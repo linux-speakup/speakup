@@ -31,6 +31,21 @@ enum {
 	E_DEC
 };
 
+enum var_id_t {
+	VERSION = 0, SYNTH, SILENT, SYNTH_DIRECT,
+	KEYMAP, CHARS,
+	PUNC_SOME, PUNC_MOST, PUNC_ALL,
+	DELIM, REPEATS, EXNUMBER,
+	DELAY, TRIGGER, JIFFY, FULL, /* all timers must be together */
+	BLEEP_TIME, CURSOR_TIME, BELL_POS,
+SAY_CONTROL, SAY_WORD_CTL, NO_INTERRUPT, KEY_ECHO,
+	SPELL_DELAY, PUNC_LEVEL, READING_PUNC,
+	ATTRIB_BLEEP, BLEEPS,
+ RATE, PITCH, VOL, TONE, PUNCT, VOICE, FREQUENCY, LANG,
+	CAPS_START, CAPS_STOP, CHARTAB,
+	MAXVARS
+};
+
 typedef int (*special_func)(struct vc_data *vc, u_char type, u_char ch,
 		u_short key);
 

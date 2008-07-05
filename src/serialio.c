@@ -129,7 +129,7 @@ int wait_for_xmitr(void)
 {
 	int tmout = SPK_XMITR_TIMEOUT;
 	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
-		pr_warn("%s: long timeouts, considering as dead\n", synth->long_name);
+		pr_warn("%s: too many timeouts, deactivating speakup\n", synth->long_name);
 		speakup_info.alive = 0;
 		/* No synth any more, so nobody will restart TTYs, and we thus
 		 * need to do it ourselves.  Now that there is no synth we can
@@ -146,11 +146,11 @@ int wait_for_xmitr(void)
 		}
 		udelay(1);
 	}
-	tmout = SPK_XMITR_TIMEOUT;
+	tmout = SPK_CTS_TIMEOUT;
 	while (!((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS)) {
 		/* CTS */
 		if (--tmout == 0) {
-			//pr_warn("%s: timed out (cts)\n", synth->long_name);
+			// pr_warn("%s: timed out (cts)\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
