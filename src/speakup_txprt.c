@@ -24,21 +24,18 @@
  */
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\x05P8" },
-	{ CAPS_STOP, "\x05P5" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\x05R%d", 5, 0, 9, 0, 0, 0 },
-	{ PITCH, "\x05P%d", 5, 0, 9, 0, 0, 0 },
-	{ VOL, "\x05V%d", 5, 0, 9, 0, 0, 0 },
-	{ TONE, "\x05T%c", 12, 0, 25, 61, 0, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"\x05P8" }},
+	{ CAPS_STOP, .u.s = {"\x05P5" }},
+	{ RATE, .u.n = {"\x05R%d", 5, 0, 9, 0, 0, NULL }},
+	{ PITCH, .u.n = {"\x05P%d", 5, 0, 9, 0, 0, NULL }},
+	{ VOL, .u.n = {"\x05V%d", 5, 0, 9, 0, 0, NULL }},
+	{ TONE, .u.n = {"\x05T%c", 12, 0, 25, 61, 0, NULL }},
+	V_LAST_VAR
 	 };
 
 static struct spk_synth synth_txprt = {
@@ -55,8 +52,7 @@ static struct spk_synth synth_txprt = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,

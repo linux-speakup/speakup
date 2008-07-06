@@ -25,24 +25,21 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
 static void synth_flush(struct spk_synth *synth);
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\x05P+" },
-	{ CAPS_STOP, "\x05P-" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\x05R%d", 7, 0, 9, 0, 0, 0 },
-	{ PITCH, "\x05P%d", 3, 0, 9, 0, 0, 0 },
-	{ VOL, "\x05V%d", 9, 0, 9, 0, 0, 0 },
-	{ TONE, "\x05T%c", 8, 0, 25, 65, 0, 0 },
-	{ PUNCT, "\x05M%c", 0, 0, 3, 0, 0, "nsma" },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"\x05P+" }},
+	{ CAPS_STOP, .u.s = {"\x05P-" }},
+	{ RATE, .u.n = {"\x05R%d", 7, 0, 9, 0, 0, NULL }},
+	{ PITCH, .u.n = {"\x05P%d", 3, 0, 9, 0, 0, NULL }},
+	{ VOL, .u.n = {"\x05V%d", 9, 0, 9, 0, 0, NULL }},
+	{ TONE, .u.n = {"\x05T%c", 8, 0, 25, 65, 0, NULL }},
+	{ PUNCT, .u.n = {"\x05M%c", 0, 0, 3, 0, 0, "nsma" }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_spkout = {
@@ -59,8 +56,7 @@ static struct spk_synth synth_spkout = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,

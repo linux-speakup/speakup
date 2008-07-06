@@ -30,7 +30,7 @@
 #include "serialio.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.3"
+#define DRV_VERSION "2.4"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -46,17 +46,14 @@ static int synth_port_control;
 static int port_forced;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\033P8" },
-	{ CAPS_STOP, "\033P5" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\033R%c", 9, 0, 17, 0, 0, "0123456789abcdefgh" },
-	{ PITCH, "\033P%d", 5, 0, 9, 0, 0, 0 },
-	{ VOL, "\033A%d", 5, 0, 9, 0, 0, 0 },
-	{ TONE, "\033V%d", 5, 0, 9, 0, 0, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"\033P8" }},
+	{ CAPS_STOP, .u.s = {"\033P5" }},
+	{ RATE, .u.n = {"\033R%c", 9, 0, 17, 0, 0, "0123456789abcdefgh" }},
+	{ PITCH, .u.n = {"\033P%d", 5, 0, 9, 0, 0, NULL }},
+	{ VOL, .u.n = {"\033A%d", 5, 0, 9, 0, 0, NULL }},
+	{ TONE, .u.n = {"\033V%d", 5, 0, 9, 0, 0, NULL }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_acntpc = {
@@ -73,8 +70,7 @@ static struct spk_synth synth_acntpc = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = synth_probe,
 	.release = accent_release,
 	.synth_immediate = synth_immediate,

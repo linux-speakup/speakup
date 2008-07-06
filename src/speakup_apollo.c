@@ -27,24 +27,21 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
 static void do_catch_up(struct spk_synth *synth);
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "cap, " },
-	{ CAPS_STOP, "" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "@W%d", 6, 1, 9, 0, 0, 0 },
-	{ PITCH, "@F%x", 10, 0, 15, 0, 0, 0 },
-	{ VOL, "@A%x", 10, 0, 15, 0, 0, 0 },
-	{ VOICE, "@V%d", 1, 1, 6, 0, 0, 0 },
-	{ LANG, "@=%d,", 1, 1, 4, 0, 0, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"cap, " }},
+	{ CAPS_STOP, .u.s = {"" }},
+	{ RATE, .u.n = {"@W%d", 6, 1, 9, 0, 0, NULL }},
+	{ PITCH, .u.n = {"@F%x", 10, 0, 15, 0, 0, NULL }},
+	{ VOL, .u.n = {"@A%x", 10, 0, 15, 0, 0, NULL }},
+	{ VOICE, .u.n = {"@V%d", 1, 1, 6, 0, 0, NULL }},
+	{ LANG, .u.n = {"@=%d,", 1, 1, 4, 0, 0, NULL }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_apollo = {
@@ -61,8 +58,7 @@ static struct spk_synth synth_apollo = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,

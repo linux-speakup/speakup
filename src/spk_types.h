@@ -102,29 +102,35 @@ struct st_var_header {
 	char *name;
 	enum var_id_t var_id;
 	enum var_type_t var_type;
-	short proc_mode;
-	void *proc_entry;
 	void *p_val; /* ptr to programs variable to store value */
 	void *data; /* ptr to the vars data */
 };
 
-struct st_num_var {
-	enum var_id_t var_id;
+struct num_var_t {
 	char *synth_fmt;
-	short default_val, low, high;
+	short default_val;
+	short low;
+	short high;
 	short offset, multiplier; /* for fiddling rates etc. */
 	char *out_str; /* if synth needs char representation of number */
 	short value; /* current value */
 };
 
-struct st_punc_var {
+struct punc_var_t {
 	enum var_id_t var_id;
 	short value;
 };
 
-struct st_string_var {
-	enum var_id_t var_id;
+struct string_var_t {
 	char *default_val;
+};
+
+struct var_t {
+	enum var_id_t var_id;
+	union {
+		struct num_var_t n;
+		struct string_var_t s;
+	} u;
 };
 
 struct st_bits_data { /* punc, repeats, word delim bits */
@@ -156,8 +162,7 @@ struct spk_synth {
 	short flags;
 	short startup;
 	const int checkval; /* for validating a proper synth module */
-	struct st_string_var *string_vars;
-	struct st_num_var *num_vars;
+	struct var_t *vars;
 	int (*probe)(struct spk_synth *synth);
 	void (*release)(void);
 	const char *(*synth_immediate)(struct spk_synth *synth, const char *buff);

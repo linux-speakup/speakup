@@ -25,7 +25,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.3"
+#define DRV_VERSION "2.4"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -44,15 +44,12 @@ static int synth_port;
 static int port_forced;
 static unsigned int synth_portlist[] = { 0x2a8, 0 };
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "[f130]" },
-	{ CAPS_STOP, "[f90]" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\04%c ", 8, 0, 10, 81, -8, 0 },
-	{ PITCH, "[f%d]", 5, 0, 9, 40, 10, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"[f130]" }},
+	{ CAPS_STOP, .u.s = {"[f90]" }},
+	{ RATE, .u.n = {"\04%c ", 8, 0, 10, 81, -8, NULL }},
+	{ PITCH, .u.n = {"[f%d]", 5, 0, 9, 40, 10, NULL }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_keypc = {
@@ -69,8 +66,7 @@ static struct spk_synth synth_keypc = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = synth_probe,
 	.release = keynote_release,
 	.synth_immediate = synth_immediate,

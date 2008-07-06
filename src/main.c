@@ -1191,21 +1191,21 @@ int set_key_info(const u_char *key_info, u_char *k_buffer)
 	return 0;
 }
 
-static struct st_num_var spk_num_vars[] = {
+static struct var_t spk_vars[] = {
 	/* bell must be first to set high limit */
-	{ BELL_POS, 0, 0, 0, 0, 0, 0, 0 },
-	{ SPELL_DELAY, 0, 0, 0, 5, 0, 0, 0 },
-	{ ATTRIB_BLEEP, 0, 1, 0, 3, 0, 0, 0 },
-	{ BLEEPS, 0, 3, 0, 3, 0, 0, 0 },
-	{ BLEEP_TIME, 0, 30, 1, 200, 0, 0, 0 },
-	{ PUNC_LEVEL, 0, 1, 0, 4, 0, 0, 0 },
-	{ READING_PUNC, 0, 1, 0, 4, 0, 0, 0 },
-	{ CURSOR_TIME, 0, 120, 50, 600, 0, 0, 0 },
+	{ BELL_POS, .u.n = {NULL, 0, 0, 0, 0, 0, NULL }},
+	{ SPELL_DELAY, .u.n = {NULL, 0, 0, 5, 0, 0, NULL }},
+	{ ATTRIB_BLEEP, .u.n = {NULL, 1, 0, 3, 0, 0, NULL }},
+	{ BLEEPS, .u.n = {NULL, 3, 0, 3, 0, 0, NULL }},
+	{ BLEEP_TIME, .u.n = {NULL, 30, 1, 200, 0, 0, NULL }},
+	{ PUNC_LEVEL, .u.n = {NULL, 1, 0, 4, 0, 0, NULL }},
+	{ READING_PUNC, .u.n = {NULL, 1, 0, 4, 0, 0, NULL }},
+	{ CURSOR_TIME, .u.n = {NULL, 120, 50, 600, 0, 0, NULL }},
 	{ SAY_CONTROL, TOGGLE_0 },
 	{ SAY_WORD_CTL, TOGGLE_0 },
 	{ NO_INTERRUPT, TOGGLE_0 },
-	{ KEY_ECHO, 0, 1, 0, 2, 0, 0, 0 },
-	V_LAST_NUM
+	{ KEY_ECHO, .u.n = {NULL, 1, 0, 2, 0, 0, NULL }},
+	V_LAST_VAR
 };
 
 static char *cursor_msgs[] = { "cursoring off", "cursoring on",
@@ -1744,9 +1744,10 @@ static int
 inc_dec_var(u_char value)
 {
 	struct st_var_header *p_header;
-	struct st_num_var *var_data;
+	struct var_t *var_data;
 	char num_buf[32];
-	char *cp = num_buf, *pn;
+	char *cp = num_buf;
+	char *pn;
 	int var_id = (int)value - VAR_START;
 	int how = (var_id&1) ? E_INC : E_DEC;
 	var_id = var_id/2+FIRST_SET_VAR;
@@ -1767,7 +1768,7 @@ inc_dec_var(u_char value)
 		}
 	}
 	snprintf(cp, sizeof(num_buf) - (cp - num_buf), " %d ",
-			(int)var_data->value);
+			var_data->u.n.value);
 	synth_printf("%s", num_buf);
 	return 0;
 }
@@ -2224,7 +2225,7 @@ static int __init speakup_init(void)
 	int i;
 	struct st_spk_t *first_console;
 	struct vc_data *vc = vc_cons[fg_console].d;
-	struct st_num_var *n_var;
+	struct var_t *var;
 
 	first_console = kzalloc(sizeof(*first_console), GFP_KERNEL);
 	if (!first_console)
@@ -2238,9 +2239,9 @@ static int __init speakup_init(void)
 	pr_info("speakup %s: initialized\n", SPEAKUP_VERSION);
 
 	strlwr(synth_name);
-	spk_num_vars[0].high = vc->vc_cols;
-	for (n_var = spk_num_vars; n_var->var_id >= 0; n_var++)
-		speakup_register_var(n_var);
+	spk_vars[0].u.n.high = vc->vc_cols;
+	for (var = spk_vars; var->var_id !=MAXVARS; var++) 
+		speakup_register_var(var);
 	for (i = 1; punc_info[i].mask != 0; i++)
 		set_mask_bits(0, i, 2);
 

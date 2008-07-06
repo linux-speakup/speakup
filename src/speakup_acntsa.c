@@ -26,23 +26,20 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
 #define PROCSPEECH '\r'
 
 static int synth_probe(struct spk_synth *synth);
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\033P8" },
-	{ CAPS_STOP, "\033P5" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\033R%c", 9, 0, 17, 0, 0, "0123456789abcdefgh" },
-	{ PITCH, "\033P%d", 5, 0, 9, 0, 0, 0 },
-	{ VOL, "\033A%d", 9, 0, 9, 0, 0, 0 },
-	{ TONE, "\033V%d", 5, 0, 9, 0, 0, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"\033P8" }},
+	{ CAPS_STOP, .u.s = {"\033P5" }},
+	{ RATE, .u.n = {"\033R%c", 9, 0, 17, 0, 0, "0123456789abcdefgh" }},
+	{ PITCH, .u.n = {"\033P%d", 5, 0, 9, 0, 0, NULL }},
+	{ VOL, .u.n = {"\033A%d", 9, 0, 9, 0, 0, NULL }},
+	{ TONE, .u.n = {"\033V%d", 5, 0, 9, 0, 0, NULL }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_acntsa = {
@@ -59,8 +56,7 @@ static struct spk_synth synth_acntsa = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,

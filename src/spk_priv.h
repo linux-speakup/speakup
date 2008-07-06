@@ -31,8 +31,7 @@
 #define pr_warn(fmt, arg...) printk(KERN_WARNING fmt, ##arg)
 #endif
 
-#define V_LAST_STRING { -1, 0 }
-#define V_LAST_NUM { -1, 0, 0, 0, 0, 0, 0, 0 }
+#define V_LAST_VAR { MAXVARS }
 #define SPACE 0x20
 #define SYNTH_CHECK 20030716 /* today's date ought to do for check value */
 /* synth flags, for odd synths */

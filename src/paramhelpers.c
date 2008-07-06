@@ -646,7 +646,7 @@ static int set_punc(const char *val, struct kernel_param *kp)
 	int ret;
 	int count;
 	struct st_var_header *p_header;
-	struct st_punc_var *var;
+	struct punc_var_t *var;
 	char punc_buf[100];
 	unsigned long flags;
 
@@ -695,7 +695,7 @@ static int get_punc(char *buffer, struct kernel_param *kp)
 	int i;
 	char *cp = buffer;
 	struct st_var_header *p_header;
-	struct st_punc_var *var;
+	struct punc_var_t *var;
 	struct st_bits_data *pb;
 	short mask;
 
@@ -733,7 +733,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 	int ret;
 	int len;
 	char *cp;
-	struct st_num_var *var_data;
+	struct var_t *var_data;
 	short value;
 
 	if (!val)
@@ -761,7 +761,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 			var_data = param->data;
 			pr_warn("value for %s out of range, expect %d to %d\n",
 				strip_prefix(kp->name),
-				(int)var_data->low, (int)var_data->high);
+				var_data->u.n.low, var_data->u.n.high);
 		}
 		break;
 	case VAR_STRING:
@@ -787,7 +787,7 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 {
 	int rv = 0;
 	struct st_var_header *param;
-	struct st_num_var *n_var;
+	struct var_t *var;
 		char *cp1;
 	char *cp;
 	char ch;
@@ -799,14 +799,14 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 	if (param == NULL)
 		return -EINVAL;
 
-	n_var = (struct st_num_var *) param->data;
-	if (n_var == NULL)
+	var = (struct var_t *) param->data;
+	if (var == NULL)
 		return -EINVAL;
 
 	switch (param->var_type) {
 	case VAR_NUM:
 	case VAR_TIME:
-		rv = sprintf(buffer, "%i", (int) n_var->value);
+		rv = sprintf(buffer, "%i", var->u.n.value);
 		break;
 	case VAR_STRING:
 		cp1 = buffer;

@@ -15,8 +15,8 @@
 #define USER_RW (S_IFREG|S_IRUGO|S_IWUGO)
 #define ROOT_W (S_IFREG|S_IRUGO|S_IWUSR)
 
-#define TOGGLE_0 0, 0, 0, 1, 0, 0, 0
-#define TOGGLE_1 0, 1, 0, 1, 0, 0, 0
+#define TOGGLE_0 .u.n = {NULL, 0, 0, 1, 0, 0, NULL }
+#define TOGGLE_1 .u.n = {NULL, 1, 0, 1, 0, 0, NULL }
 #define MAXVARLEN 15
 
 #define SYNTH_OK 0x0001
@@ -61,11 +61,11 @@ extern int set_key_info(const u_char *key_info, u_char *k_buffer);
 extern char *strlwr(char *s);
 extern char *speakup_s2i(char *start, short *dest);
 extern int chartab_get_value(char *keyword);
-extern void speakup_register_var(struct st_num_var *var);
+extern void speakup_register_var(struct var_t *var);
 extern void speakup_unregister_var(enum var_id_t var_id);
 extern struct st_var_header *get_var_header(enum var_id_t var_id);
 extern struct st_var_header *var_header_by_name(const char *name);
-extern struct st_punc_var *get_punc_var(enum var_id_t var_id);
+extern struct punc_var_t *get_punc_var(enum var_id_t var_id);
 extern int set_num_var(short val, struct st_var_header *var, int how);
 extern int set_string_var(const char *page, struct st_var_header *var, int len);
 extern int set_mask_bits(const char *input, const int which, const int how);

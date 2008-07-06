@@ -130,7 +130,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -144,18 +144,15 @@ static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
 static int in_escape, is_flushing;
 static int dt_stat, dma_state;
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "[:dv ap 200]" },
-	{ CAPS_STOP, "[:dv ap 100]" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "[:ra %d]", 9, 0, 18, 150, 25, 0 },
-	{ PITCH, "[:dv ap %d]", 80, 0, 100, 20, 0, 0 },
-	{ VOL, "[:vo se %d]", 5, 0, 9, 5, 10, 0 },
-	{ PUNCT, "[:pu %c]", 0, 0, 2, 0, 0, "nsa" },
-	{ VOICE, "[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"[:dv ap 200]" }},
+	{ CAPS_STOP, .u.s = {"[:dv ap 100]" }},
+	{ RATE, .u.n = {"[:ra %d]", 9, 0, 18, 150, 25, NULL }},
+	{ PITCH, .u.n = {"[:dv ap %d]", 80, 0, 100, 20, 0, NULL }},
+	{ VOL, .u.n = {"[:vo se %d]", 5, 0, 9, 5, 10, NULL }},
+	{ PUNCT, .u.n = {"[:pu %c]", 0, 0, 2, 0, 0, "nsa" }},
+	{ VOICE, .u.n = {"[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_dec_pc = {
@@ -172,8 +169,7 @@ static struct spk_synth synth_dec_pc = {
 	.flags = SF_DEC,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = synth_probe,
 	.release = dtpc_release,
 	.synth_immediate = synth_immediate,

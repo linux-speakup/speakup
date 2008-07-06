@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.3"
+#define DRV_VERSION "2.4"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -43,20 +43,17 @@ static int misc_registered;
 static int dev_opened;
 static DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "\x01+3p" },
-	{ CAPS_STOP, "\x01-3p" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "\x01%ds", 5, 0, 9, 0, 0, 0 },
-	{ PITCH, "\x01%dp", 5, 0, 9, 0, 0, 0 },
-	{ VOL, "\x01%dv", 5, 0, 9, 0, 0, 0 },
-	{ TONE, "\x01%dx", 1, 0, 2, 0, 0, 0 },
-	{ PUNCT, "\x01%db", 7, 0, 15, 0, 0, 0 },
-	{ VOICE, "\x01%do", 0, 0, 7, 0, 0, 0 },
-	{ FREQUENCY, "\x01%df", 5, 0, 9, 0, 0, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"\x01+3p" }},
+	{ CAPS_STOP, .u.s = {"\x01-3p" }},
+	{ RATE, .u.n = {"\x01%ds", 5, 0, 9, 0, 0, NULL }},
+	{ PITCH, .u.n = {"\x01%dp", 5, 0, 9, 0, 0, NULL }},
+	{ VOL, .u.n = {"\x01%dv", 5, 0, 9, 0, 0, NULL }},
+	{ TONE, .u.n = {"\x01%dx", 1, 0, 2, 0, 0, NULL }},
+	{ PUNCT, .u.n = {"\x01%db", 7, 0, 15, 0, 0, NULL }},
+	{ VOICE, .u.n = {"\x01%do", 0, 0, 7, 0, 0, NULL }},
+	{ FREQUENCY, .u.n = {"\x01%df", 5, 0, 9, 0, 0, NULL }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_soft = {
@@ -72,8 +69,7 @@ static struct spk_synth synth_soft = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = softsynth_probe,
 	.release = softsynth_release,
 	.synth_immediate = NULL,

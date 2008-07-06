@@ -3,50 +3,50 @@
 #include "speakup.h"
 
 static struct st_var_header var_headers[] = {
-  { "version", VERSION, VAR_PROC, USER_R, 0, 0, 0 },
-  { "synth_name", SYNTH, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "keymap", KEYMAP, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "silent", SILENT, VAR_PROC, USER_W, 0, 0, 0 },
-  { "punc_some", PUNC_SOME, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "punc_most", PUNC_MOST, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "punc_all", PUNC_ALL, VAR_PROC, USER_R, 0, 0, 0 },
-  { "delimiters", DELIM, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "repeats", REPEATS, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "ex_num", EXNUMBER, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "characters", CHARS, VAR_PROC, USER_RW, 0, 0, 0 },
-  { "synth_direct", SYNTH_DIRECT, VAR_PROC, USER_W, 0, 0, 0 },
-  { "caps_start", CAPS_START, VAR_STRING, USER_RW, 0, str_caps_start, 0 },
-  { "caps_stop", CAPS_STOP, VAR_STRING, USER_RW, 0, str_caps_stop, 0 },
-  { "delay_time", DELAY, VAR_TIME, ROOT_W, 0, &speakup_info.delay_time, 0 },
-  { "trigger_time", TRIGGER, VAR_TIME, ROOT_W, 0, &speakup_info.trigger_time, 0 },
-  { "jiffy_delta", JIFFY, VAR_TIME, ROOT_W, 0, &speakup_info.jiffy_delta, 0 },
-  { "full_time", FULL, VAR_TIME, ROOT_W, 0, &speakup_info.full_time, 0 },
-  { "spell_delay", SPELL_DELAY, VAR_NUM, USER_RW, 0, &spell_delay, 0 },
-  { "bleeps", BLEEPS, VAR_NUM, USER_RW, 0, &bleeps, 0 },
-  { "attrib_bleep", ATTRIB_BLEEP, VAR_NUM, USER_RW, 0, &attrib_bleep, 0 },
-  { "bleep_time", BLEEP_TIME, VAR_TIME, USER_RW, 0, &bleep_time, 0 },
-  { "cursor_time", CURSOR_TIME, VAR_TIME, USER_RW, 0, &cursor_timeout, 0 },
-  { "punc_level", PUNC_LEVEL, VAR_NUM, USER_RW, 0, &punc_level, 0 },
-  { "reading_punc", READING_PUNC, VAR_NUM, USER_RW, 0, &reading_punc, 0 },
-  { "say_control", SAY_CONTROL, VAR_NUM, USER_RW, 0, &say_ctrl, 0 },
-  { "say_word_ctl", SAY_WORD_CTL, VAR_NUM, USER_RW, 0, &say_word_ctl, 0 },
-  { "no_interrupt", NO_INTERRUPT, VAR_NUM, USER_RW, 0, &no_intr, 0 },
-  { "key_echo", KEY_ECHO, VAR_NUM, USER_RW, 0, &key_echo, 0 },
-  { "bell_pos", BELL_POS, VAR_NUM, USER_RW, 0, &bell_pos, 0 },
-  { "rate", RATE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "pitch", PITCH, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "vol", VOL, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "tone", TONE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "punct", PUNCT, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "voice", VOICE, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "freq", FREQUENCY, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "lang", LANG, VAR_NUM, USER_RW, 0, 0, 0 },
-  { "chartab", CHARTAB, VAR_PROC, USER_RW, 0, 0, 0 },
+  { "version", VERSION, VAR_PROC, NULL, NULL },
+  { "synth_name", SYNTH, VAR_PROC, NULL, NULL },
+  { "keymap", KEYMAP, VAR_PROC, NULL, NULL },
+  { "silent", SILENT, VAR_PROC, NULL, NULL },
+  { "punc_some", PUNC_SOME, VAR_PROC, NULL, NULL },
+  { "punc_most", PUNC_MOST, VAR_PROC, NULL, NULL },
+  { "punc_all", PUNC_ALL, VAR_PROC, NULL, NULL },
+  { "delimiters", DELIM, VAR_PROC, NULL, NULL },
+  { "repeats", REPEATS, VAR_PROC, NULL, NULL },
+  { "ex_num", EXNUMBER, VAR_PROC, NULL, NULL },
+  { "characters", CHARS, VAR_PROC, NULL, NULL },
+  { "synth_direct", SYNTH_DIRECT, VAR_PROC, NULL, NULL },
+  { "caps_start", CAPS_START, VAR_STRING, str_caps_start, NULL },
+  { "caps_stop", CAPS_STOP, VAR_STRING, str_caps_stop, NULL },
+  { "delay_time", DELAY, VAR_TIME, &speakup_info.delay_time, NULL },
+  { "trigger_time", TRIGGER, VAR_TIME, &speakup_info.trigger_time, NULL },
+  { "jiffy_delta", JIFFY, VAR_TIME, &speakup_info.jiffy_delta, NULL },
+  { "full_time", FULL, VAR_TIME, &speakup_info.full_time, NULL },
+  { "spell_delay", SPELL_DELAY, VAR_NUM, &spell_delay, NULL },
+  { "bleeps", BLEEPS, VAR_NUM, &bleeps, NULL },
+  { "attrib_bleep", ATTRIB_BLEEP, VAR_NUM, &attrib_bleep, NULL },
+  { "bleep_time", BLEEP_TIME, VAR_TIME, &bleep_time, NULL },
+  { "cursor_time", CURSOR_TIME, VAR_TIME, &cursor_timeout, NULL },
+  { "punc_level", PUNC_LEVEL, VAR_NUM, &punc_level, NULL },
+  { "reading_punc", READING_PUNC, VAR_NUM, &reading_punc, NULL },
+  { "say_control", SAY_CONTROL, VAR_NUM, &say_ctrl, NULL },
+  { "say_word_ctl", SAY_WORD_CTL, VAR_NUM, &say_word_ctl, NULL },
+  { "no_interrupt", NO_INTERRUPT, VAR_NUM, &no_intr, NULL },
+  { "key_echo", KEY_ECHO, VAR_NUM, &key_echo, NULL },
+  { "bell_pos", BELL_POS, VAR_NUM, &bell_pos, NULL },
+  { "rate", RATE, VAR_NUM, NULL, NULL },
+  { "pitch", PITCH, VAR_NUM, NULL, NULL },
+  { "vol", VOL, VAR_NUM, NULL, NULL },
+  { "tone", TONE, VAR_NUM, NULL, NULL },
+  { "punct", PUNCT, VAR_NUM, NULL, NULL   },
+  { "voice", VOICE, VAR_NUM, NULL, NULL },
+  { "freq", FREQUENCY, VAR_NUM, NULL, NULL },
+  { "lang", LANG, VAR_NUM, NULL, NULL },
+  { "chartab", CHARTAB, VAR_PROC, NULL, NULL },
 };
 
 static struct st_var_header *var_ptrs[MAXVARS] = { 0, 0, 0 };
 
-static struct st_punc_var punc_vars[] = {
+static struct punc_var_t punc_vars[] = {
  { PUNC_SOME, 1 },
  { PUNC_MOST, 2 },
  { PUNC_ALL, 3 },
@@ -81,35 +81,33 @@ int chartab_get_value(char *keyword)
 	return value;
 }
 
-void speakup_register_var(struct st_num_var *var)
+void speakup_register_var(struct var_t *var)
 {
 	static char nothing[2] = "\0";
 	int i;
-	enum var_id_t var_id = var->var_id;
-
 	struct st_var_header *p_header;
-	struct st_string_var *s_var;
 
-	BUG_ON(var_id < 0 || var_id >= MAXVARS);
-	if (var_ptrs[0] == 0) {
+	BUG_ON(!var || var->var_id < 0 || var->var_id >= MAXVARS);
+	if (var_ptrs[0] == NULL) {
 		for (i = 0; i < MAXVARS; i++) {
 			p_header = &var_headers[i];
 			var_ptrs[p_header->var_id] = p_header;
-			p_header->data = 0;
+			p_header->data = NULL;
 		}
 	}
-	p_header = var_ptrs[var_id];
-	if (p_header->data != 0)
+	p_header = var_ptrs[var->var_id];
+	if (p_header->data != NULL)
 		return;
 	p_header->data = var;
 	switch (p_header->var_type) {
 	case VAR_STRING:
-		s_var = (struct st_string_var *) var;
 		set_string_var(nothing, p_header, 0);
 		break;
 	case VAR_NUM:
 	case VAR_TIME:
 		set_num_var(0, p_header, E_DEFAULT);
+		break;
+	default:
 		break;
 	}
 	return;
@@ -120,7 +118,7 @@ void speakup_unregister_var(enum var_id_t var_id)
 	struct st_var_header *p_header;
 	BUG_ON(var_id < 0 || var_id >= MAXVARS);
 	p_header = var_ptrs[var_id];
-	p_header->data = 0;
+	p_header->data = NULL;
 }
 
 struct st_var_header *get_var_header(enum var_id_t var_id)
@@ -151,10 +149,10 @@ struct st_var_header *var_header_by_name(const char *name)
 	return where;
 }
 
-struct st_punc_var *get_punc_var(enum var_id_t var_id)
+struct punc_var_t *get_punc_var(enum var_id_t var_id)
 {
-	struct st_punc_var *rv = NULL;
-	struct st_punc_var *where;
+	struct punc_var_t *rv = NULL;
+	struct punc_var_t *where;
 
 	where = punc_vars;
 	while ((where->var_id != -1) && (rv == NULL)) {
@@ -169,29 +167,31 @@ struct st_punc_var *get_punc_var(enum var_id_t var_id)
 /* handlers for setting vars */
 int set_num_var(short input, struct st_var_header *var, int how)
 {
-	short val, ret = 0;
+	short val;
+	short ret = 0;
 	short *p_val = var->p_val;
 	int l;
-	char buf[32], *cp;
-	struct st_num_var *var_data = var->data;
+	char buf[32];
+	char *cp;
+	struct var_t *var_data = var->data;
 	if (var_data == NULL)
 		return E_UNDEF;
 	if (how == E_DEFAULT) {
-		val = var_data->default_val;
+		val = var_data->u.n.default_val;
 		ret = SET_DEFAULT;
 	} else {
 		if (how == E_SET)
 			val = input;
 		else
-			val = var_data->value;
+			val = var_data->u.n.value;
 		if (how == E_INC)
 			val += input;
 		else if (how == E_DEC)
 			val -= input;
-		if (val < var_data->low || val > var_data->high)
+		if (val < var_data->u.n.low || val > var_data->u.n.high)
 			return E_RANGE;
 	}
-	var_data->value = val;
+	var_data->u.n.value = val;
 	if (var->var_type == VAR_TIME && p_val != 0) {
 		*p_val = (val * HZ + 1000 - HZ) / 1000;
 		return ret;
@@ -202,25 +202,25 @@ int set_num_var(short input, struct st_var_header *var, int how)
 		punc_mask = punc_masks[val];
 		return ret;
 	}
-	if (var_data->multiplier != 0)
-		val *= var_data->multiplier;
-	val += var_data->offset;
+	if (var_data->u.n.multiplier != 0)
+		val *= var_data->u.n.multiplier;
+	val += var_data->u.n.offset;
 	if (var->var_id < FIRST_SYNTH_VAR || synth == NULL)
 		return ret;
 	if (synth->synth_adjust != NULL) {
 		int status = synth->synth_adjust(var);
 		return (status != 0) ? status : ret;
 	}
-	if (!var_data->synth_fmt)
+	if (!var_data->u.n.synth_fmt)
 		return ret;
 	if (var->var_id == PITCH)
 		cp = pitch_buff;
 	else
 		cp = buf;
-	if (!var_data->out_str)
-		l = sprintf(cp, var_data->synth_fmt, (int)val);
+	if (!var_data->u.n.out_str)
+		l = sprintf(cp, var_data->u.n.synth_fmt, (int)val);
 	else
-		l = sprintf(cp, var_data->synth_fmt, var_data->out_str[val]);
+		l = sprintf(cp, var_data->u.n.synth_fmt, var_data->u.n.out_str[val]);
 	synth_printf("%s", cp);
 	return ret;
 }
@@ -228,19 +228,19 @@ int set_num_var(short input, struct st_var_header *var, int how)
 int set_string_var(const char *page, struct st_var_header *var, int len)
 {
 	int ret = 0;
-	struct st_string_var *var_data = var->data;
+	struct var_t *var_data = var->data;
 	if (var_data == NULL)
 		return E_UNDEF;
 	if (len > MAXVARLEN)
 		return -E_TOOLONG;
 	if (!len) {
-	if (!var_data->default_val)
+	if (!var_data->u.s.default_val)
 		return 0;
 		ret = SET_DEFAULT;
 		if (!var->p_val)
-			var->p_val = var_data->default_val;
-		if (var->p_val != var_data->default_val)
-			strcpy((char *)var->p_val, var_data->default_val);
+			var->p_val = var_data->u.s.default_val;
+		if (var->p_val != var_data->u.s.default_val)
+			strcpy((char *)var->p_val, var_data->u.s.default_val);
 		} else if (var->p_val)
 			strcpy((char *)var->p_val, page);
 	else

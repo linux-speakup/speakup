@@ -27,20 +27,17 @@
 #include "spk_priv.h"
 
 #define PROCSPEECH '\n'
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define SYNTH_CLEAR '!'
 
-static struct st_string_var stringvars[] = {
-	{ CAPS_START, "CAPS_START\n" },
-	{ CAPS_STOP, "CAPS_STOP" },
-	V_LAST_STRING
-};
-static struct st_num_var numvars[] = {
-	{ RATE, "RATE %d\n", 8, 1, 16, 0, 0, 0 },
-	{ PITCH, "PITCH %d\n", 8, 0, 16, 0, 0, 0 },
-	{ VOL, "VOL %d\n", 8, 0, 16, 0, 0, 0 },
-	{ TONE, "TONE %d\n", 8, 0, 16, 0, 0, 0 },
-	V_LAST_NUM
+static struct var_t vars[] = {
+	{ CAPS_START, .u.s = {"CAPS_START\n" }},
+	{ CAPS_STOP, .u.s = {"CAPS_STOP\n" }},
+	{ RATE, .u.n = {"RATE %d\n", 8, 1, 16, 0, 0, NULL }},
+	{ PITCH, .u.n = {"PITCH %d\n", 8, 0, 16, 0, 0, NULL }},
+	{ VOL, .u.n = {"VOL %d\n", 8, 0, 16, 0, 0, NULL }},
+	{ TONE, .u.n = {"TONE %d\n", 8, 0, 16, 0, 0, NULL }},
+	V_LAST_VAR
 };
 
 static struct spk_synth synth_dummy = {
@@ -57,8 +54,7 @@ static struct spk_synth synth_dummy = {
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
-	.string_vars = stringvars,
-	.num_vars = numvars,
+	.vars = vars,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,
