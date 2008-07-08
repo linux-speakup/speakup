@@ -26,10 +26,11 @@
 #include <linux/proc_fs.h>
 #include <linux/jiffies.h>
 #include <linux/spinlock.h>
+#include "speakup.h"
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.7"
+#define DRV_VERSION "2.8"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -136,8 +137,9 @@ static void do_catch_up(struct spk_synth *synth)
 	static u_char ch = 0;
 	static u_char last = '\0';
 	unsigned long flags;
-	unsigned long timeout = 4000 * HZ;
+	unsigned long timeout = ms2jiffies(4000);
 	DEFINE_WAIT(wait);
+	struct var_t *delay_time;
 
 	while (1) {
 		/* if no ctl-a in 4, send data anyway */
@@ -168,7 +170,8 @@ static void do_catch_up(struct spk_synth *synth)
 		if (ch == '\n')
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
-			msleep(speakup_info.delay_time);
+			delay_time = get_var(DELAY);
+			msleep(delay_time->u.n.value);
 			continue;
 		}
 		spk_lock(flags);

@@ -179,10 +179,6 @@ struct spk_synth {
 struct speakup_info_t {
 	spinlock_t spinlock;
 	int port_tts;
-	short delay_time;
-	short trigger_time;
-	short jiffy_delta;
-	short full_time;
 	int alive;
 	int flushing;
 };

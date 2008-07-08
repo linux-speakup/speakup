@@ -40,6 +40,8 @@
 #define B_SYM 0x0800
 #define B_CAPSYM (B_CAP|B_SYM)
 
+#define ms2jiffies(x) (((x) * HZ + 999) / 1000)
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,23)
 #define inverse_translate(vc, c) inverse_translate(vc, c, 0)
 #endif

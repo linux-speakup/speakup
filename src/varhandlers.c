@@ -17,15 +17,15 @@ static struct st_var_header var_headers[] = {
   { "synth_direct", SYNTH_DIRECT, VAR_PROC, NULL, NULL },
   { "caps_start", CAPS_START, VAR_STRING, str_caps_start, NULL },
   { "caps_stop", CAPS_STOP, VAR_STRING, str_caps_stop, NULL },
-  { "delay_time", DELAY, VAR_TIME, &speakup_info.delay_time, NULL },
-  { "trigger_time", TRIGGER, VAR_TIME, &speakup_info.trigger_time, NULL },
-  { "jiffy_delta", JIFFY, VAR_TIME, &speakup_info.jiffy_delta, NULL },
-  { "full_time", FULL, VAR_TIME, &speakup_info.full_time, NULL },
+  { "delay_time", DELAY, VAR_TIME, NULL, NULL },
+  { "trigger_time", TRIGGER, VAR_TIME, NULL, NULL },
+  { "jiffy_delta", JIFFY, VAR_TIME, NULL, NULL },
+  { "full_time", FULL, VAR_TIME, NULL, NULL },
   { "spell_delay", SPELL_DELAY, VAR_NUM, &spell_delay, NULL },
   { "bleeps", BLEEPS, VAR_NUM, &bleeps, NULL },
   { "attrib_bleep", ATTRIB_BLEEP, VAR_NUM, &attrib_bleep, NULL },
   { "bleep_time", BLEEP_TIME, VAR_TIME, &bleep_time, NULL },
-  { "cursor_time", CURSOR_TIME, VAR_TIME, &cursor_timeout, NULL },
+  { "cursor_time", CURSOR_TIME, VAR_TIME, NULL, NULL },
   { "punc_level", PUNC_LEVEL, VAR_NUM, &punc_level, NULL },
   { "reading_punc", READING_PUNC, VAR_NUM, &reading_punc, NULL },
   { "say_control", SAY_CONTROL, VAR_NUM, &say_ctrl, NULL },
@@ -149,6 +149,14 @@ struct st_var_header *var_header_by_name(const char *name)
 	return where;
 }
 
+struct var_t *get_var(enum var_id_t var_id)
+{
+	BUG_ON(var_id < 0 || var_id >= MAXVARS);
+	BUG_ON(! var_ptrs[var_id] || ! var_ptrs[var_id]->data);
+	return (var_ptrs[var_id]->data);
+}
+EXPORT_SYMBOL_GPL(get_var);
+
 struct punc_var_t *get_punc_var(enum var_id_t var_id)
 {
 	struct punc_var_t *rv = NULL;
@@ -193,7 +201,7 @@ int set_num_var(short input, struct st_var_header *var, int how)
 	}
 	var_data->u.n.value = val;
 	if (var->var_type == VAR_TIME && p_val != 0) {
-		*p_val = (val * HZ + 1000 - HZ) / 1000;
+		*p_val = ms2jiffies(val);
 		return ret;
 	}
 	if (p_val != 0)

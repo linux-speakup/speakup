@@ -25,7 +25,7 @@
 
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -121,6 +121,7 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	int timeout;
 	unsigned long flags;
+	struct var_t *delay_time;
 
 	while (1) {
 		spk_lock(flags);
@@ -136,7 +137,8 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		spk_unlock(flags);
 		if (synth_full()) {
-			msleep(speakup_info.delay_time);
+			delay_time = get_var(DELAY);
+			msleep(delay_time->u.n.value);
 			continue;
 		}
 		timeout = 1000;

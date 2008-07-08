@@ -1194,7 +1194,7 @@ int set_key_info(const u_char *key_info, u_char *k_buffer)
 static struct var_t spk_vars[] = {
 	/* bell must be first to set high limit */
 	{ BELL_POS, .u.n = {NULL, 0, 0, 0, 0, 0, NULL }},
-	{ SPELL_DELAY, .u.n = {NULL, 0, 0, 5, 0, 0, NULL }},
+	{ SPELL_DELAY, .u.n = {NULL, 0, 0, 4, 0, 0, NULL }},
 	{ ATTRIB_BLEEP, .u.n = {NULL, 1, 0, 3, 0, 0, NULL }},
 	{ BLEEPS, .u.n = {NULL, 3, 0, 3, 0, 0, NULL }},
 	{ BLEEP_TIME, .u.n = {NULL, 30, 1, 200, 0, 0, NULL }},
@@ -1353,9 +1353,12 @@ stop_read_all(struct vc_data *vc)
 static void
 start_read_all_timer(struct vc_data *vc, int command)
 {
+	struct var_t *cursor_timeout;
+
 	cursor_con = vc->vc_num;
 	read_all_key = command;
-	mod_timer(&cursor_timer, jiffies + cursor_timeout);
+	cursor_timeout = get_var(CURSOR_TIME);
+	mod_timer(&cursor_timer, jiffies + ms2jiffies(cursor_timeout->u.n.value));
 }
 
 static void
@@ -1454,6 +1457,8 @@ static int pre_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 {
 	unsigned long flags;
+	struct var_t *cursor_timeout;
+
 	spk_lock(flags);
 	spk_parked &= 0xfe;
 	if (synth == NULL || up_flag || spk_shut_up || cursor_track == CT_Off) {
@@ -1473,7 +1478,8 @@ static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	cursor_con = vc->vc_num;
 	if (cursor_track == CT_Highlight)
 		reset_highlight_buffers(vc);
-	mod_timer(&cursor_timer, jiffies + cursor_timeout);
+		cursor_timeout = get_var(CURSOR_TIME);
+	mod_timer(&cursor_timer, jiffies + ms2jiffies(cursor_timeout->u.n.value));
 	spk_unlock(flags);
 }
 

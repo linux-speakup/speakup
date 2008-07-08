@@ -130,7 +130,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -313,6 +313,7 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	static u_char last = '\0';
 	unsigned long flags;
+	struct var_t *delay_time;
 
 	while (1) {
 		spk_lock(flags);
@@ -331,7 +332,8 @@ static void do_catch_up(struct spk_synth *synth)
 		if (ch == '\n')
 			ch = 0x0D;
 		if (dt_sendchar(ch)) {
-			msleep(speakup_info.delay_time);
+			delay_time = get_var(DELAY);
+			msleep(delay_time->u.n.value);
 			continue;
 		}
 		spk_lock(flags);
