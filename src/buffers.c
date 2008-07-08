@@ -43,7 +43,7 @@ static void speakup_stop_ttys(void)
 
 	if (!in_atomic())
 		lock_kernel();
-	else if (!current->lock_depth) {
+	else if (!kernel_locked()) {
 		/* BKL is not held and we are in a critical section, too bad,
 		 * let the buffer continue to fill up.
 		 *
@@ -88,6 +88,8 @@ void synth_buffer_add(char ch)
 		synth_start();
 		speakup_stop_ttys();
 	}
+	if (synth_buffer_free() <= 1)
+		return;
 	*buff_in++ = ch;
 	if (buff_in > buffer_end)
 		buff_in = synth_buffer;
