@@ -143,7 +143,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	finish_wait(&wait_on_output, &wait);
 
 	cp = buf;
-	while (1) {
+	while (chars_sent < count) {
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			ch = '\x18';
