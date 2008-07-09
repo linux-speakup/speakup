@@ -55,6 +55,7 @@ extern void spk_serial_release(void);
 extern char synth_buffer_getc(void);
 extern char synth_buffer_peek(void);
 extern int synth_buffer_empty(void);
+extern struct var_t *get_var(enum var_id_t var_id);
 
 extern int serial_synth_probe(struct spk_synth *synth);
 extern const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);

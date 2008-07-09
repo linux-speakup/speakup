@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 
 #define PROCSPEECH '\n'
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define SYNTH_CLEAR '!'
 
 static struct var_t vars[] = {

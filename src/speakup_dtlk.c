@@ -29,7 +29,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_writable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_WRITABLE)
@@ -114,6 +114,7 @@ static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
+	struct var_t *delay_time;
 
 	while (1) {
 		spk_lock(flags);
@@ -129,7 +130,8 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		spk_unlock(flags);
 		if (synth_full()) {
-			msleep(speakup_info.delay_time);
+			delay_time = get_var(DELAY);
+			msleep(delay_time->u.n.value);
 			continue;
 		}
 		spk_lock(flags);

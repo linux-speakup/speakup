@@ -27,7 +27,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -81,6 +81,7 @@ static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
+	struct var_t *full_time;
 
 	while (1) {
 		spk_lock(flags);
@@ -100,7 +101,8 @@ static void do_catch_up(struct spk_synth *synth)
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
-			msleep(speakup_info.full_time);
+			full_time = get_var(FULL);
+			msleep(full_time->u.n.value);
 			continue;
 		}
 		spk_lock(flags);

@@ -24,10 +24,6 @@ int quiet_boot;
 
 struct speakup_info_t speakup_info = {
 	.spinlock = SPIN_LOCK_UNLOCKED,
-	.delay_time = 500,
-	.trigger_time = 50,
-	.jiffy_delta = 50,
-	.full_time = 1000,
 	.flushing = 0,
 };
 EXPORT_SYMBOL_GPL(speakup_info);
@@ -72,6 +68,7 @@ void spk_do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
+	struct var_t *full_time;
 
 	while (1) {
 		spk_lock(flags);
@@ -90,7 +87,8 @@ void spk_do_catch_up(struct spk_synth *synth)
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
-			msleep(speakup_info.full_time);
+			full_time = get_var(FULL);
+			msleep(full_time->u.n.value);
 			continue;
 		}
 		spk_lock(flags);
@@ -154,12 +152,15 @@ static DEFINE_TIMER(thread_timer, thread_wake_up, 0, 0);
 
 void synth_start(void)
 {
+	struct var_t *trigger_time;
+
 	if (!speakup_info.alive)
 		synth_buffer_clear();
 	else if (synth->start)
 		synth->start();
+	trigger_time = get_var(TRIGGER);
 	if (!timer_pending(&thread_timer))
-		mod_timer(&thread_timer, jiffies + (HZ * speakup_info.trigger_time) / 1000);
+		mod_timer(&thread_timer, jiffies + ms2jiffies(trigger_time->u.n.value));
 }
 
 void do_flush(void)

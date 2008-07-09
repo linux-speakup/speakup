@@ -30,7 +30,7 @@
 #include "serialio.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -114,6 +114,7 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	unsigned long flags;
 	int timeout;
+	struct var_t *full_time;
 
 	while (1) {
 		spk_lock(flags);
@@ -129,7 +130,8 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		spk_unlock(flags);
 		if (synth_full()) {
-			msleep(speakup_info.full_time);
+			full_time = get_var(FULL);
+			msleep(full_time->u.n.value);
 			continue;
 		}
 		timeout = SPK_XMITR_TIMEOUT;
