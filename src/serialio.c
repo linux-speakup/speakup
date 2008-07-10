@@ -162,7 +162,6 @@ int wait_for_xmitr(void)
 
 unsigned char spk_serial_in(void)
 {
-	unsigned char c;
 	int tmout = SPK_SERIAL_TIMEOUT;
 
 	while (!(inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR)) {
@@ -178,7 +177,7 @@ EXPORT_SYMBOL_GPL(spk_serial_in);
 
 unsigned char spk_serial_in_nowait(void)
 {
-	unsigned char c, lsr;
+	unsigned char lsr;
 
 	lsr = inb_p(speakup_info.port_tts + UART_LSR);
 	if (!(lsr & UART_LSR_DR))
