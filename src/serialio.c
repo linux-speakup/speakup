@@ -162,7 +162,7 @@ int wait_for_xmitr(void)
 
 unsigned char spk_serial_in(void)
 {
-	int c;
+	unsigned char c;
 	int tmout = SPK_SERIAL_TIMEOUT;
 
 	while (!(inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR)) {
@@ -172,20 +172,18 @@ unsigned char spk_serial_in(void)
 		}
 		udelay(1);
 	}
-	c = inb_p(speakup_info.port_tts + UART_RX);
-	return (unsigned char) c;
+	return inb_p(speakup_info.port_tts + UART_RX);
 }
 EXPORT_SYMBOL_GPL(spk_serial_in);
 
 unsigned char spk_serial_in_nowait(void)
 {
-	int c, lsr;
+	unsigned char c, lsr;
 
 	lsr = inb_p(speakup_info.port_tts + UART_LSR);
 	if (!(lsr & UART_LSR_DR))
 		return 0;
-	c = inb_p(speakup_info.port_tts + UART_RX);
-	return (unsigned char) c;
+	return inb_p(speakup_info.port_tts + UART_RX);
 }
 EXPORT_SYMBOL_GPL(spk_serial_in_nowait);
 
