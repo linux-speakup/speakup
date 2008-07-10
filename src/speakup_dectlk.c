@@ -26,6 +26,8 @@
 #include <linux/proc_fs.h>
 #include <linux/jiffies.h>
 #include <linux/spinlock.h>
+#include <linux/sched.h>
+#include <linux/timer.h>
 #include "speakup.h"
 #include "spk_priv.h"
 #include "serialio.h"
@@ -154,6 +156,7 @@ static void do_catch_up(struct spk_synth *synth)
 		spin_unlock_irqrestore(&flush_lock, flags);
 
 		spk_lock(flags);
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -170,7 +173,7 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
 			delay_time = get_var(DELAY);
-			msleep(delay_time->u.n.value);
+			schedule_timeout(ms2jiffies(delay_time->u.n.value));
 			continue;
 		}
 		spk_lock(flags);
@@ -186,6 +189,7 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		last = ch;
 	}
+	finish_wait(&speakup_event, &wait);
 	if (!in_escape)
 		spk_serial_out(PROCSPEECH);
 }

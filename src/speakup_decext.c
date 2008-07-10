@@ -23,9 +23,12 @@
  * s not a general device driver.
  */
 #include <linux/jiffies.h>
+#include <linux/sched.h>
+#include <linux/timer.h>
 
 #include "spk_priv.h"
 #include "serialio.h"
+#include "speakup.h"
 
 #define DRV_VERSION "2.8"
 #define SYNTH_CLEAR 0x03
@@ -87,9 +90,11 @@ static void do_catch_up(struct spk_synth *synth)
 	static u_char last = '\0';
 	unsigned long flags;
 	struct var_t *delay_time;
+	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -106,7 +111,7 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
 			delay_time = get_var(DELAY);
-			msleep(delay_time->u.n.value);
+			schedule_timeout(ms2jiffies(delay_time->u.n.value));
 			continue;
 		}
 		spk_lock(flags);
@@ -122,6 +127,7 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		last = ch;
 	}
+	finish_wait(&speakup_event, &wait);
 	if (!in_escape)
 		spk_serial_out(PROCSPEECH);
 }

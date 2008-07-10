@@ -10,6 +10,8 @@
 #include <linux/kmod.h>
 #include <linux/jiffies.h>
 #include <linux/uaccess.h> /* for copy_from_user */
+#include <linux/sched.h>
+#include <linux/timer.h>
 
 #include "spk_priv.h"
 #include "speakup.h"
@@ -70,9 +72,11 @@ void spk_do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	unsigned long flags;
 	struct var_t *full_time;
+	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -89,13 +93,15 @@ void spk_do_catch_up(struct spk_synth *synth)
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
 			full_time = get_var(FULL);
-			msleep(full_time->u.n.value);
+			schedule_timeout(ms2jiffies(full_time->u.n.value));
 			continue;
 		}
+		/* TODO: if jiffies > jiff_max & ch == SPACE) serial_out procpseech & delay delay_time */
 		spk_lock(flags);
 		synth_buffer_getc();
 		spk_unlock(flags);
 	}
+	finish_wait(&speakup_event, &wait);
 	spk_serial_out(synth->procspeech);
 }
 EXPORT_SYMBOL_GPL(spk_do_catch_up);

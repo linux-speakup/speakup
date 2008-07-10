@@ -30,8 +30,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include <linux/jiffies.h>
+#include <linux/sched.h>
+#include <linux/timer.h>
 
 #include "spk_priv.h"
+#include "speakup.h"
 
 #define	MODULE_init		0x0dec		/* module in boot code */
 #define	MODULE_self_test	0x8800		/* module in self-test */
@@ -313,9 +316,11 @@ static void do_catch_up(struct spk_synth *synth)
 	static u_char last = '\0';
 	unsigned long flags;
 	struct var_t *delay_time;
+	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -332,7 +337,7 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = 0x0D;
 		if (dt_sendchar(ch)) {
 			delay_time = get_var(DELAY);
-			msleep(delay_time->u.n.value);
+			schedule_timeout(ms2jiffies(delay_time->u.n.value));
 			continue;
 		}
 		spk_lock(flags);
@@ -349,6 +354,7 @@ static void do_catch_up(struct spk_synth *synth)
 		last = ch;
 		ch = 0;
 	}
+	finish_wait(&speakup_event, &wait);
 	if (!in_escape)
 		dt_sendchar(PROCSPEECH);
 }

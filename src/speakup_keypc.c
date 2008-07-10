@@ -22,8 +22,11 @@
  * This driver is for the Keynote Gold internal synthesizer.
  */
 #include <linux/jiffies.h>
+#include <linux/sched.h>
+#include <linux/timer.h>
 
 #include "spk_priv.h"
+#include "speakup.h"
 
 #define DRV_VERSION "2.5"
 #define SYNTH_IO_EXTENT	0x04
@@ -121,9 +124,11 @@ static void do_catch_up(struct spk_synth *synth)
 	int timeout;
 	unsigned long flags;
 	struct var_t *delay_time;
+	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -137,7 +142,7 @@ static void do_catch_up(struct spk_synth *synth)
 		spk_unlock(flags);
 		if (synth_full()) {
 			delay_time = get_var(DELAY);
-			msleep(delay_time->u.n.value);
+			schedule_timeout(ms2jiffies(delay_time->u.n.value));
 			continue;
 		}
 		timeout = 1000;
@@ -156,6 +161,7 @@ static void do_catch_up(struct spk_synth *synth)
 		outb_p(ch, synth_port);
 		SWAIT;
 	}
+	finish_wait(&speakup_event, &wait);
 	timeout = 1000;
 	while (synth_writable())
 		if (--timeout <= 0)

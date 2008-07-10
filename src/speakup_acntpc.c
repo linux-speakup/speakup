@@ -25,9 +25,12 @@
  */
 
 #include <linux/jiffies.h>
+#include <linux/sched.h>
+#include <linux/timer.h>
 
 #include "spk_priv.h"
 #include "serialio.h"
+#include "speakup.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define DRV_VERSION "2.5"
@@ -114,9 +117,11 @@ static void do_catch_up(struct spk_synth *synth)
 	unsigned long flags;
 	int timeout;
 	struct var_t *full_time;
+	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -130,7 +135,7 @@ static void do_catch_up(struct spk_synth *synth)
 		spk_unlock(flags);
 		if (synth_full()) {
 			full_time = get_var(FULL);
-			msleep(full_time->u.n.value);
+			schedule_timeout(ms2jiffies(full_time->u.n.value));
 			continue;
 		}
 		timeout = SPK_XMITR_TIMEOUT;
@@ -146,6 +151,7 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
 	}
+	finish_wait(&speakup_event, &wait);
 	timeout = SPK_XMITR_TIMEOUT;
 	while (synth_writable()) {
 		if (!--timeout)
