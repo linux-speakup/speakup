@@ -357,6 +357,7 @@ void synth_release(void)
 	if (synth == NULL)
 		return;
 	pr_info("releasing synth %s\n", synth->name);
+	synth->alive = 0;
 	for (var = synth_time_vars; var->var_id != MAXVARS; var++)
 		speakup_unregister_var(var->var_id);
 	for (var = synth->vars; var->var_id != MAXVARS; var++)
