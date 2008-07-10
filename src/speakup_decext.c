@@ -68,7 +68,6 @@ static struct spk_synth synth_decext = {
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
-	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,

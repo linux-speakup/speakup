@@ -79,7 +79,6 @@ static struct spk_synth synth_dtlk = {
 	.release = dtlk_release,
 	.synth_immediate = synth_immediate,
 	.catch_up = do_catch_up,
-	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = spk_synth_is_alive_nop,
 	.synth_adjust = NULL,
@@ -263,7 +262,7 @@ static int synth_probe(struct spk_synth *synth)
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
 		synth->long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
 	 sp->rom_version, sp->serial_number, synth->version);
-	/*	speakup_info.alive = 1; */
+	synth->alive = 1;
 	return 0;
 }
 

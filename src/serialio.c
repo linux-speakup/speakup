@@ -128,9 +128,9 @@ void stop_serial_interrupt(void)
 int wait_for_xmitr(void)
 {
 	int tmout = SPK_XMITR_TIMEOUT;
-	if ((speakup_info.alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+	if ((synth->alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
 		pr_warn("%s: too many timeouts, deactivating speakup\n", synth->long_name);
-		speakup_info.alive = 0;
+		synth->alive = 0;
 		/* No synth any more, so nobody will restart TTYs, and we thus
 		 * need to do it ourselves.  Now that there is no synth we can
 		 * let application flood anyway */
@@ -191,7 +191,7 @@ EXPORT_SYMBOL_GPL(spk_serial_in_nowait);
 
 int spk_serial_out(const char ch)
 {
-	if (speakup_info.alive && wait_for_xmitr()) {
+	if (synth->alive && wait_for_xmitr()) {
 		outb_p(ch, speakup_info.port_tts);
 		return 1;
 	}

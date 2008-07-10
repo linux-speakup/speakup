@@ -62,7 +62,6 @@ static struct spk_synth synth_audptr = {
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = spk_do_catch_up,
-	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,
@@ -112,6 +111,7 @@ static int synth_probe(struct spk_synth *synth)
 	failed = serial_synth_probe(synth);
 	if (failed == 0)
 		synth_version(synth);
+	synth->alive = !failed;
 	return 0;
 }
 

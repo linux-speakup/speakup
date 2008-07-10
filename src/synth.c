@@ -54,6 +54,7 @@ int serial_synth_probe(struct spk_synth *synth)
 	}
 	pr_info("%s: ttyS%i, Driver Version %s\n",
 			synth->long_name, synth->ser, synth->version);
+	synth->alive = 1;
 	return 0;
 }
 EXPORT_SYMBOL_GPL(serial_synth_probe);
@@ -123,18 +124,18 @@ EXPORT_SYMBOL_GPL(spk_synth_flush);
 
 int spk_synth_is_alive_nop(struct spk_synth *synth)
 {
-	speakup_info.alive = 1;
+	synth->alive = 1;
 	return 1;
 }
 EXPORT_SYMBOL_GPL(spk_synth_is_alive_nop);
 
 int spk_synth_is_alive_restart(struct spk_synth *synth)
 {
-	if (speakup_info.alive)
+	if (synth->alive)
 		return 1;
-	if (!speakup_info.alive && wait_for_xmitr() > 0) {
+	if (!synth->alive && wait_for_xmitr() > 0) {
 		/* restart */
-		speakup_info.alive = 1;
+		synth->alive = 1;
 		synth_printf("%s", synth->init);
 		return 2; /* reenabled */
 	}
@@ -145,7 +146,7 @@ EXPORT_SYMBOL_GPL(spk_synth_is_alive_restart);
 
 static void thread_wake_up(u_long data)
 {
-	wake_up_interruptible(&speakup_event);
+	wake_up_interruptible_all(&speakup_event);
 }
 
 static DEFINE_TIMER(thread_timer, thread_wake_up, 0, 0);
@@ -154,10 +155,10 @@ void synth_start(void)
 {
 	struct var_t *trigger_time;
 
-	if (!speakup_info.alive)
+	if (!synth->alive) {
 		synth_buffer_clear();
-	else if (synth->start)
-		synth->start();
+		return;
+	}
 	trigger_time = get_var(TRIGGER);
 	if (!timer_pending(&thread_timer))
 		mod_timer(&thread_timer, jiffies + ms2jiffies(trigger_time->u.n.value));
@@ -167,13 +168,13 @@ void do_flush(void)
 {
 	speakup_info.flushing = 1;
 	synth_buffer_clear();
-	if (speakup_info.alive) {
+	if (synth->alive) {
 		if (pitch_shift) {
 			synth_printf("%s", pitch_buff);
 			pitch_shift = 0;
 		}
 	}
-	wake_up_interruptible(&speakup_event);
+	wake_up_interruptible_all(&speakup_event);
 }
 
 void synth_write(const char *buf, size_t count)
@@ -226,7 +227,7 @@ int synth_supports_indexing(void)
 void synth_insert_next_index(int sent_num)
 {
 	int out;
-	if (speakup_info.alive) {
+	if (synth->alive) {
 		if (sent_num == 0) {
 			synth->indexing.currindex++;
 			index_count++;
@@ -326,6 +327,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 	if (in_synth->checkval != SYNTH_CHECK)
 		return -EINVAL;
 	synth = in_synth;
+	synth->alive = 0;
 	pr_warn("synth probe\n");
 	if (synth->probe(synth) < 0) {
 		pr_warn("%s: device probe failed\n", in_synth->name);
@@ -338,14 +340,13 @@ static int do_synth_init(struct spk_synth *in_synth)
 	synth_time_vars[3].u.n.default_val = synth->full;
 	for (var = synth_time_vars; (var->var_id >= 0) && (var->var_id < MAXVARS); var++)
 		speakup_register_var(var);
-	speakup_info.alive = 1;
 	synth_printf("%s", synth->init);
 	for (var = synth->vars; (var->var_id >= 0) && (var->var_id < MAXVARS); var++)
 		speakup_register_var(var);
 	if (!quiet_boot)
 		synth_printf("%s found\n", synth->long_name);
 	synth_flags = synth->flags;
-	wake_up_interruptible(&speakup_event);
+	wake_up_interruptible_all(&speakup_event);
 	return 0;
 }
 

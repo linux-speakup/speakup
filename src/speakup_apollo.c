@@ -63,7 +63,6 @@ static struct spk_synth synth_apollo = {
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,
 	.catch_up = do_catch_up,
-	.start = NULL,
 	.flush = spk_synth_flush,
 	.is_alive = spk_synth_is_alive_restart,
 	.synth_adjust = NULL,

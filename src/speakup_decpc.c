@@ -174,7 +174,6 @@ static struct spk_synth synth_dec_pc = {
 	.release = dtpc_release,
 	.synth_immediate = synth_immediate,
 	.catch_up = do_catch_up,
-	.start = NULL,
 	.flush = synth_flush,
 	.is_alive = spk_synth_is_alive_nop,
 	.synth_adjust = NULL,
@@ -389,6 +388,7 @@ static int synth_probe(struct spk_synth *synth)
 	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
 		speakup_info.port_tts, speakup_info.port_tts + 7,
 		synth->version);
+	synth->alive = 1;
 	return 0;
 }
 

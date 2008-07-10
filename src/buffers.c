@@ -79,7 +79,7 @@ EXPORT_SYMBOL_GPL(synth_buffer_empty);
 
 void synth_buffer_add(char ch)
 {
-	if (!speakup_info.alive) {
+	if (!synth->alive) {
 		/* This makes sure that we won't stop TTYs if there is no synth
 		 * to restart them */
 		return;

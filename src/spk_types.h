@@ -167,19 +167,18 @@ struct spk_synth {
 	void (*release)(void);
 	const char *(*synth_immediate)(struct spk_synth *synth, const char *buff);
 	void (*catch_up)(struct spk_synth *synth);
-	void (*start)(void);
 	void (*flush)(struct spk_synth *synth);
 	int (*is_alive)(struct spk_synth *synth);
 	int (*synth_adjust)(struct st_var_header *var);
 	void (*read_buff_add)(u_char);
 	unsigned char (*get_index)(void);
 	struct synth_indexing indexing;
+	int alive;
 };
 
 struct speakup_info_t {
 	spinlock_t spinlock;
 	int port_tts;
-	int alive;
 	int flushing;
 };
 

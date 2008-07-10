@@ -34,14 +34,11 @@
 
 static int softsynth_probe(struct spk_synth *synth);
 static void softsynth_release(void);
-static void softsynth_start(void);
 static int softsynth_is_alive(struct spk_synth *synth);
 static unsigned char get_index(void);
 
 static struct miscdevice synth_device;
 static int misc_registered;
-static int dev_opened;
-static DECLARE_WAIT_QUEUE_HEAD(wait_on_output);
 
 static struct var_t vars[] = {
 	{ CAPS_START, .u.s = {"\x01+3p" }},
@@ -74,7 +71,6 @@ static struct spk_synth synth_soft = {
 	.release = softsynth_release,
 	.synth_immediate = NULL,
 	.catch_up = NULL,
-	.start = softsynth_start,
 	.flush = NULL,
 	.is_alive = softsynth_is_alive,
 	.synth_adjust = NULL,
@@ -94,11 +90,11 @@ static int softsynth_open(struct inode *inode, struct file *fp)
 	/*if ((fp->f_flags & O_ACCMODE) != O_RDONLY) */
 	/*	return -EPERM; */
 	spk_lock(flags);
-	if (dev_opened) {
+	if (synth_soft.alive) {
 		spk_unlock(flags);
 		return -EBUSY;
 	}
-	dev_opened = 1;
+	synth_soft.alive = 1;
 	spk_unlock(flags);
 	return 0;
 }
@@ -108,7 +104,7 @@ static int softsynth_close(struct inode *inode, struct file *fp)
 	unsigned long flags;
 	fp->f_op = NULL;
 	spk_lock(flags);
-	dev_opened = 0;
+	synth_soft.alive = 0;
 	spk_unlock(flags);
 	/* Make sure we let applications go before leaving */
 	speakup_start_ttys();
@@ -126,21 +122,23 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	DEFINE_WAIT(wait);
 
 	spk_lock(flags);
-	while (synth_buffer_empty() && !speakup_info.flushing) {
-		prepare_to_wait(&wait_on_output, &wait, TASK_INTERRUPTIBLE);
+	while (1) {
+		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
+		if (!synth_buffer_empty() || speakup_info.flushing)
+			break;
 		spk_unlock(flags);
 		if (fp->f_flags & O_NONBLOCK) {
-			finish_wait(&wait_on_output, &wait);
+			finish_wait(&speakup_event, &wait);
 			return -EAGAIN;
 		}
 		if (signal_pending(current)) {
-			finish_wait(&wait_on_output, &wait);
+			finish_wait(&speakup_event, &wait);
 			return -ERESTARTSYS;
 		}
 		schedule();
 		spk_lock(flags);
 	}
-	finish_wait(&wait_on_output, &wait);
+	finish_wait(&speakup_event, &wait);
 
 	cp = buf;
 	while (chars_sent < count) {
@@ -191,7 +189,7 @@ static unsigned int softsynth_poll(struct file *fp,
 {
 	unsigned long flags;
 	int ret = 0;
-	poll_wait(fp, &wait_on_output, wait);
+	poll_wait(fp, &speakup_event, wait);
 
 	spk_lock(flags);
 	if (! synth_buffer_empty() || speakup_info.flushing)
@@ -243,22 +241,9 @@ static void softsynth_release(void)
 	pr_info("unregistered /dev/softsynth\n");
 }
 
-static void softsynth_start(void)
-{
-	if (dev_opened) {
-		wake_up_interruptible(&wait_on_output);
-	} else {
-		/* No synthesizer, drop data and have the thread restart TTYs
-		 * for us */
-		synth_buffer_clear();
-		speakup_info.flushing = 1;
-		wake_up_interruptible(&speakup_event);
-	}
-}
-
 static int softsynth_is_alive(struct spk_synth *synth)
 {
-	if (speakup_info.alive)
+	if (synth_soft.alive)
 		return 1;
 	return 0;
 }
