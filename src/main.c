@@ -2248,6 +2248,8 @@ static int __init speakup_init(void)
 	spk_vars[0].u.n.high = vc->vc_cols;
 	for (var = spk_vars; var->var_id !=MAXVARS; var++) 
 		speakup_register_var(var);
+	for (var = synth_time_vars; (var->var_id >= 0) && (var->var_id < MAXVARS); var++)
+		speakup_register_var(var);
 	for (i = 1; punc_info[i].mask != 0; i++)
 		set_mask_bits(0, i, 2);
 

@@ -279,7 +279,7 @@ int synth_release_region(unsigned long start, unsigned long n)
 }
 EXPORT_SYMBOL_GPL(synth_release_region);
 
-static struct var_t synth_time_vars[] = {
+struct var_t synth_time_vars[] = {
 	{ DELAY, .u.n = {NULL, 100, 100, 2000, 0, 0, NULL }},
 	{ TRIGGER, .u.n = {NULL, 20, 10, 200, 0, 0, NULL }},
 	{ JIFFY, .u.n = {NULL, 50, 20, 200, 0, 0, NULL }},
@@ -334,12 +334,14 @@ static int do_synth_init(struct spk_synth *in_synth)
 		synth = NULL;
 		return -ENODEV;
 	}
-	synth_time_vars[0].u.n.default_val = synth->delay;
-	synth_time_vars[1].u.n.default_val = synth->trigger;
-	synth_time_vars[2].u.n.default_val = synth->jiffies;
-	synth_time_vars[3].u.n.default_val = synth->full;
-	for (var = synth_time_vars; (var->var_id >= 0) && (var->var_id < MAXVARS); var++)
-		speakup_register_var(var);
+	synth_time_vars[0].u.n.value =
+		synth_time_vars[0].u.n.default_val = synth->delay;
+	synth_time_vars[1].u.n.value =
+		synth_time_vars[1].u.n.default_val = synth->trigger;
+	synth_time_vars[2].u.n.value =
+		synth_time_vars[2].u.n.default_val = synth->jiffies;
+	synth_time_vars[3].u.n.value =
+		synth_time_vars[3].u.n.default_val = synth->full;
 	synth_printf("%s", synth->init);
 	for (var = synth->vars; (var->var_id >= 0) && (var->var_id < MAXVARS); var++)
 		speakup_register_var(var);
@@ -358,8 +360,6 @@ void synth_release(void)
 		return;
 	pr_info("releasing synth %s\n", synth->name);
 	synth->alive = 0;
-	for (var = synth_time_vars; var->var_id != MAXVARS; var++)
-		speakup_unregister_var(var->var_id);
 	for (var = synth->vars; var->var_id != MAXVARS; var++)
 		speakup_unregister_var(var->var_id);
 	stop_serial_interrupt();

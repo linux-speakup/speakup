@@ -71,6 +71,8 @@ extern void synth_remove(struct spk_synth *in_synth);
 
 extern struct speakup_info_t speakup_info;
 
+extern struct var_t synth_time_vars[];
+
 /* Protect the whole speakup machinery, must be taken at each kernel->speakup
  * transition and released at all corresponding speakup->kernel transitions
  * (flags must be the same variable between lock/trylock and unlock).
