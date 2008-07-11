@@ -1478,7 +1478,7 @@ static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	cursor_con = vc->vc_num;
 	if (cursor_track == CT_Highlight)
 		reset_highlight_buffers(vc);
-		cursor_timeout = get_var(CURSOR_TIME);
+	cursor_timeout = get_var(CURSOR_TIME);
 	mod_timer(&cursor_timer, jiffies + ms2jiffies(cursor_timeout->u.n.value));
 	spk_unlock(flags);
 }
@@ -2257,9 +2257,6 @@ static int __init speakup_init(void)
 	if (quiet_boot)
 		spk_shut_up |= 0x01;
 
-	register_keyboard_notifier(&keyboard_notifier_block);
-	register_vt_notifier(&vt_notifier_block);
-
 	for (i = 0; i < MAX_NR_CONSOLES; i++)
 		if (vc_cons[i].d)
 			speakup_allocate(vc_cons[i].d);
@@ -2267,6 +2264,9 @@ static int __init speakup_init(void)
 	pr_warn("synth name on entry is: %s\n", synth_name);
 	synth_init(synth_name);
 	speakup_register_devsynth();
+
+	register_keyboard_notifier(&keyboard_notifier_block);
+	register_vt_notifier(&vt_notifier_block);
 
 	thread_task = kthread_create(speakup_thread, NULL, "speakup");
 	if ( ! IS_ERR(thread_task))
