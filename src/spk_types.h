@@ -157,7 +157,6 @@ struct spk_synth {
 	int trigger;
 	int jiffies;
 	int full;
-	int flush_wait;
 	int ser;
 	short flags;
 	short startup;

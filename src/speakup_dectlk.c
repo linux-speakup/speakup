@@ -70,7 +70,6 @@ static struct spk_synth synth_dectlk = {
 	.trigger = 500,
 	.jiffies = 50,
 	.full = 10000,
-	.flush_wait = 0,
 	.flags = SF_DEC,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,

@@ -49,7 +49,6 @@ static struct spk_synth synth_txprt = {
 	.trigger = 500,
 	.jiffies = 50,
 	.full = 50000,
-	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.vars = vars,

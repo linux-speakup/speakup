@@ -66,7 +66,6 @@ static struct spk_synth synth_keypc = {
 	.trigger = 500,
 	.jiffies = 50,
 	.full = 10000,
-	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.vars = vars,

@@ -63,7 +63,6 @@ static struct spk_synth synth_soft = {
 	.trigger = 0,
 	.jiffies = 0,
 	.full = 0,
-	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.vars = vars,
