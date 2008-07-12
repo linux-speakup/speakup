@@ -76,7 +76,7 @@ special_func special_handler;
 
 short pitch_shift, synth_flags;
 static char buf[256];
-int attrib_bleep, bleeps, bleep_time = 1;
+int attrib_bleep, bleeps, bleep_time = 10;
 int no_intr, spell_delay;
 int key_echo, say_word_ctl;
 int say_ctrl, bell_pos;
@@ -292,7 +292,7 @@ static void bleep(u_short val)
 	freq = vals[val%12];
 	if (val > 11)
 		freq *= (1 << (val/12));
-	kd_mksound(freq, time);
+	kd_mksound(freq, ms2jiffies(time));
 }
 
 static void speakup_shut_up(struct vc_data *vc)
@@ -1198,10 +1198,10 @@ static struct var_t spk_vars[] = {
 	{ SPELL_DELAY, .u.n = {NULL, 0, 0, 4, 0, 0, NULL }},
 	{ ATTRIB_BLEEP, .u.n = {NULL, 1, 0, 3, 0, 0, NULL }},
 	{ BLEEPS, .u.n = {NULL, 3, 0, 3, 0, 0, NULL }},
-	{ BLEEP_TIME, .u.n = {NULL, 30, 1, 200, 0, 0, NULL }},
+	{ BLEEP_TIME, .u.n = {NULL, 300, 10, 2000, 0, 0, NULL }},
 	{ PUNC_LEVEL, .u.n = {NULL, 1, 0, 4, 0, 0, NULL }},
 	{ READING_PUNC, .u.n = {NULL, 1, 0, 4, 0, 0, NULL }},
-	{ CURSOR_TIME, .u.n = {NULL, 120, 50, 600, 0, 0, NULL }},
+	{ CURSOR_TIME, .u.n = {NULL, 1200, 500, 6000, 0, 0, NULL }},
 	{ SAY_CONTROL, TOGGLE_0 },
 	{ SAY_WORD_CTL, TOGGLE_0 },
 	{ NO_INTERRUPT, TOGGLE_0 },
