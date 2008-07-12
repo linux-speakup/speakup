@@ -24,7 +24,7 @@
  */
 #include "spk_priv.h"
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r' /* process speech char */
 
@@ -45,10 +45,10 @@ static struct spk_synth synth_txprt = {
 	.init = "\x05N1",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 500,
-	.trigger = 50,
+	.delay = 5000,
+	.trigger = 500,
 	.jiffies = 50,
-	.full = 5000,
+	.full = 50000,
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,

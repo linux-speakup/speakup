@@ -108,12 +108,12 @@ struct st_var_header {
 
 struct num_var_t {
 	char *synth_fmt;
-	short default_val;
-	short low;
-	short high;
+	int default_val;
+	int low;
+	int high;
 	short offset, multiplier; /* for fiddling rates etc. */
 	char *out_str; /* if synth needs char representation of number */
-	short value; /* current value */
+	int value; /* current value */
 };
 
 struct punc_var_t {
@@ -153,11 +153,11 @@ struct spk_synth {
 	const char *init;
 	char procspeech;
 	char clear;
-	short delay;
-	short trigger;
-	short jiffies;
-	short full;
-	short flush_wait;
+	int delay;
+	int trigger;
+	int jiffies;
+	int full;
+	int flush_wait;
 	int ser;
 	short flags;
 	short startup;

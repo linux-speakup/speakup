@@ -30,7 +30,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.8"
+#define DRV_VERSION "2.9"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 #define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
@@ -58,10 +58,10 @@ static struct spk_synth synth_decext = {
 	.init = "[:pe -380]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 500,
-	.trigger = 50,
+	.delay = 5000,
+	.trigger = 500,
 	.jiffies = 50,
-	.full = 1000,
+	.full = 10000,
 	.flush_wait = 0,
 	.flags = SF_DEC,
 	.startup = SYNTH_START,

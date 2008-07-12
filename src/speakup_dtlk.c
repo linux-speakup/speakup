@@ -32,7 +32,7 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 #include "speakup.h"
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
 #define synth_writable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_WRITABLE)
@@ -70,10 +70,10 @@ static struct spk_synth synth_dtlk = {
 	.init = "\x01@\x01\x31y",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 500,
-	.trigger = 30,
+	.delay = 5000,
+	.trigger = 300,
 	.jiffies = 50,
-	.full = 1000,
+	.full = 10000,
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,

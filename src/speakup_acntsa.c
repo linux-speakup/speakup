@@ -26,7 +26,7 @@
 #include "spk_priv.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
 #define PROCSPEECH '\r'
 
@@ -49,10 +49,10 @@ static struct spk_synth synth_acntsa = {
 	.init = "\033T2\033=M\033Oi\033N1\n",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 400,
-	.trigger = 5,
+	.delay = 4000,
+	.trigger = 50,
 	.jiffies = 30,
-	.full = 1000,
+	.full = 10000,
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,

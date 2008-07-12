@@ -33,7 +33,7 @@
 #include "speakup.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts) == 'F')
@@ -66,10 +66,10 @@ static struct spk_synth synth_acntpc = {
 	.init = "\033=X \033Oi\033T2\033=M\033N1\n",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 500,
-	.trigger = 50,
+	.delay = 5000,
+	.trigger = 500,
 	.jiffies = 50,
-	.full = 1000,
+	.full = 10000,
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,

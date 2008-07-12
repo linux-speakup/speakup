@@ -173,11 +173,11 @@ struct punc_var_t *get_punc_var(enum var_id_t var_id)
 }
 
 /* handlers for setting vars */
-int set_num_var(short input, struct st_var_header *var, int how)
+int set_num_var(int input, struct st_var_header *var, int how)
 {
-	short val;
+	int val;
 	short ret = 0;
-	short *p_val = var->p_val;
+	int *p_val = var->p_val;
 	int l;
 	char buf[32];
 	char *cp;
@@ -200,11 +200,11 @@ int set_num_var(short input, struct st_var_header *var, int how)
 			return E_RANGE;
 	}
 	var_data->u.n.value = val;
-	if (var->var_type == VAR_TIME && p_val != 0) {
+	if (var->var_type == VAR_TIME && p_val != NULL) {
 		*p_val = ms2jiffies(val);
 		return ret;
 	}
-	if (p_val != 0)
+	if (p_val != NULL)
 		*p_val = val;
 	if (var->var_id == PUNC_LEVEL) {
 		punc_mask = punc_masks[val];

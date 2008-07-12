@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port) & 0x10)
@@ -62,10 +62,10 @@ static struct spk_synth synth_keypc = {
 	.init = "[t][n7,1][n8,0]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 500,
-	.trigger = 50,
+	.delay = 5000,
+	.trigger = 500,
 	.jiffies = 50,
-	.full = 1000,
+	.full = 10000,
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,

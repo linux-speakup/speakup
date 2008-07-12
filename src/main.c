@@ -1853,7 +1853,7 @@ static int handle_goto(struct vc_data *vc, u_char type, u_char ch, u_short key)
 {
 	static u_char *goto_buf = "\0\0\0\0\0\0";
 	static int num = 0;
-	short maxlen, go_pos;
+	int maxlen, go_pos;
 	char *cp;
 	if (type == KT_SPKUP && ch == SPEAKUP_GOTO)
 		goto do_goto;

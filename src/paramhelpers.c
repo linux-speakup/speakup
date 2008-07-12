@@ -120,7 +120,7 @@ char *strlwr(char *s)
 	return s;
 }
 
-char *speakup_s2i(char *start, short *dest)
+char *speakup_s2i(char *start, int *dest)
 {
 	int val;
 	char ch = *start;
@@ -214,7 +214,7 @@ static int set_characters(const char *val, struct kernel_param *kp)
 	static char desc[MAX_DESC_LEN + 1];
 	static u_long jiff_last = 0;
 	u_long count = strlen(val);
-	short i = 0, num;
+	int i = 0, num;
 	int len;
 	char ch, *cp, *p_new;
 	unsigned long flags;
@@ -317,7 +317,7 @@ static int set_chartab(const char *val, struct kernel_param *kp)
 	static char desc[MAX_DESC_LEN + 1];
 	static u_long jiff_last = 0;
 	u_long count = strlen(val);
-	short i = 0, num;
+	int i = 0, num;
 	char ch, *cp;
 	int value = 0;
 	unsigned long flags;
@@ -734,7 +734,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 	int len;
 	char *cp;
 	struct var_t *var_data;
-	short value;
+	int value;
 
 	if (!val)
 		return -EINVAL;

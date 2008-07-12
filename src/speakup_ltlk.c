@@ -26,7 +26,7 @@
 #include "serialio.h"
 #include "speakup_dtlk.h" /* local header file for LiteTalk values */
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define synth_full( ) ( !( inb( synth_port_tts + UART_MSR ) & UART_MSR_CTS ) )
 #define PROCSPEECH 0x0d
 
@@ -52,10 +52,10 @@ static struct spk_synth synth_ltlk = {
 	.init = "\01@\x01\x31y\n\0",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
-	.delay = 500,
-	.trigger = 50,
+	.delay = 5000,
+	.trigger = 500,
 	.jiffies = 50,
-	.full = 5000,
+	.full = 50000,
 	.flush_wait = 0,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
