@@ -76,11 +76,12 @@ special_func special_handler;
 
 short pitch_shift, synth_flags;
 static char buf[256];
-short attrib_bleep, bleeps, bleep_time = 1;
-short no_intr, spell_delay;
-short key_echo, cursor_timeout = 120, say_word_ctl;
-short say_ctrl, bell_pos;
-short punc_mask, punc_level, reading_punc;
+int attrib_bleep, bleeps, bleep_time = 1;
+int no_intr, spell_delay;
+int key_echo, say_word_ctl;
+int say_ctrl, bell_pos;
+short punc_mask;
+int punc_level, reading_punc;
 char str_caps_start[MAXVARLEN+1] = "\0", str_caps_stop[MAXVARLEN+1] = "\0";
 const struct st_bits_data punc_info[] = {
 	{ "none", "", 0 },

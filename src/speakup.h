@@ -107,11 +107,12 @@ extern u_char key_buf[600];
 extern char *characters[];
 extern char *default_chars[];
 extern u_short spk_chartab[];
-extern short no_intr, say_ctrl, say_word_ctl, punc_level;
-extern short reading_punc, attrib_bleep, bleeps;
-extern short bleep_time, bell_pos;
-extern short spell_delay, key_echo, punc_mask;
-extern short cursor_timeout, pitch_shift, synth_flags;
+extern int no_intr, say_ctrl, say_word_ctl, punc_level;
+extern int reading_punc, attrib_bleep, bleeps;
+extern int bleep_time, bell_pos;
+extern int spell_delay, key_echo;
+extern short punc_mask;
+extern short pitch_shift, synth_flags;
 extern int quiet_boot;
 extern char *synth_name;
 
