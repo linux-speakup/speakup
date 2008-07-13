@@ -675,7 +675,7 @@ static void say_next_word(struct vc_data *vc)
 
 static void spell_word(struct vc_data *vc)
 {
-	static char *delay_str[] = { " ", ", ", ". ", ". . ", ". . . " };
+	static char *delay_str[] = { " ", " , ", " . ", " . . ", " . . . " };
 	char *cp = buf, *str_cap = str_caps_stop;
 	char *cp1, *last_cap = str_caps_stop;
 	u_char ch;
