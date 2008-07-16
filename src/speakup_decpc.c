@@ -336,7 +336,7 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = 0x0D;
 		if (dt_sendchar(ch)) {
 			delay_time = get_var(DELAY);
-			schedule_timeout(ms2jiffies(delay_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
 		spk_lock(flags);

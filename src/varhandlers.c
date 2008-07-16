@@ -201,7 +201,7 @@ int set_num_var(int input, struct st_var_header *var, int how)
 	}
 	var_data->u.n.value = val;
 	if (var->var_type == VAR_TIME && p_val != NULL) {
-		*p_val = ms2jiffies(val);
+		*p_val = msecs_to_jiffies(val);
 		return ret;
 	}
 	if (p_val != NULL)

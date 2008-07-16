@@ -93,7 +93,7 @@ void spk_do_catch_up(struct spk_synth *synth)
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
 			full_time = get_var(FULL);
-			schedule_timeout(ms2jiffies(full_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
 			continue;
 		}
 		/* TODO: if jiffies > jiff_max & ch == SPACE) serial_out procpseech & delay delay_time */
@@ -167,7 +167,7 @@ void synth_start(void)
 	}
 	trigger_time = get_var(TRIGGER);
 	if (!timer_pending(&thread_timer))
-		mod_timer(&thread_timer, jiffies + ms2jiffies(trigger_time->u.n.value));
+		mod_timer(&thread_timer, jiffies + msecs_to_jiffies(trigger_time->u.n.value));
 }
 
 void do_flush(void)

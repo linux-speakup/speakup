@@ -134,7 +134,7 @@ static void do_catch_up(struct spk_synth *synth)
 		spk_unlock(flags);
 		if (synth_full()) {
 			full_time = get_var(FULL);
-			schedule_timeout(ms2jiffies(full_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
 			continue;
 		}
 		timeout = SPK_XMITR_TIMEOUT;

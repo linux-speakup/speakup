@@ -137,7 +137,7 @@ static void do_catch_up(struct spk_synth *synth)
 	static u_char ch = 0;
 	static u_char last = '\0';
 	unsigned long flags;
-	unsigned long timeout = ms2jiffies(4000);
+	unsigned long timeout = msecs_to_jiffies(4000);
 	DEFINE_WAIT(wait);
 	struct var_t *delay_time;
 
@@ -172,7 +172,7 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
 			delay_time = get_var(DELAY);
-			schedule_timeout(ms2jiffies(delay_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
 		spk_lock(flags);

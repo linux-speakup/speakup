@@ -105,7 +105,7 @@ static void do_catch_up(struct spk_synth *synth)
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
 			full_time = get_var(FULL);
-			schedule_timeout(ms2jiffies(full_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
 			continue;
 		}
 		spk_lock(flags);

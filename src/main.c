@@ -292,7 +292,7 @@ static void bleep(u_short val)
 	freq = vals[val%12];
 	if (val > 11)
 		freq *= (1 << (val/12));
-	kd_mksound(freq, ms2jiffies(time));
+	kd_mksound(freq, msecs_to_jiffies(time));
 }
 
 static void speakup_shut_up(struct vc_data *vc)
@@ -1201,7 +1201,7 @@ static struct var_t spk_vars[] = {
 	{ BLEEP_TIME, .u.n = {NULL, 300, 10, 2000, 0, 0, NULL }},
 	{ PUNC_LEVEL, .u.n = {NULL, 1, 0, 4, 0, 0, NULL }},
 	{ READING_PUNC, .u.n = {NULL, 1, 0, 4, 0, 0, NULL }},
-	{ CURSOR_TIME, .u.n = {NULL, 1200, 500, 6000, 0, 0, NULL }},
+	{ CURSOR_TIME, .u.n = {NULL, 120, 50, 600, 0, 0, NULL }},
 	{ SAY_CONTROL, TOGGLE_0 },
 	{ SAY_WORD_CTL, TOGGLE_0 },
 	{ NO_INTERRUPT, TOGGLE_0 },
@@ -1359,7 +1359,7 @@ start_read_all_timer(struct vc_data *vc, int command)
 	cursor_con = vc->vc_num;
 	read_all_key = command;
 	cursor_timeout = get_var(CURSOR_TIME);
-	mod_timer(&cursor_timer, jiffies + ms2jiffies(cursor_timeout->u.n.value));
+	mod_timer(&cursor_timer, jiffies + msecs_to_jiffies(cursor_timeout->u.n.value));
 }
 
 static void
@@ -1480,7 +1480,7 @@ static void do_handle_cursor(struct vc_data *vc, u_char value, char up_flag)
 	if (cursor_track == CT_Highlight)
 		reset_highlight_buffers(vc);
 	cursor_timeout = get_var(CURSOR_TIME);
-	mod_timer(&cursor_timer, jiffies + ms2jiffies(cursor_timeout->u.n.value));
+	mod_timer(&cursor_timer, jiffies + msecs_to_jiffies(cursor_timeout->u.n.value));
 	spk_unlock(flags);
 }
 
