@@ -287,7 +287,7 @@ EXPORT_SYMBOL_GPL(synth_release_region);
 
 struct var_t synth_time_vars[] = {
 	{ DELAY, .u.n = {NULL, 1000, 1000, 20000, 0, 0, NULL }},
-	{ TRIGGER, .u.n = {NULL, 200, 100, 2000, 0, 0, NULL }},
+	{ TRIGGER, .u.n = {NULL, 20, 10, 2000, 0, 0, NULL }},
 	{ JIFFY, .u.n = {NULL, 50, 20, 200, 0, 0, NULL }},
 	{ FULL, .u.n = {NULL, 4000, 2000, 100000, 0, 0, NULL }},
 	V_LAST_VAR
