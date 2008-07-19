@@ -11,6 +11,7 @@
 #include <linux/uaccess.h> /* for copy_from_user */
 #include <linux/sched.h>
 #include <linux/timer.h>
+#include <linux/kthread.h>
 
 #include "spk_priv.h"
 #include "speakup.h"
