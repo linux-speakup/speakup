@@ -155,7 +155,6 @@ static void do_catch_up(struct spk_synth *synth)
 		spin_unlock_irqrestore(&flush_lock, flags);
 
 		spk_lock(flags);
-		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -167,6 +166,7 @@ static void do_catch_up(struct spk_synth *synth)
 			break;
 		}
 		ch = synth_buffer_peek();
+		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
@@ -175,6 +175,7 @@ static void do_catch_up(struct spk_synth *synth)
 			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
+		set_current_state(TASK_RUNNING);
 		spk_lock(flags);
 		synth_buffer_getc();
 		spk_unlock(flags);
@@ -188,7 +189,6 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		last = ch;
 	}
-	finish_wait(&speakup_event, &wait);
 	if (!in_escape)
 		spk_serial_out(PROCSPEECH);
 }

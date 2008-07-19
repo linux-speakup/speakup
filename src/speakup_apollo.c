@@ -83,11 +83,9 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	unsigned long flags;
 	struct var_t *full_time;
-	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
-		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -99,6 +97,7 @@ static void do_catch_up(struct spk_synth *synth)
 			break;
 		}
 		ch = synth_buffer_peek();
+		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (!spk_serial_out(ch)) {
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
@@ -108,11 +107,11 @@ static void do_catch_up(struct spk_synth *synth)
 			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
 			continue;
 		}
+		set_current_state(TASK_RUNNING);
 		spk_lock(flags);
 		synth_buffer_getc();
 		spk_unlock(flags);
 	}
-	finish_wait(&speakup_event, &wait);
 	spk_serial_out(PROCSPEECH);
 }
 

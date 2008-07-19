@@ -244,7 +244,7 @@ ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, B_SYM, /* 240-247 */
 ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA /* 248-255 */
 };
 
-static struct task_struct *thread_task;
+struct task_struct *speakup_task;
 static int spk_keydown;
 static u_char spk_lastkey, spk_close_press, keymap_flags;
 static u_char last_keycode, this_speakup_key;
@@ -2210,7 +2210,7 @@ static void __exit speakup_exit(void)
 	unregister_vt_notifier(&vt_notifier_block);
 	speakup_unregister_devsynth();
 
-	kthread_stop(thread_task);
+	kthread_stop(speakup_task);
 	mutex_lock(&spk_mutex);
 	synth_release();
 	mutex_unlock(&spk_mutex);
@@ -2269,9 +2269,9 @@ static int __init speakup_init(void)
 	register_keyboard_notifier(&keyboard_notifier_block);
 	register_vt_notifier(&vt_notifier_block);
 
-	thread_task = kthread_create(speakup_thread, NULL, "speakup");
-	if ( ! IS_ERR(thread_task))
-		wake_up_process(thread_task);
+	speakup_task = kthread_create(speakup_thread, NULL, "speakup");
+	if ( ! IS_ERR(speakup_task))
+		wake_up_process(speakup_task);
 	else
 		return -ENOMEM;
 	return 0;

@@ -90,6 +90,7 @@ extern struct vc_data *spk_sel_cons;
 extern unsigned short xs, ys, xe, ye; /* our region points */
 
 extern wait_queue_head_t speakup_event;
+extern struct task_struct *speakup_task;
 extern const u_char key_defaults[];
 
 /* Protect speakup synthesizer list */

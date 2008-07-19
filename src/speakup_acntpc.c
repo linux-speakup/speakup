@@ -116,11 +116,9 @@ static void do_catch_up(struct spk_synth *synth)
 	unsigned long flags;
 	int timeout;
 	struct var_t *full_time;
-	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
-		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -131,12 +129,14 @@ static void do_catch_up(struct spk_synth *synth)
 			spk_unlock(flags);
 			break;
 		}
+		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (synth_full()) {
 			full_time = get_var(FULL);
 			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
 			continue;
 		}
+		set_current_state(TASK_RUNNING);
 		timeout = SPK_XMITR_TIMEOUT;
 		while (synth_writable()) {
 			if (!--timeout)
@@ -150,7 +150,6 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
 	}
-	finish_wait(&speakup_event, &wait);
 	timeout = SPK_XMITR_TIMEOUT;
 	while (synth_writable()) {
 		if (!--timeout)

@@ -123,11 +123,9 @@ static void do_catch_up(struct spk_synth *synth)
 	int timeout;
 	unsigned long flags;
 	struct var_t *delay_time;
-	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
-		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -138,12 +136,14 @@ static void do_catch_up(struct spk_synth *synth)
 			spk_unlock(flags);
 			break;
 		}
+		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (synth_full()) {
 			delay_time = get_var(DELAY);
 			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
+		set_current_state(TASK_RUNNING);
 		timeout = 1000;
 		while (synth_writable())
 			if (--timeout <= 0)
@@ -160,7 +160,6 @@ static void do_catch_up(struct spk_synth *synth)
 		outb_p(ch, synth_port);
 		SWAIT;
 	}
-	finish_wait(&speakup_event, &wait);
 	timeout = 1000;
 	while (synth_writable())
 		if (--timeout <= 0)

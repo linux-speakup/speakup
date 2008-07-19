@@ -6,7 +6,6 @@
 #include <linux/ioport.h>	/* for check_region, request_region */
 #include <linux/interrupt.h>
 #include <linux/delay.h>	/* for loops_per_sec */
-#include <linux/wait.h>		/* for wait_queue */
 #include <linux/kmod.h>
 #include <linux/jiffies.h>
 #include <linux/uaccess.h> /* for copy_from_user */
@@ -72,11 +71,9 @@ void spk_do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	unsigned long flags;
 	struct var_t *full_time;
-	DEFINE_WAIT(wait);
 
 	while (1) {
 		spk_lock(flags);
-		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -88,6 +85,7 @@ void spk_do_catch_up(struct spk_synth *synth)
 			break;
 		}
 		ch = synth_buffer_peek();
+		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = synth->procspeech;
@@ -96,12 +94,12 @@ void spk_do_catch_up(struct spk_synth *synth)
 			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
 			continue;
 		}
+		set_current_state(TASK_RUNNING);
 		/* TODO: if jiffies > jiff_max & ch == SPACE) serial_out procpseech & delay delay_time */
 		spk_lock(flags);
 		synth_buffer_getc();
 		spk_unlock(flags);
 	}
-	finish_wait(&speakup_event, &wait);
 	spk_serial_out(synth->procspeech);
 }
 EXPORT_SYMBOL_GPL(spk_do_catch_up);
@@ -181,6 +179,7 @@ void do_flush(void)
 		}
 	}
 	wake_up_interruptible_all(&speakup_event);
+	wake_up_process(speakup_task);
 }
 
 void synth_write(const char *buf, size_t count)
@@ -355,6 +354,7 @@ static int do_synth_init(struct spk_synth *in_synth)
 		synth_printf("%s found\n", synth->long_name);
 	synth_flags = synth->flags;
 	wake_up_interruptible_all(&speakup_event);
+	wake_up_process(speakup_task);
 	return 0;
 }
 
