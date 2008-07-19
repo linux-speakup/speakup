@@ -141,7 +141,7 @@ static void do_catch_up(struct spk_synth *synth)
 	DEFINE_WAIT(wait);
 	struct var_t *delay_time;
 
-	while (1) {
+	while (!kthread_should_stop()) {
 		/* if no ctl-a in 4, send data anyway */
 		spin_lock_irqsave(&flush_lock, flags);
 		while (is_flushing && timeout) {

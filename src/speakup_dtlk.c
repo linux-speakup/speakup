@@ -117,7 +117,7 @@ static void do_catch_up(struct spk_synth *synth)
 	unsigned long flags;
 	struct var_t *delay_time;
 
-	while (1) {
+	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
