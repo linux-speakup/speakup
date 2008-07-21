@@ -70,7 +70,7 @@ fi
 
 if [ $SUBLEVEL -lt 26 ]; then
 	BLDPATCH="$SPKDIR/patches/build-integration-2.6.25-and-below.patch"
-	SRCDIR="${KDIR}/drivers/char/speakup"
+	SRCDIR="${KDIR}/drivers/speakup"
 else
 	BLDPATCH="$SPKDIR/patches/build-integration-2.6.26.patch"
 	SRCDIR="${KDIR}/drivers/accessibility/speakup"
@@ -86,6 +86,12 @@ elif [ $SUBLEVEL -ge 22 -a $SUBLEVEL -le 23 ]; then
 
 if [ $SUBLEVEL -le 25 ]; then
 	SRCPATCH="$SPKDIR/patches/source-integration-2.6.25-and-below.patch"
+fi
+
+if [ -f ${KDIR}/drivers/char/speakup ]; then
+	log It appears that speakup is installed in drivers/char/speakup.
+	log This is no longer the correct location for speakup.
+	die Please start with a fresh kernel tree.
 fi
 
 if [ -f "${SRCDIR}" ]; then
