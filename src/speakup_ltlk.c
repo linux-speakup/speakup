@@ -90,7 +90,7 @@ static void synth_interrogate(struct spk_synth *synth)
 	t = buf+2;
 	for (i = 0; *t != '\r'; t++) {
 		rom_v[i] = *t;
-		if (i++ > 48)
+		if (++i >= 19)
 			break;
 	}
 	rom_v[i] = 0;
