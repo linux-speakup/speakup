@@ -42,10 +42,10 @@ int serial_synth_probe(struct spk_synth *synth)
 		if (ser == NULL) {
 			failed = -1;
 		} else {
-		outb_p(0, ser->port);
-		mdelay(1);
-		outb_p('\r', ser->port);
-	}
+			outb_p(0, ser->port);
+			mdelay(1);
+			outb_p('\r', ser->port);
+		}
 	} else {
 		failed = -1;
 		pr_warn("ttyS%i is an invalid port\n", synth->ser);
