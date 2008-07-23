@@ -362,14 +362,15 @@ static int do_synth_init(struct spk_synth *in_synth)
 void synth_release(void)
 {
 	struct var_t *var;
+	unsigned long flags;
 
 	if (synth == NULL)
 		return;
-	spk_lock();
+	spk_lock(flags);
 	pr_info("releasing synth %s\n", synth->name);
 	synth->alive = 0;
 	del_timer(&thread_timer);
-	spk_unlock();
+	spk_unlock(flags);
 	for (var = synth->vars; var->var_id != MAXVARS; var++)
 		speakup_unregister_var(var->var_id);
 	stop_serial_interrupt();
