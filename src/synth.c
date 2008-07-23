@@ -365,8 +365,11 @@ void synth_release(void)
 
 	if (synth == NULL)
 		return;
+	spk_lock();
 	pr_info("releasing synth %s\n", synth->name);
 	synth->alive = 0;
+	del_timer(&thread_timer);
+	spk_unlock();
 	for (var = synth->vars; var->var_id != MAXVARS; var++)
 		speakup_unregister_var(var->var_id);
 	stop_serial_interrupt();
