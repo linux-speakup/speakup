@@ -355,7 +355,8 @@ static int do_synth_init(struct spk_synth *in_synth)
 		synth_printf("%s found\n", synth->long_name);
 	synth_flags = synth->flags;
 	wake_up_interruptible_all(&speakup_event);
-	wake_up_process(speakup_task);
+	if (speakup_task)
+		wake_up_process(speakup_task);
 	return 0;
 }
 

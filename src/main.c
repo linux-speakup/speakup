@@ -2212,6 +2212,7 @@ static void __exit speakup_exit(void)
 	del_timer(&cursor_timer);
 
 	kthread_stop(speakup_task);
+	speakup_task = NULL;
 	mutex_lock(&spk_mutex);
 	synth_release();
 	mutex_unlock(&spk_mutex);
