@@ -2,6 +2,8 @@ This file is to keep track of the bugs we know about until we come up
 with a better bug tracking system.  Feel free to try your hand at
 fixing any of these!
 
+---- reportedly fixed! ----
+ 
 From: Gene Collins <collins@gene3.ait.iastate.edu>
 Subject: floating serial ports problem
 
@@ -18,9 +20,8 @@ device, so the system will not find the modem.  This is problematic if
 you are trying to put a getty on ttyS2, and it suddenly is switched
 after a reboot to ttyS1 because you started speakup from the command
 line rather than as a module. The same holds true for ppp connections.
+This is fixed as of July 24, 2008
 
----- reportedly fixed! ----
- 
 The DECTalk Express driver is not finding the synth with the git
 repository in driver speakup_dectlk.c. Fixed as of Feb 25 2008.
 
