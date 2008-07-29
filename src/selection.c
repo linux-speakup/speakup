@@ -136,7 +136,11 @@ int speakup_paste_selection(struct tty_struct *tty)
 		}
 		count = sel_buffer_lth - pasted;
 		count = min_t(int, count, tty->receive_room);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)
+		tty->ldisc.ops->receive_buf(tty, sel_buffer + pasted, 0, count);
+#else
 		tty->ldisc.receive_buf(tty, sel_buffer + pasted, 0, count);
+#endif
 		pasted += count;
 	}
 	remove_wait_queue(&vc->paste_wait, &wait);
