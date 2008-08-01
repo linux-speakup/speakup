@@ -36,7 +36,7 @@
 #define DRV_VERSION "2.9"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-#define synth_full() (inb_p(speakup_info.port_tts) == 0x13)
+#define synth_full() (inb_p(speakup_info.port_tts + UART_RX) == 0x13)
 
 static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);

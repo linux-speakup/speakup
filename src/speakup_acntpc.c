@@ -37,7 +37,7 @@
 #define DRV_VERSION "2.6"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
-#define synth_full() (inb_p(speakup_info.port_tts) == 'F')
+#define synth_full() (inb_p(speakup_info.port_tts + UART_RX) == 'F')
 #define PROCSPEECH '\r'
 
 static int synth_probe(struct spk_synth *synth);

@@ -27,7 +27,7 @@
 #include "speakup_acnt.h" /* local header file for Accent values */
 
 #define DRV_VERSION "2.7"
-#define synth_full() (inb_p(speakup_info.port_tts) == 'F')
+#define synth_full() (inb_p(speakup_info.port_tts + UART_RX) == 'F')
 #define PROCSPEECH '\r'
 
 static int synth_probe(struct spk_synth *synth);

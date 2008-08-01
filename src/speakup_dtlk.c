@@ -35,9 +35,9 @@
 
 #define DRV_VERSION "2.6"
 #define PROCSPEECH 0x00
-#define synth_readable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_READABLE)
-#define synth_writable() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_WRITABLE)
-#define synth_full() ((synth_status = inb_p(speakup_info.port_tts)) & TTS_ALMOST_FULL)
+#define synth_readable() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_READABLE)
+#define synth_writable() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_WRITABLE)
+#define synth_full() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_ALMOST_FULL)
 
 static int synth_probe(struct spk_synth *synth);
 static void dtlk_release(void);

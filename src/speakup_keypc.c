@@ -25,6 +25,7 @@
 #include <linux/sched.h>
 #include <linux/timer.h>
 #include <linux/kthread.h>
+#include <linux/serial_reg.h>
 
 #include "spk_priv.h"
 #include "speakup.h"
@@ -32,9 +33,9 @@
 #define DRV_VERSION "2.6"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
-#define synth_writable() (inb_p(synth_port) & 0x10)
-#define synth_readable() (inb_p(synth_port) & 0x10)
-#define synth_full() ((inb_p(synth_port) & 0x80) == 0)
+#define synth_writable() (inb_p(synth_port + UART_RX) & 0x10)
+#define synth_readable() (inb_p(synth_port + UART_RX) & 0x10)
+#define synth_full() ((inb_p(synth_port + UART_RX) & 0x80) == 0)
 #define PROCSPEECH 0x1f
 #define SYNTH_CLEAR 0x03
 
