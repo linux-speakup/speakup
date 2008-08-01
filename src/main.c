@@ -2272,6 +2272,7 @@ static int __init speakup_init(void)
 	register_vt_notifier(&vt_notifier_block);
 
 	speakup_task = kthread_create(speakup_thread, NULL, "speakup");
+	set_user_nice(speakup_task, 10);
 	if ( ! IS_ERR(speakup_task))
 		wake_up_process(speakup_task);
 	else
