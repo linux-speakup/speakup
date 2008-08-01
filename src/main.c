@@ -55,7 +55,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define MAX_DELAY ((500 * HZ) / 1000)
+#define MAX_DELAY msecs_to_jiffies(500)
 #define MINECHOCHAR SPACE
 
 MODULE_AUTHOR("Kirk Reiser <kirk@braille.uwo.ca>");
