@@ -3,6 +3,11 @@
 This directory is for useful contributions by speakup users and
 developers which help make speakup easier and more fun to use.
 
+espeakup - A connector that allows speakup to use the espeak software
+speech synthesizer.  This was donated by William Hubbs
+<w.d.hubbs@gmail.com>.  It has its own git repository at
+git://hubbs.homedns.org/espeakup.git.
+
 speakupconf - A shell script donated by Bill Acker
 <wacker@octothorp.org> for saving and restoring speakup's customizable
 variables.
