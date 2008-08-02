@@ -1,21 +1,18 @@
 #!/bin/sh
 #
-# speakwith -- switches speakup synthesizers on the fly
+# talkwith -- switches speakup synthesizers on the fly
 #
 # Bug reports, suggestions, etc. to chuckh@ftml.net
 #
 # This script requires Linux kernel 2.6.24 or higher
-# Speakwith requires speech-dispacher and speechd-up for software speech
+# Talkwith requires espeak and espeakup for software speech
 # and speakupconf to load and save speakup settings
-# To install speakwith, simply copy this script to /usr/local/sbin
-# On my system, the /etc/rc.local file contains statements like these:
+# To install talkwith, simply copy this script to /usr/local/sbin
+# On my system, the /etc/rc.local file contains a statement like this:
 #
 # start talking
 #export PATH=/usr/local/bin:/usr/local/sbin:$PATH
-#renice -n -5 speech-dispatcher # or use "nice" instead
-#speakwith soft
-#
-# some versions of speechd-up may require the speakwith -x option.
+#talkwith soft
 #
 if [ ! -d /sys/module/speakup ]
 then
@@ -23,18 +20,9 @@ then
         exit 1
 fi
 #
-OPT="-t"
-if [ "$1" = "-x" ]; then
-OPT=""
-shift
-fi
-#
 if [ "$1" = "" ] || [ "$2" != "" ] || \
 [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 echo "Usage: `basename $0` <synth>"
-echo or
-echo "Usage: `basename $0` -x <synth>"
-echo "(the -x option permits speechd-up to load its own punctuation tables)"
 echo
 echo "You may use one of the following synthesizer names if the driver"
 echo "has been selected and the corresponding device is available:"
@@ -71,7 +59,7 @@ if [ "$F1" != "none" ]; then
 echo "none" > /sys/module/speakup/parameters/synth
 if [ "$F1" = "soft" ]; then
 kill `cat /var/run/speechd-up.pid` >/dev/null 2>&1
-kill `cat /var/run/espeakup.pid` >/dev/null 2>&1
+pkill espeakup >/dev/null 2>&1
 fi
 sleep 1
 fi
@@ -82,6 +70,6 @@ fi
 #
 echo "$1" >/sys/module/speakup/parameters/synth
 if [ "$1" = "soft" ]; then
-nice -n 5 speechd-up $OPT
+espeakup
 fi
 speakupconf load

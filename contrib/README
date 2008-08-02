@@ -14,3 +14,7 @@ variables.
 
 speakwith - a shell script written by Chuck Hallenbeck
 <chuckh@ftml.net> which makes flipping between synths very simple.
+
+talkwith - a shell script written by Chuck Hallenbeck
+<chuckh@ftml.net> which makes flipping between synths very simple.
+This is identical to speakwith, but uses espeakup instead of speech-dispatcher.
