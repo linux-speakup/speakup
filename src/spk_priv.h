@@ -81,18 +81,9 @@ extern struct var_t synth_time_vars[];
  * the synth buffer, and so only needs to take the lock while tinkering with
  * it.
  */
-#if 0
 /* Speakup needs to disable the keyboard IRQ, hence _irqsave/restore */
 #define spk_lock(flags) spin_lock_irqsave(&speakup_info.spinlock, flags)
 #define spk_trylock(flags) spin_trylock_irqsave(&speakup_info.spinlock, flags)
 #define spk_unlock(flags) spin_unlock_irqrestore(&speakup_info.spinlock, flags)
-#else
-/* For now, we can't just disable IRQs because Speakup may have to wait for the
- * completion of the talk, so for now just be IRQ and SMP -unsafe (but at least
- * preempt-safe).  In the future we should probably just run a kernel thread. */
-#define spk_lock(flags) do { (void) flags; preempt_disable(); } while (0)
-#define spk_trylock(flags) ({ (void) flags; preempt_disable(); 1; })
-#define spk_unlock(flags) do { (void) flags; preempt_enable(); } while (0)
-#endif
 
 #endif
