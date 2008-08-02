@@ -289,7 +289,7 @@ struct var_t synth_time_vars[] = {
 	{ DELAY, .u.n = {NULL, 100, 100, 2000, 0, 0, NULL }},
 	{ TRIGGER, .u.n = {NULL, 20, 10, 2000, 0, 0, NULL }},
 	{ JIFFY, .u.n = {NULL, 50, 20, 200, 0, 0, NULL }},
-	{ FULL, .u.n = {NULL, 400, 200, 10000, 0, 0, NULL }},
+	{ FULL, .u.n = {NULL, 400, 200, 60000, 0, 0, NULL }},
 	V_LAST_VAR
 };
 
