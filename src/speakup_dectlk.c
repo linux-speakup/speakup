@@ -36,10 +36,8 @@
 #define DRV_VERSION "2.9"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
-static unsigned char last_char;
-#define get_last_char() ((inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR)? \
-		(last_char = inb_p(speakup_info.port_tts + UART_RX)) : last_char)
-#define synth_full() (get_last_char() == 0x13)
+static volatile int xoff;
+#define synth_full() (xoff)
 
 static void do_catch_up(struct spk_synth *synth);
 static void synth_flush(struct spk_synth *synth);
@@ -124,6 +122,10 @@ static void read_buff_add(u_char c)
 		is_flushing = 0;
 		wake_up_interruptible(&flush);
 		spin_unlock_irqrestore(&flush_lock, flags);
+	} else if (c == 0x13) {
+		xoff = 1;
+	} else if (c == 0x11) {
+		xoff = 0;
 	} else if (is_indnum(&c)) {
 		if (ind == -1)
 			ind = c;
