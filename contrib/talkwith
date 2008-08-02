@@ -59,7 +59,7 @@ if [ "$F1" != "none" ]; then
 echo "none" > /sys/module/speakup/parameters/synth
 if [ "$F1" = "soft" ]; then
 kill `cat /var/run/speechd-up.pid` >/dev/null 2>&1
-pkill espeakup >/dev/null 2>&1
+kill `cat /var/run/espeakup.pid` >/dev/null 2>&1
 fi
 sleep 1
 fi
@@ -70,6 +70,6 @@ fi
 #
 echo "$1" >/sys/module/speakup/parameters/synth
 if [ "$1" = "soft" ]; then
-espeakup
+espeakup >/dev/null 2>&1
 fi
 speakupconf load
