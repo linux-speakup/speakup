@@ -670,7 +670,7 @@ static int set_punc(const char *val, struct kernel_param *kp)
 
 	strncpy(punc_buf, val, count);
 
-	if (punc_buf[count - 1] == '\n')
+	while (count && punc_buf[count - 1] == '\n')
 		count--;
 	punc_buf[count] = '\0';
 
@@ -719,7 +719,6 @@ static int get_punc(char *buffer, struct kernel_param *kp)
 			continue;
 		*cp++ = (char)i;
 	}
-	*cp++ = '\n';
 	return cp-buffer;
 }
 
