@@ -4,17 +4,15 @@ This directory is for useful contributions by speakup users and
 developers which help make speakup easier and more fun to use.
 
 espeakup - A connector that allows speakup to use the espeak software
-speech synthesizer.  This was donated by William Hubbs
+speech synthesizer.  This was written by William Hubbs
 <w.d.hubbs@gmail.com>.  It has its own git repository at
 git://hubbs.homedns.org/espeakup.git.
 
-speakupconf - A shell script donated by Bill Acker
-<wacker@octothorp.org> for saving and restoring speakup's customizable
+speakupconf - A shell script written by Steve Holmes
+<steve@holmesgrown.com> for saving and restoring speakup's customizable
 variables.
 
-speakwith - a shell script written by Chuck Hallenbeck
-<chuckh@ftml.net> which makes flipping between synths very simple.
-
-talkwith - a shell script written by Chuck Hallenbeck
-<chuckh@ftml.net> which makes flipping between synths very simple.
-This is identical to speakwith, but uses espeakup instead of speech-dispatcher.
+synthscripts - These scripts were written by Chuck Hallenbeck
+<chuckh@ftml.net> to make switching between synthesizers very simple.
+The difference between them is that speakwith uses speech dispatcher
+for software speech, and  talkwith uses espeakup.
