@@ -2,6 +2,12 @@ This file is to keep track of the bugs we know about until we come up
 with a better bug tracking system.  Feel free to try your hand at
 fixing any of these!
 
+It is possible to remove speakup_soft when /dev/softsynth is open.  This
+is not a good situation since it causes oopses.
+
+It is possible to make speakup time out when it is reading a long file
+by attempting to shut it up.
+
 ---- reportedly fixed! ----
  
 From: Gene Collins <collins@gene3.ait.iastate.edu>
