@@ -2,9 +2,6 @@ This file is to keep track of the bugs we know about until we come up
 with a better bug tracking system.  Feel free to try your hand at
 fixing any of these!
 
-It is possible to remove speakup_soft when /dev/softsynth is open.  This
-is not a good situation since it causes oopses.
-
 It is possible to make speakup time out when it is reading a long file
 by attempting to shut it up.
 
@@ -44,4 +41,8 @@ April 11, 2008 in the git repository for kernels 2.6.24 and up.
 
 Speakup's Key Echo does not always raise the pitch when upper case characters
 are typed.  This is fixed as of April 13, 2008.
+
+It is possible to remove speakup_soft when /dev/softsynth is open.  This
+is not a good situation since it causes oopses.
+This is fixed as of August 21, 2008.
 

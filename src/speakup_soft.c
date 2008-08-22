@@ -24,6 +24,7 @@
 #include <linux/unistd.h>
 #include <linux/miscdevice.h> /* for misc_register, and SYNTH_MINOR */
 #include <linux/poll.h> /* for poll_wait() */
+
 #include "spk_priv.h"
 #include "speakup.h"
 
@@ -101,7 +102,6 @@ static int softsynth_open(struct inode *inode, struct file *fp)
 static int softsynth_close(struct inode *inode, struct file *fp)
 {
 	unsigned long flags;
-	fp->f_op = NULL;
 	spk_lock(flags);
 	synth_soft.alive = 0;
 	spk_unlock(flags);
@@ -206,6 +206,7 @@ static unsigned char get_index(void)
 }
 
 static struct file_operations softsynth_fops = {
+	.owner = THIS_MODULE,
 	.poll = softsynth_poll,
 	.read = softsynth_read,
 	.write = softsynth_write,
