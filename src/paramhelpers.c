@@ -31,9 +31,9 @@ static int get_vars(char *buffer, struct kernel_param *kp);
 module_param_call(characters, set_characters, get_characters, NULL, 0664);
 module_param_call(chartab, set_chartab, get_chartab, NULL, 0664);
 module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
-module_param_call(silent, set_silent, NULL, NULL, 0664);
+module_param_call(silent, set_silent, NULL, NULL, 0220);
 module_param_call(synth, set_synth, get_synth, NULL, 0664);
-module_param_call(synth_direct, send_synth_direct, NULL, NULL, 0664);
+module_param_call(synth_direct, send_synth_direct, NULL, NULL, 0220);
 module_param_call(version, NULL, get_version, NULL, 0444);
 
 module_param_call(delimiters, set_punc, get_punc, NULL, 0664);
