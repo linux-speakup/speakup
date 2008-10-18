@@ -431,6 +431,17 @@ static void announce_edge(struct vc_data *vc, int msg_id)
 static void speak_char(u_char ch)
 {
 	char *cp = characters[ch];
+	struct var_t *direct = get_var(DIRECT);
+	if (direct->u.n.value) {
+		if (IS_CHAR(ch, B_CAP)) {
+			pitch_shift++;
+			synth_printf("%s", str_caps_start);
+		}
+		synth_printf("%c", ch);
+		if (IS_CHAR(ch, B_CAP))
+			synth_printf("%s", str_caps_stop);
+		return;
+	}
 	if (cp == NULL) {
 		pr_info("speak_char: cp == NULL!\n");
 		return;

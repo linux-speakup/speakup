@@ -48,9 +48,10 @@ static struct var_t vars[] = {
 	{ PITCH, .u.n = {"\x01%dp", 5, 0, 9, 0, 0, NULL }},
 	{ VOL, .u.n = {"\x01%dv", 5, 0, 9, 0, 0, NULL }},
 	{ TONE, .u.n = {"\x01%dx", 1, 0, 2, 0, 0, NULL }},
-	{ PUNCT, .u.n = {"\x01%db", 7, 0, 15, 0, 0, NULL }},
+	{ PUNCT, .u.n = {"\x01%db", 0, 0, 2, 0, 0, NULL }},
 	{ VOICE, .u.n = {"\x01%do", 0, 0, 7, 0, 0, NULL }},
 	{ FREQUENCY, .u.n = {"\x01%df", 5, 0, 9, 0, 0, NULL }},
+	{ DIRECT, .u.n = {NULL, 1, 0, 1, 0, 0, NULL }},
 	V_LAST_VAR
 };
 

@@ -62,6 +62,7 @@ module_param_call(say_word_ctl, set_vars, get_vars, NULL, 0664);
 module_param_call(spell_delay, set_vars, get_vars, NULL, 0664);
 module_param_call(trigger_time, set_vars, get_vars, NULL, 0644);
 
+module_param_call(direct, set_vars, get_vars, NULL, 0664);
 module_param_call(freq, set_vars, get_vars, NULL, 0664);
 module_param_call(lang, set_vars, get_vars, NULL, 0664);
 module_param_call(pitch, set_vars, get_vars, NULL, 0664);

@@ -42,6 +42,7 @@ static struct st_var_header var_headers[] = {
   { "freq", FREQUENCY, VAR_NUM, NULL, NULL },
   { "lang", LANG, VAR_NUM, NULL, NULL },
   { "chartab", CHARTAB, VAR_PROC, NULL, NULL },
+  { "direct", DIRECT, VAR_NUM, NULL, NULL },
 };
 
 static struct st_var_header *var_ptrs[MAXVARS] = { 0, 0, 0 };
