@@ -432,7 +432,7 @@ static void speak_char(u_char ch)
 {
 	char *cp = characters[ch];
 	struct var_t *direct = get_var(DIRECT);
-	if (direct->u.n.value) {
+	if (direct && direct->u.n.value) {
 		if (IS_CHAR(ch, B_CAP)) {
 			pitch_shift++;
 			synth_printf("%s", str_caps_start);
