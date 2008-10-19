@@ -51,7 +51,7 @@ static struct var_t vars[] = {
 	{ PUNCT, .u.n = {"\x01%db", 0, 0, 2, 0, 0, NULL }},
 	{ VOICE, .u.n = {"\x01%do", 0, 0, 7, 0, 0, NULL }},
 	{ FREQUENCY, .u.n = {"\x01%df", 5, 0, 9, 0, 0, NULL }},
-	{ DIRECT, .u.n = {NULL, 1, 0, 1, 0, 0, NULL }},
+	{ DIRECT, .u.n = {NULL, 0, 0, 1, 0, 0, NULL }},
 	V_LAST_VAR
 };
 
