@@ -740,8 +740,10 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		return -EINVAL;
 
 	param = var_header_by_name(strip_prefix(kp->name));
-	if ((param == NULL) || (param->data == NULL))
+	if (param == NULL)
 		return -EINVAL;
+	if (param->data == NULL)
+		return 0;
 
 	ret = 0;
 	len = strlen(val);
@@ -800,30 +802,35 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 		return -EINVAL;
 
 	var = (struct var_t *) param->data;
-	if (var == NULL)
-		return -EINVAL;
 
 	switch (param->var_type) {
 	case VAR_NUM:
 	case VAR_TIME:
-		rv = sprintf(buffer, "%i", var->u.n.value);
+		if (var)
+			rv = sprintf(buffer, "%i\n", var->u.n.value);
+		else
+			rv = sprintf(buffer, "0\n");
 		break;
 	case VAR_STRING:
-		cp1 = buffer;
-		*cp1++ = '"';
-		for (cp = (char *)param->p_val; (ch = *cp); cp++) {
-			if (ch >= ' ' && ch < '~')
-				*cp1++ = ch;
-			else
-				cp1 += sprintf(cp1, "\\""x%02x", ch);
+		if (var) {
+			cp1 = buffer;
+			*cp1++ = '"';
+			for (cp = (char *)param->p_val; (ch = *cp); cp++) {
+				if (ch >= ' ' && ch < '~')
+					*cp1++ = ch;
+				else
+					cp1 += sprintf(cp1, "\\""x%02x", ch);
+			}
+			*cp1++ = '"';
+			*cp1++ = '\n';
+			*cp1 = '\0';
+			rv = cp1-buffer;
+		} else {
+			rv = sprintf(buffer, "\"\"\n");
 		}
-		*cp1++ = '"';
-		*cp1++ = '\n';
-		*cp1 = '\0';
-		rv = cp1-buffer;
 		break;
 	default:
-		rv = sprintf("Bad parameter  %s, type %i\n",
+		rv = sprintf(buffer, "Bad parameter  %s, type %i\n",
 			param->name, param->var_type);
 		break;
 	}

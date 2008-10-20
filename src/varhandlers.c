@@ -153,7 +153,7 @@ struct st_var_header *var_header_by_name(const char *name)
 struct var_t *get_var(enum var_id_t var_id)
 {
 	BUG_ON(var_id < 0 || var_id >= MAXVARS);
-	BUG_ON(! var_ptrs[var_id] || ! var_ptrs[var_id]->data);
+	BUG_ON(! var_ptrs[var_id]);
 	return (var_ptrs[var_id]->data);
 }
 EXPORT_SYMBOL_GPL(get_var);
