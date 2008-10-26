@@ -1,18 +1,12 @@
-ifneq ($(KERNELRELEASE),)
-include Kbuild
-else
-
 KERNELDIR = /lib/modules/`uname -r`/build
 
-all: build
+all: modules
 
-build:
-	make -C $(KERNELDIR) M=`pwd` `cat allmodule.mk`
+modules:
+	make -C $(KERNELDIR) M=`pwd` `cat allmodule.mk` 
+
+modules_install:
+	make INSTALL_MOD_DIR=extra/speakup -C $(KERNELDIR) M=`pwd` `cat allmodule.mk` $@
 
 clean:
 	make -C $(KERNELDIR) M=`pwd` `cat allmodule.mk` $@
-
-modules_install:
-	make -C $(KERNELDIR) M=`pwd` `cat allmodule.mk` $@
-
-endif
