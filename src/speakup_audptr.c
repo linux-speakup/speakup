@@ -25,7 +25,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.7"
+#define DRV_VERSION "2.8"
 #define SYNTH_CLEAR 0x18 /* flush synth buffer */
 #define PROCSPEECH '\r' /* start synth processing speech char */
 
@@ -53,7 +53,7 @@ static struct spk_synth synth_audptr = {
 	.delay = 400,
 	.trigger = 50,
 	.jiffies = 30,
-	.full = 20000,
+	.full = 40000,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.vars = vars,

@@ -31,7 +31,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.7"
+#define DRV_VERSION "2.8"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -58,7 +58,7 @@ static struct spk_synth synth_apollo = {
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
-	.full = 20000,
+	.full = 40000,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.vars = vars,

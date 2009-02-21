@@ -31,7 +31,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.9"
+#define DRV_VERSION "2.10"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static unsigned char last_char;
@@ -65,7 +65,7 @@ static struct spk_synth synth_decext = {
 	.delay = 500,
 	.trigger = 50,
 	.jiffies = 50,
-	.full = 20000,
+	.full = 40000,
 	.flags = SF_DEC,
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
