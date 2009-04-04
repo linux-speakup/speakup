@@ -19,10 +19,9 @@ int speakup_thread(void *data)
 			spk_lock(flags);
 			prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
 			should_break = kthread_should_stop() ||
-				(synth &&
-				((!synth->alive || synth->catch_up) &&
+				(synth && synth->catch_up && synth->alive &&
 					(speakup_info.flushing ||
-					!synth_buffer_empty())));
+					!synth_buffer_empty()));
 			spk_unlock(flags);
 			if (should_break)
 				break;
