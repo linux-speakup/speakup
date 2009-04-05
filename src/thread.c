@@ -13,6 +13,7 @@ int speakup_thread(void *data)
 	unsigned long flags;
 	int should_break;
 
+	mutex_lock(&spk_mutex);
 	while (1) {
 		DEFINE_WAIT(wait);
 		while(1) {
@@ -25,7 +26,9 @@ int speakup_thread(void *data)
 			spk_unlock(flags);
 			if (should_break)
 				break;
+			mutex_unlock(&spk_mutex);
 			schedule();
+			mutex_lock(&spk_mutex);
 		}
 		finish_wait(&speakup_event, &wait);
 		if (kthread_should_stop())
@@ -39,5 +42,6 @@ int speakup_thread(void *data)
 
 		speakup_start_ttys();
 	}
+	mutex_unlock(&spk_mutex);
 	return 0;
 }
