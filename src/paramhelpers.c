@@ -305,6 +305,12 @@ static int get_characters(char *buffer, struct kernel_param *kp)
 		cp = (characters[i]) ? characters[i] : "NULL";
 		len += sprintf(buffer + len, "%d\t%s\n", i, cp);
 	}
+
+	/* Loop leaves a newline at the end of the buffer, but buffer
+	 * shouldn't end with a newline.  Snip it.
+	*/
+	buffer[--len] = '\0';
+
 	return len;
 }
 
@@ -421,6 +427,9 @@ static int get_chartab(char *buffer, struct kernel_param *kp)
 			cp = "B_SYM";
 		len += sprintf(buffer + len, "%d\t%s\n", i, cp);
 	}
+
+	/* Buffer should not end in a newline.  Snip it. */
+	buffer[--len] = '\0';
 	return len;
 }
 
@@ -509,7 +518,7 @@ static int get_keymap(char *buffer, struct kernel_param *kp)
 			*cp++ = (i < nstates) ? SPACE : '\n';
 		}
 	}
-	cp += sprintf(cp, "0, %d\n", KEY_MAP_VER);
+	cp += sprintf(cp, "0, %d", KEY_MAP_VER);
 	return (int)(cp-buffer);
 }
 
@@ -632,9 +641,9 @@ static int get_version(char *buffer, struct kernel_param *kp)
 	char *cp;
 
 	cp = buffer;
-	cp += sprintf(cp, "Speakup version %s\n", SPEAKUP_VERSION);
+	cp += sprintf(cp, "Speakup version %s", SPEAKUP_VERSION);
 	if (synth != NULL)
-		cp += sprintf(cp, "%s synthesizer driver version %s\n",
+		cp += sprintf(cp, "\n%s synthesizer driver version %s",
 		synth->name, synth->version);
 	return cp - buffer;
 }
@@ -807,9 +816,9 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 	case VAR_NUM:
 	case VAR_TIME:
 		if (var)
-			rv = sprintf(buffer, "%i\n", var->u.n.value);
+			rv = sprintf(buffer, "%i", var->u.n.value);
 		else
-			rv = sprintf(buffer, "0\n");
+			rv = sprintf(buffer, "0");
 		break;
 	case VAR_STRING:
 		if (var) {
@@ -822,15 +831,14 @@ static int get_vars(char *buffer, struct kernel_param *kp)
 					cp1 += sprintf(cp1, "\\""x%02x", ch);
 			}
 			*cp1++ = '"';
-			*cp1++ = '\n';
 			*cp1 = '\0';
 			rv = cp1-buffer;
 		} else {
-			rv = sprintf(buffer, "\"\"\n");
+			rv = sprintf(buffer, "\"\"");
 		}
 		break;
 	default:
-		rv = sprintf(buffer, "Bad parameter  %s, type %i\n",
+		rv = sprintf(buffer, "Bad parameter  %s, type %i",
 			param->name, param->var_type);
 		break;
 	}
