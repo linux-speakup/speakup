@@ -755,8 +755,9 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		return 0;
 
 	ret = 0;
-	len = strlen(val);
 	cp = xlate((char *) val);
+	len = strlen(val); /* xlate may have changed the length of the string */
+
 	switch (param->var_type) {
 	case VAR_NUM:
 	case VAR_TIME:
@@ -776,6 +777,16 @@ static int set_vars(const char *val, struct kernel_param *kp)
 		}
 		break;
 	case VAR_STRING:
+		/*
+		 * Strip balanced quote and newline character, if present.
+		*/
+		if((len >= 1) && (val[len - 1] == '\n'))
+			--len;
+		if((len >= 2) && (val[0] == '"') && (val[len - 1] == '"')) {
+			++val;
+			len -= 2;
+		}
+		cp[len] = '\0'; /* Ensure NUL-termination. */
 		ret = set_string_var(val, param, len);
 		if (ret == E_TOOLONG)
 			pr_warn("value too long for %s\n",
