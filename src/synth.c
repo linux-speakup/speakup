@@ -71,8 +71,12 @@ void spk_do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
-	struct var_t *full_time;
+	unsigned long jiff_max;
+	struct var_t *delay_time;
+	struct var_t *jiffy_delta;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -91,12 +95,19 @@ void spk_do_catch_up(struct spk_synth *synth)
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
-			full_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
+			delay_time = get_var(FULL);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
+		if ((jiffies >= jiff_max) && (ch == SPACE)) {
+			if (spk_serial_out(synth->procspeech))
+				delay_time = get_var(DELAY);
+			else
+				delay_time = get_var(FULL);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			jiff_max = jiffies+jiffy_delta->u.n.value;
+		}
 		set_current_state(TASK_RUNNING);
-		/* TODO: if jiffies > jiff_max & ch == SPACE) serial_out procpseech & delay delay_time */
 		spk_lock(flags);
 		synth_buffer_getc();
 		spk_unlock(flags);
