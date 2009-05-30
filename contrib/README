@@ -6,7 +6,7 @@ developers which help make speakup easier and more fun to use.
 espeakup - A connector that allows speakup to use the espeak software
 speech synthesizer.  This was written by William Hubbs
 <w.d.hubbs@gmail.com>.  It has its own git repository at
-git://hubbs.homedns.org/espeakup.git.
+git://github.com/williamh/espeakup.git.
 
 speakupconf - A shell script written by Steve Holmes
 <steve@holmesgrown.com> for saving and restoring speakup's customizable
