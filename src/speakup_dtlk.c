@@ -33,7 +33,7 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 #include "speakup.h"
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_READABLE)
 #define synth_writable() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_WRITABLE)
@@ -116,8 +116,12 @@ static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
+	unsigned long jiff_max;
+	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -144,6 +148,12 @@ static void do_catch_up(struct spk_synth *synth)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		spk_out(ch);
+		if ((jiffies >= jiff_max) && (ch == SPACE)) {
+			spk_out(PROCSPEECH);
+			delay_time = get_var(DELAY);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			jiff_max = jiffies+jiffy_delta->u.n.value;
+		}
 	}
 	spk_out(PROCSPEECH);
 }

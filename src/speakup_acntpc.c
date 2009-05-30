@@ -34,7 +34,7 @@
 #include "speakup.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts + UART_RX) == 'F')
@@ -115,9 +115,13 @@ static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
+	unsigned long jiff_max;
 	int timeout;
-	struct var_t *full_time;
+	struct var_t *delay_time;
+	struct var_t *jiffy_delta;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -133,8 +137,8 @@ static void do_catch_up(struct spk_synth *synth)
 		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (synth_full()) {
-			full_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
+			delay_time = get_var(FULL);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
 		set_current_state(TASK_RUNNING);
@@ -150,6 +154,18 @@ static void do_catch_up(struct spk_synth *synth)
 		if (ch == '\n')
 			ch = PROCSPEECH;
 		outb_p(ch, speakup_info.port_tts);
+		if (jiffies >= jiff_max && ch == SPACE) {
+			timeout = SPK_XMITR_TIMEOUT;
+			while (synth_writable()) {
+				if (!--timeout)
+					break;
+				udelay(1);
+			}
+			outb_p(PROCSPEECH, speakup_info.port_tts);
+			delay_time = get_var(DELAY);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			jiff_max = jiffies+jiffy_delta->u.n.value;
+		}
 	}
 	timeout = SPK_XMITR_TIMEOUT;
 	while (synth_writable()) {

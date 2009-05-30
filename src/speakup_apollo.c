@@ -31,7 +31,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.8"
+#define DRV_VERSION "2.9"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -83,8 +83,12 @@ static void do_catch_up(struct spk_synth *synth)
 {
 	u_char ch;
 	unsigned long flags;
-	struct var_t *full_time;
+	unsigned long jiff_max;
+	struct var_t *jiffy_delta;
+	struct var_t *delay_time;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -104,9 +108,17 @@ static void do_catch_up(struct spk_synth *synth)
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
-			full_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(full_time->u.n.value));
+			delay_time = get_var(FULL);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
+		}
+		if ((jiffies >= jiff_max) && (ch == SPACE)) {
+			if (spk_serial_out(synth->procspeech))
+				delay_time = get_var(DELAY);
+			else
+				delay_time = get_var(FULL);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			jiff_max = jiffies+jiffy_delta->u.n.value;
 		}
 		set_current_state(TASK_RUNNING);
 		spk_lock(flags);

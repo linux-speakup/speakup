@@ -30,7 +30,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.6"
+#define DRV_VERSION "2.7"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port + UART_RX) & 0x10)
@@ -124,8 +124,12 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	int timeout;
 	unsigned long flags;
+	unsigned long jiff_max;
+	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -141,7 +145,7 @@ static void do_catch_up(struct spk_synth *synth)
 		set_current_state(TASK_INTERRUPTIBLE);
 		spk_unlock(flags);
 		if (synth_full()) {
-			delay_time = get_var(DELAY);
+			delay_time = get_var(FULL);
 			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
 			continue;
 		}
@@ -161,6 +165,20 @@ static void do_catch_up(struct spk_synth *synth)
 			ch = PROCSPEECH;
 		outb_p(ch, synth_port);
 		SWAIT;
+		if ((jiffies >= jiff_max) && (ch == SPACE)) {
+			timeout = 1000;
+			while (synth_writable())
+				if (--timeout <= 0)
+					break;
+			if (timeout <= 0) {
+				oops();
+				break;
+			}
+			outb_p(PROCSPEECH, synth_port);
+				delay_time = get_var(DELAY);
+			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			jiff_max = jiffies+jiffy_delta->u.n.value;
+		}
 	}
 	timeout = 1000;
 	while (synth_writable())
