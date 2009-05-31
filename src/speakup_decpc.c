@@ -134,7 +134,7 @@ enum {	PRIMARY_DIC	= 0, USER_DIC, COMMAND_DIC, ABBREV_DIC };
 #define	DMA_sync		0x06
 #define	DMA_sync_char		0x07
 
-#define DRV_VERSION "2.8"
+#define DRV_VERSION "2.9"
 #define PROCSPEECH 0x0b
 #define SYNTH_IO_EXTENT 8
 
@@ -315,8 +315,12 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	static u_char last = '\0';
 	unsigned long flags;
+	unsigned long jiff_max;
+	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -350,6 +354,13 @@ static void do_catch_up(struct spk_synth *synth)
 		else if (ch <= SPACE) {
 			if (!in_escape && strchr(",.!?;:", last))
 				dt_sendchar(PROCSPEECH);
+			if (jiffies >= jiff_max) {
+				if (!in_escape)
+					dt_sendchar(PROCSPEECH);
+				delay_time = get_var(DELAY);
+				schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+				jiff_max = jiffies+jiffy_delta->u.n.value;
+			}
 		}
 		last = ch;
 		ch = 0;

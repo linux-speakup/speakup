@@ -33,7 +33,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.10"
+#define DRV_VERSION "2.11"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static volatile int xoff;
@@ -143,10 +143,14 @@ static void do_catch_up(struct spk_synth *synth)
 	static u_char ch = 0;
 	static u_char last = '\0';
 	unsigned long flags;
+	unsigned long jiff_max;
 	unsigned long timeout = msecs_to_jiffies(4000);
 	DEFINE_WAIT(wait);
+	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		/* if no ctl-a in 4, send data anyway */
 		spin_lock_irqsave(&flush_lock, flags);
@@ -192,6 +196,13 @@ static void do_catch_up(struct spk_synth *synth)
 		else if (ch <= SPACE) {
 			if (!in_escape && strchr(",.!?;:", last))
 				spk_serial_out(PROCSPEECH);
+			if (jiffies >= jiff_max) {
+				if ( ! in_escape )
+					spk_serial_out(PROCSPEECH);
+				delay_time = get_var(DELAY);
+				schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+				jiff_max = jiffies+jiffy_delta->u.n.value;
+			}
 		}
 		last = ch;
 	}

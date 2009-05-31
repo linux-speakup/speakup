@@ -31,7 +31,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.10"
+#define DRV_VERSION "2.11"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static unsigned char last_char;
@@ -92,8 +92,12 @@ static void do_catch_up(struct spk_synth *synth)
 	u_char ch;
 	static u_char last = '\0';
 	unsigned long flags;
+	unsigned long jiff_max;
+	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
 
+	jiffy_delta = get_var(JIFFY);
+	jiff_max = jiffies+jiffy_delta->u.n.value;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -127,6 +131,13 @@ static void do_catch_up(struct spk_synth *synth)
 		else if (ch <= SPACE) {
 			if (!in_escape && strchr(",.!?;:", last))
 				spk_serial_out(PROCSPEECH);
+			if (jiffies >= jiff_max) {
+				if ( ! in_escape )
+					spk_serial_out(PROCSPEECH);
+				delay_time = get_var(DELAY);
+				schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+				jiff_max = jiffies+jiffy_delta->u.n.value;
+			}
 		}
 		last = ch;
 	}
