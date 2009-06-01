@@ -129,10 +129,9 @@ static const char *colors[] = {
 };
 
 static char *phonetic[] = {
-	"alpha", "beta", "charley", "delta", "echo", "fox", "gamma", "hotel",
-	"india", "juleiet", "keelo", "leema", "mike", "november", "oscar",
-	"papa",
-	"quebec", "romeo", "seeara", "tango", "uniform", "victer", "wiskey",
+	"alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
+	"india", "juliett", "keelo", "leema", "mike", "november", "oscar", "papa",
+	"quebec", "romeo", "sierra", "tango", "uniform", "victer", "whiskey",
 	"x ray", "yankee", "zooloo"
 };
 
