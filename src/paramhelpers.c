@@ -786,6 +786,7 @@ static int set_vars(const char *val, struct kernel_param *kp)
 			++val;
 			len -= 2;
 		}
+		cp = (char *) val; /* non-const pointer to val */
 		cp[len] = '\0'; /* Ensure NUL-termination. */
 		ret = set_string_var(val, param, len);
 		if (ret == E_TOOLONG)
