@@ -131,8 +131,8 @@ static const char *colors[] = {
 static char *phonetic[] = {
 	"alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
 	"india", "juliett", "keelo", "leema", "mike", "november", "oscar", "papa",
-	"quebec", "romeo", "sierra", "tango", "uniform", "victer", "whiskey",
-	"x ray", "yankee", "zooloo"
+	"keh beck", "romeo", "sierra", "tango", "uniform", "victer", "whiskey",
+	"x ray", "yankee", "zulu"
 };
 
 /* array of 256 char pointers (one for each character description)
