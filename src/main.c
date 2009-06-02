@@ -471,6 +471,9 @@ static u16 get_char(struct vc_data *vc, u16 *pos)
 		if (w & vc->vc_hi_font_mask)
 			c |= 0x100;
 
+		/* FIXME: inverse_translate returns a unicode value, it
+		 * shouldn't be mixed with the character attributes, else
+		 * non-latin1 characters will get mangled */
 		ch = w & 0xff00;
 		ch |= inverse_translate(vc, c);
 	}
