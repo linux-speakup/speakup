@@ -297,9 +297,9 @@ static void speech_kill(struct vc_data *vc)
 	if (val == 2 || spk_killed) {
 		/* dead */
 		spk_shut_up &= ~0x40;
-		synth_printf("%s\n", "Eyem a Lighve!");
+		synth_printf("%s\n", i18n[MSGS][IAM_ALIVE]);
 	} else {
-		synth_printf("%s\n", "You killed speak up!");
+		synth_printf("%s\n", i18n[MSGS][YOU_KILLED_SPEAKUP]"You killed speak up!");
 		spk_shut_up |= 0x40;
 	}
 }
