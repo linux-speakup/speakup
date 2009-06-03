@@ -141,66 +141,48 @@ static char *phonetic[] = {
 char *characters[256];
 
 char *default_chars[256] = {
-	"null", "^a", "^b", "^c", "^d", "^e", "^f", "^g",
-	"^h", "^i", "^j", "^k", "^l", "^m", "^n", "^o",
-	"^p", "^q", "^r", "^s", "^t", "^u", "^v", "^w",
-	"^x", "^y", "^z", NULL, NULL, NULL, NULL, NULL,
-	"space", "bang!", "quote", "number", "dollar", "percent", "and",
-	"tick",
-	"left paren", "right paren", "star", "plus", "comma", "dash", "dot",
+/*000*/	"null", "^a", "^b", "^c", "^d", "^e", "^f", "^g",
+/*008*/ "^h", "^i", "^j", "^k", "^l", "^m", "^n", "^o",
+/*016*/ "^p", "^q", "^r", "^s", "^t", "^u", "^v", "^w",
+/*024*/ "^x", "^y", "^z", NULL, NULL, NULL, NULL, NULL,
+/*032*/ "space", "bang!", "quote", "number", "dollar", "percent", "and", "tick",
+/*040*/ "left paren", "right paren", "star", "plus", "comma", "dash", "dot",
 	"slash",
-	"zero", "one", "two", "three", "four", "five", "six", "seven",
+/*048*/ "zero", "one", "two", "three", "four", "five", "six", "seven",
 	"eight", "nine",
-	"colon", "semmy", "less", "equals", "greater", "question", "at",
-	"eigh", "b", "c", "d", "e", "f", "g",
-	"h", "i", "j", "k", "l", "m", "n", "o",
-	"p", "q", "r", "s", "t", "u", "v", "w", "x",
-	"y", "zehd", "left bracket", "backslash", "right bracket", "caret",
+/*058*/ "colon", "semmy", "less", "equals", "greater", "question", "at",
+/*065*/ "EIGH", "B", "C", "D", "E", "F", "G",
+/*072*/ "H", "I", "J", "K", "L", "M", "N", "O",
+/*080*/ "P", "Q", "R", "S", "T", "U", "V", "W", "X",
+/*089*/ "Y", "ZED", "left bracket", "backslash", "right bracket", "caret",
 	"line",
-	"accent", NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, "left brace", "bar", "right brace", "tihlduh",
-	"delta", "see cedilla", "u oomlout", "e acute", /* 128 */
-	"eigh circumflex", "eigh oomlout", "eigh grave", "eigh ring", /* 132 */
-	"see cedilla", "e circumflex", "e oomlout", "e grave", /* 136 */
-	"i oomlout", "i circumflex", "i grave", "eigh oomlout", /* 140 */
-	"eigh ring", "e acute", "eigh e dipthong", "eigh e dipthong", /* 144 */
-	"o circumflex", "o oomlout", "o grave", "u circumflex", /* 148 */
-	"u grave", "y oomlout", "o oomlout", "u oomlout", /* 152 */
-	"cents", "pounds", "yen", "peseta", /* 156 */
-	"florin", "eigh acute", "i acute", "o acute", /* 160 */
-	"u acute", "n tilde", "n tilde", "feminine ordinal", /* 164 */
-	"masculin ordinal", "inverted question", "reversed not", "not",/* 168 */
-	"half", "quarter", "inverted bang", "much less than", /* 172 */
-	"much greater than", "dark shading", "medium shading", /* 176 */
-	"light shading", "verticle line", "left tee", /* 179 */
-	"double left tee", "left double tee", "double top right", /* 182 */
-	"top double right", "double left double tee", /* 185 */
-	"double vertical line", "double top double right", /* 187 */
-	"double bottom double right", "double bottom right", /* 189 */
-	"bottom double right", "top right", "left bottom", /* 191 */
-	"up tee", "tee down", "tee right", "horizontal line", /* 194 */
-	"cross bars", "tee double right", "double tee right", /* 198 */
-	"double left double bottom", "double left double top", /* 201 */
-	"double up double tee", "double tee double down", /* 203 */
-	"double tee double right", "double horizontal line", /* 205 */
-	"double cross bars", "up double tee", "double up tee", /* 207 */
-	"double tee down", "tee double down", /* 210 */
-	"double left bottom", "left double bottom", /* 212 */
-	"double left top", "left double top", /* 214 */
-	"double vertical cross", "double horizontal cross", /* 216 */
-	"bottom right", "left top", "solid square", /* 218 */
-	"solid lower half", "solid left half", "solid right half", /* 221 */
-	"solid upper half", "alpha", "beta", "gamma", /* 224 */
-	"pie", "sigma", "sigma", "mu", /* 228 */
-	"tou", "phigh", "thayta", "ohmega", /* 232 */
-	"delta", "infinity", "phigh", "epsilaun", /* 236 */
-"intersection", "identical to", "plus or minus", "equal grater than", /* 240 */
-	"less than equal", "upper integral", "lower integral", /* 244 */
-		"divided by", "almost equal", "degrees", /* 247 */
-	"centre dot", "bullet", "square root", /* 250 */
-	"power", "squared", "black square", "white space" /* 252 */
+/*096*/ "accent", "a", "b", "c", "d", "e", "f", "g",
+/*104*/ "h", "i", "j", "k", "l", "m", "n", "o",
+/*112*/ "p", "q", "r", "s", "t", "u", "v", "w"
+/*120*/ "x", "y", "zed", "left brace", "bar", "right brace", "tihlduh",
+/*127*/ "del", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+/*138*/ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+/*150*/ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+/*160*/ "nbsp", "inverted bang",
+/*162*/ "cents", "pounds", "currency", "yen", "broken bar", "section", 
+/*168*/ "diaeresis", "copyright", "female ordinal", "double left angle", 
+/*172*/ "not", "soft hyphen", "registered", "macron",
+/*176*/ "degrees", "plus or minus", "super two", "super three", 
+/*180*/ "acute accent", 	"micro", "pilcrow", "middle dot", 
+/*184*/ "cedilla", "super one", "male ordinal", "double right angle",
+/*188*/ "one quarter", "one half", "three quarters", "inverted question",
+/*192*/ "A GRAVE", "A ACUTE", "A CIRCUMFLEX", "A TILDE", "A OOMLAUT", "A RING",
+/*198*/ "AE", "C CIDELLA", "E GRAVE", "E ACUTE", "E CIRCUMFLEX", "E OOMLAUT", 
+/*204*/ "I GRAVE", "I ACUTE", "I CIRCUMFLEX", "I OOMLAUT", "ETH", "N TILDE",
+/*210*/ "O GRAVE", "O ACUTE", "O CIRCUMFLEX", "O TILDE", "O OOMLAUT",
+/*215*/ "multiplied by", "O STROKE", "U GRAVE", "U ACUTE", "U CIRCUMFLEX", 
+/*220*/ "U OOMLAUT", "Y ACUTE", "THORN", "sharp s", "a grave",
+/*225*/ "a acute", "a circumflex", "a tilde", "a oomlaut", "a ring",
+/*230*/ "ae", "c cidella", "e grave", "e acute",
+/*234*/ "e circumflex", "e oomlaut", "i grave", "i acute", "i circumflex",
+/*239*/ "i oomlaut", "eth", "n tilde","o grave", "o acute", "o circumflex",
+/*245*/"o tilde", "o oomlaut", "divided by", "o stroke", "u grave", "u acute",
+/* 251 */ "u circumflex", "u oomlaut", "y acute", "thorn", "y oomlaut"
 };
 
 /* array of 256 u_short (one for each character)
