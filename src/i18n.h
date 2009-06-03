@@ -14,19 +14,5 @@
 #define HEY_THATS_BETTER 3
 #define YOU_TURNED_ME_OFF 4
 
-
-/* I'll start it here to keep the indices and messages in sync. */
-
-char *english_messages [] ={
-	"blank",
-	"I'm aLive!",
-	"You killed speakup!",
-	"hey. That's better!",
-	"You turned me off!",
-
-};
-
-char *english_edges[] = { "top, ", "bottom, ", "left, ", "right, ", "" };
-char **english_strings [] = {NULL, english_messages, NULL, NULL, english_edges};
-char ***i18n = english_strings;
+extern char ***i18n;
 #endif
