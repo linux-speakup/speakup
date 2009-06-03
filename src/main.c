@@ -299,7 +299,7 @@ static void speech_kill(struct vc_data *vc)
 		spk_shut_up &= ~0x40;
 		synth_printf("%s\n", i18n[MSGS][IAM_ALIVE]);
 	} else {
-		synth_printf("%s\n", i18n[MSGS][YOU_KILLED_SPEAKUP]"You killed speak up!");
+		synth_printf("%s\n", i18n[MSGS][YOU_KILLED_SPEAKUP]);
 		spk_shut_up |= 0x40;
 	}
 }
@@ -308,10 +308,10 @@ static void speakup_off(struct vc_data *vc)
 {
 	if (spk_shut_up & 0x80) {
 		spk_shut_up &= 0x7f;
-		synth_printf("%s\n", "hey. That's better!");
+		synth_printf("%s\n", i18n[MSGS][HEY_THATS_BETTER]);
 	} else {
 		spk_shut_up |= 0x80;
-		synth_printf("%s\n", "You turned me off!");
+		synth_printf("%s\n", i18n[MSGS][YOU_TURNED_ME_OFF]);
 	}
 	speakup_date(vc);
 }
