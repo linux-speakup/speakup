@@ -392,7 +392,6 @@ static void say_attributes(struct vc_data *vc)
 }
 
 static char *blank_msg = "blank";
-static char *edges[] = { "top, ", "bottom, ", "left, ", "right, ", "" };
 enum {
 	edge_top = 1,
 	edge_bottom,
@@ -406,7 +405,7 @@ static void announce_edge(struct vc_data *vc, int msg_id)
 	if (bleeps & 1)
 		bleep(spk_y);
 	if (bleeps & 2)
-		synth_printf("%s\n", edges[msg_id-1]);
+		synth_printf("%s\n", i18n[EDGENAMES][msg_id-1]);
 }
 
 static void speak_char(u_char ch)

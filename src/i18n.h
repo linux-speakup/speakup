@@ -26,6 +26,7 @@ char *english_messages [] ={
 
 };
 
-char **english_strings [] = {NULL, english_messages, NULL, NULL, NULL};
+char *english_edges[] = { "top, ", "bottom, ", "left, ", "right, ", "" };
+char **english_strings [] = {NULL, english_messages, NULL, NULL, english_edges};
 char ***i18n = english_strings;
 #endif
