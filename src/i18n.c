@@ -3,15 +3,7 @@
 
 #include "i18n.h"
 
-char **speakup_edges = {
-	"top, ",
-	"bottom, ",
-	"left, ",
-	"right, ",
-	""
-};
-
-char **speakup_msgs  ={
+char *speakup_msgs   [] = {
 	"blank",
 	"I'm aLive!",
 	"You killed speakup!",
@@ -39,6 +31,15 @@ char **speakup_msgs  ={
 	"error",
 	" goto canceled",
 	"go to?",
+	"leaving help",
+	" is unassigned",
+	"press space to leav help, cursor up or down to scroll, \
+or a letter to go to commands in list",
+	"top, ",
+	"bottom, ",
+	"left, ",
+	"right, ",
+	"",
 
 };
 

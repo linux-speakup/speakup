@@ -37,7 +37,19 @@
 #define MSG_ERROR 26
 #define GOTO_CANCELED 27
 #define MSG_GOTO 28
-/* CURSOR_MSGS_START is a dummy index.  First cursor message. */
-#define CURSOR_MSGS_START 15
+#define LEAVING_HELP 29
+#define IS_UNASSIGNED 30
+#define HELP_INFO 31
+/* For completeness.
+#define EDGE_TOP 32
+#define EDGE_BOTTOM 33
+#define EDGE_LEFT 34
+#define EDGE_RIGHT 35
+#define EDGE_QUIET 36
 
+/* Dummy indices. */
+#define CURSOR_MSGS_START 15
+#define EDGE_MSGS_START 32
+
+extern char *speakup_msgs[];
 #endif
