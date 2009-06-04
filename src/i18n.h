@@ -40,5 +40,4 @@
 /* CURSOR_MSGS_START is a dummy index.  First cursor message. */
 #define CURSOR_MSGS_START 15
 
-extern char ***i18n;
 #endif
