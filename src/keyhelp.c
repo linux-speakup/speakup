@@ -223,7 +223,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	if (type == KT_LATIN) {
 		if (ch == SPACE) {
 			special_handler = NULL;
-			synth_printf("%s\n", speakup_msgs[MSG_LEAVING_HELP]);
+			synth_printf("%s\n", msg_get(MSG_LEAVING_HELP));
 			return 1;
 		}
 		ch |= 32; /* lower case */
@@ -243,7 +243,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
 		special_handler = handle_help;
-		synth_printf("%s\n", speakup_msgs[MSG_HELP_INFO]);
+		synth_printf("%s\n", msg_get(MSG_HELP_INFO));
 		build_key_data(); /* rebuild each time in case new mapping */
 		return 1;
 	} else {
@@ -272,7 +272,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	func = funcvals[cur_item];
 	synth_printf("%s", name);
 	if (key_offsets[func] == 0) {
-		synth_printf("%s\n", speakup_msgs[MSG_IS_UNASSIGNED]);
+		synth_printf("%s\n", msg_get(MSG_IS_UNASSIGNED));
 		return 1;
 	}
 	p_keys = key_data + key_offsets[func];

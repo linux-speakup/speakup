@@ -43,8 +43,10 @@ enum msg_index_t {
 	MSG_EDGE_LEFT,
 	MSG_EDGE_RIGHT,
 	MSG_EDGE_QUIET,
+	/* all valid indices must be above this */
+	MSG_LAST_INDEX
 };
 
-extern char *speakup_msgs[];
+extern char *msg_get(enum msg_index_t index);
 
 #endif

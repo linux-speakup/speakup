@@ -3,7 +3,7 @@
 
 #include "i18n.h"
 
-char *speakup_msgs   [] = {
+static char *speakup_msgs   [MSG_LAST_INDEX] = {
 	"blank",
 	"I'm aLive!",
 	"You killed speakup!",
@@ -42,4 +42,12 @@ or a letter to go to commands in list",
 	"",
 
 };
+
+char *msg_get(enum msg_index_t index)
+{
+	char *ch;
+
+	ch = speakup_msgs[index];
+	return ch;
+}
 
