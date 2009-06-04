@@ -18,6 +18,7 @@ obj-$(CONFIG_SPEAKUP) += speakup.o
 speakup-objs := \
 	buffers.o \
 	devsynth.o \
+	i18n.o \
 	main.o \
 	keyhelp.o \
 	paramhelpers.o \

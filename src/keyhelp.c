@@ -23,7 +23,6 @@
 #include <linux/keyboard.h>
 #include "spk_priv.h"
 #include "speakup.h"
-#include "i18n.h"
 
 #define MAXFUNCS 130
 #define MAXKEYS 256
