@@ -387,7 +387,7 @@ static void say_attributes(struct vc_data *vc)
 		synth_printf("%s", speakup_msgs[MSG_ON_BLINKING]);
 		bg -= 8;
 	} else
-		synth_printf("%s", speakup_msgs[MSG_MSG_ON]);
+		synth_printf("%s", speakup_msgs[MSG_ON]);
 	synth_printf("%s\n", colors[bg]);
 }
 
@@ -1832,7 +1832,7 @@ speakup_bits(struct vc_data *vc)
 {
 	int val = this_speakup_key - (FIRST_EDIT_BITS - 1);
 	if (special_handler != NULL || val < 1 || val > 6) {
-		synth_printf("%s\n", speakup_msgs[MSG_MSG_ERROR]);
+		synth_printf("%s\n", speakup_msgs[MSG_ERROR]);
 		return;
 	}
 	pb_edit = &punc_info[val];
@@ -1924,10 +1924,10 @@ static void
 speakup_goto(struct vc_data *vc)
 {
 	if (special_handler != NULL) {
-		synth_printf("%s\n", speakup_msgs[MSG_MSG_ERROR]);
+		synth_printf("%s\n", speakup_msgs[MSG_ERROR]);
 		return;
 	}
-	synth_printf("%s\n", speakup_msgs[MSG_MSG_GOTO]);
+	synth_printf("%s\n", speakup_msgs[MSG_GOTO]);
 	special_handler = handle_goto;
 	return;
 }
