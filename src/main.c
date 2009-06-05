@@ -123,10 +123,6 @@ extern k_handler_fn k_handler[16];
 static void spkup_write(const char *in_buf, int count);
 
 static const char str_ctl[] = "control-";
-static const char *colors[] = {
-	"black", "blue", "green", "cyan", "red", "magenta", "yellow", "white",
-	"grey"
-};
 
 static char *phonetic[] = {
 	"alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
@@ -382,13 +378,13 @@ static void say_attributes(struct vc_data *vc)
 		synth_printf("%s", msg_get(MSG_BRIGHT));
 		fg -= 8;
 	}
-	synth_printf("%s", colors[fg]);
+	synth_printf("%s", msg_get(MSG_COLORS_START + fg));
 	if (bg > 7) {
 		synth_printf("%s", msg_get(MSG_ON_BLINKING));
 		bg -= 8;
 	} else
 		synth_printf("%s", msg_get(MSG_ON));
-	synth_printf("%s\n", colors[bg]);
+	synth_printf("%s\n", msg_get(MSG_COLORS_START + bg));
 }
 
 enum {
