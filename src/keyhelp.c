@@ -122,11 +122,13 @@ static int help_init(void)
 {
 	char start = SPACE;
 	int i;
+	int num_funcs = MSG_FUNCNAMES_END - MSG_FUNCNAMES_START + 1;
 state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
-	for (i = 0; funcnames[i]; i++) {
-		if (start == *funcnames[i])
+	for (i = 0; i < num_funcs; i++) {
+		char *cur_funcname = msg_get(MSG_FUNCNAMES_START + i);
+		if (start == *cur_funcname)
 			continue;
-		start = *funcnames[i];
+		start = *cur_funcname;
 		letter_offsets[(start&31)-1] = i;
 	}
 	return 0;
@@ -155,7 +157,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		}
 	cur_item = letter_offsets[ch-'a'];
 	} else if (type == KT_CUR) {
-		if (ch == 0 && funcnames[cur_item+1] != NULL)
+		if (ch == 0 && (cur_item + 1) <= MSG_FUNCNAMES_END)
 			cur_item++;
 		else if (ch == 3 && cur_item > 0)
 			cur_item--;
@@ -174,7 +176,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		}
 		for (i = 0; funcvals[i] != 0 && !name; i++) {
 			if (ch == funcvals[i])
-				name = funcnames[i];
+				name = msg_get(MSG_FUNCNAMES_START + i);
 		}
 		if (!name)
 			return -1;
@@ -188,7 +190,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		synth_printf("is %s\n", name);
 		return 1;
 	}
-	name = funcnames[cur_item];
+	name = msg_get(MSG_FUNCNAMES_START + cur_item);
 	func = funcvals[cur_item];
 	synth_printf("%s", name);
 	if (key_offsets[func] == 0) {
