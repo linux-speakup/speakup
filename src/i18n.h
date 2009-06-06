@@ -3,7 +3,8 @@
 /* Internationalization declarations */
 
 enum msg_index_t {
-	MSG_BLANK,
+	MSG_FIRST_INDEX = 0,
+	MSG_BLANK = MSG_FIRST_INDEX,
 	MSG_IAM_ALIVE,
 	MSG_YOU_KILLED_SPEAKUP,
 	MSG_HEY_THATS_BETTER,
@@ -172,5 +173,8 @@ enum msg_index_t {
 };
 
 extern char *msg_get(enum msg_index_t index);
+extern char *msg_set(enum msg_index_t index, char *text);
+extern void free_user_strings(void);
+extern void reset_default_msgs(void);
 
 #endif

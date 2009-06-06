@@ -1,9 +1,12 @@
 /* Internationalization implementation.  Includes definitions of English
  * string arrays, and the i18n pointer. */
 
+#include <linux/module.h>
+#include <linux/string.h>
 #include "i18n.h"
 
-static char *speakup_msgs   [MSG_LAST_INDEX] = {
+static char *speakup_msgs[MSG_LAST_INDEX];
+static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_BLANK] = "blank",
 	[MSG_IAM_ALIVE] = "I'm aLive!",
 	[MSG_YOU_KILLED_SPEAKUP] = "You killed speakup!",
@@ -288,3 +291,53 @@ char *msg_get(enum msg_index_t index)
 	return ch;
 }
 
+/*
+ * Function: msg_set
+ * Description: Add a user-supplied message to the user_messages array.
+ * The message text is copied to a memory area allocated with kmalloc.
+ * If the function fails, then user_messages is untouched.
+ * Arguments:
+ * - index: a message number, as found in i18n.h.
+ * - message: NUL-terminated text of message.
+ * Return value: pointer to new message on success, NULL on failure.
+ * Failure conditions:
+ * - Unable to allocate memory.
+ * - Illegal index.
+*/
+
+char *msg_set(enum msg_index_t index, char *text)
+{
+	char *newstr = NULL;
+
+	if((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX)) {
+		newstr = kmalloc(strlen(text) + 1, GFP_KERNEL);
+		if(newstr != NULL) {
+			strcpy(newstr, text);
+			if((speakup_msgs[index] != speakup_default_msgs[index])
+			    && (speakup_msgs[index] != NULL))
+				kfree(speakup_msgs[index]);
+			speakup_msgs[index] = newstr;
+		}
+	}
+
+	return newstr;
+}
+
+/* Called at initialization time, to establish default messages. */
+void reset_default_msgs(void) {
+	enum msg_index_t index;
+	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++)
+		speakup_msgs[index] = speakup_default_msgs[index];
+}
+
+/* Free user-supplied strings when module is unloaded: */
+void free_user_strings(void) {
+	enum msg_index_t index;
+	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++) {
+		if((speakup_msgs[index] != speakup_default_msgs[index])
+		    && (speakup_msgs[index] != NULL)) {
+			kfree(speakup_msgs[index]);
+			speakup_msgs[index] = NULL;
+		}
+	}
+}
