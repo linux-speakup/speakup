@@ -154,7 +154,7 @@ char *default_chars[256] = {
 	"line",
 /*096*/ "accent", "a", "b", "c", "d", "e", "f", "g",
 /*104*/ "h", "i", "j", "k", "l", "m", "n", "o",
-/*112*/ "p", "q", "r", "s", "t", "u", "v", "w"
+/*112*/ "p", "q", "r", "s", "t", "u", "v", "w",
 /*120*/ "x", "y", "zed", "left brace", "bar", "right brace", "tihlduh",
 /*127*/ "del", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 /*138*/ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
