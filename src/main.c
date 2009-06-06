@@ -380,10 +380,10 @@ static void say_attributes(struct vc_data *vc)
 	}
 	synth_printf("%s", msg_get(MSG_COLORS_START + fg));
 	if (bg > 7) {
-		synth_printf("%s", msg_get(MSG_ON_BLINKING));
+		synth_printf(" %s ", msg_get(MSG_ON_BLINKING));
 		bg -= 8;
 	} else
-		synth_printf("%s", msg_get(MSG_ON));
+		synth_printf(" %s ", msg_get(MSG_ON));
 	synth_printf("%s\n", msg_get(MSG_COLORS_START + bg));
 }
 
@@ -1871,7 +1871,7 @@ static int handle_goto(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	if (ch < 'x' || ch > 'y') {
 oops:
 		if (!spk_killed)
-			synth_printf("%s\n", msg_get(MSG_GOTO_CANCELED));
+			synth_printf(" %s\n", msg_get(MSG_GOTO_CANCELED));
 		goto_buf[num = 0] = '\0';
 		special_handler = NULL;
 		return 1;

@@ -113,7 +113,7 @@ static void say_key(int key)
 	key &= 0xff;
 	for (i = 0; i < 6; i++) {
 		if (state & masks[i])
-			synth_printf("%s", msg_get(MSG_STATES_START + i));
+			synth_printf(" %s", msg_get(MSG_STATES_START + i));
 	}
 	synth_printf(" %s\n", msg_get(MSG_KEYNAMES_START + (--key)));
 }
@@ -194,7 +194,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	func = funcvals[cur_item];
 	synth_printf("%s", name);
 	if (key_offsets[func] == 0) {
-		synth_printf("%s\n", msg_get(MSG_IS_UNASSIGNED));
+		synth_printf(" %s\n", msg_get(MSG_IS_UNASSIGNED));
 		return 1;
 	}
 	p_keys = key_data + key_offsets[func];
