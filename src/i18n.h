@@ -17,7 +17,10 @@ enum msg_index_t {
 	MSG_PASTE,
 	MSG_BRIGHT,
 	MSG_ON_BLINKING,
-	MSG_ON,
+	MSG_STATUS_START,
+	MSG_ON = MSG_STATUS_START,
+	MSG_OFF,
+	MSG_STATUS_QUIET,
 	MSG_NO_WINDOW,
 	MSG_CURSOR_MSGS_START,
 	MSG_CURSORING_OFF = MSG_CURSOR_MSGS_START,
@@ -43,6 +46,10 @@ enum msg_index_t {
 	MSG_EDGE_LEFT,
 	MSG_EDGE_RIGHT,
 	MSG_EDGE_QUIET,
+	MSG_NUMBER,
+	MSG_SPACE,
+	MSG_START, /* A little confusing, given our convention. */
+	MSG_END, /* A little confusing, given our convention. */
 
 /* Colors. */
 	MSG_COLORS_START,

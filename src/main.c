@@ -482,7 +482,7 @@ static void say_phonetic_char(struct vc_data *vc)
 		synth_printf("%s\n", phonetic[--ch]);
 	} else {
 		if (IS_CHAR(ch, B_NUM))
-			synth_printf("%s", "number ");
+			synth_printf("%s ", msg_get(MSG_NUMBER));
 		speak_char(ch);
 	}
 }
@@ -530,7 +530,7 @@ static u_long get_word(struct vc_data *vc)
 /* decided to take out the sayword if on a space (mis-information */
 	if (say_word_ctl && ch == SPACE) {
 		*buf = '\0';
-		synth_printf("%s\n", "space");
+		synth_printf("%s\n", msg_get(MSG_SPACE));
 		return 0;
 	} else if ((tmpx < vc->vc_cols - 2)
 		   && (ch == SPACE || IS_WDLM(ch))
@@ -1243,7 +1243,8 @@ static int edit_bits(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		return -1;
 	spk_chartab[ch] ^= mask;
 	speak_char(ch);
-	synth_printf("%s\n", (spk_chartab[ch]&mask) ? " on" : " off");
+	synth_printf(" %s\n",
+		(spk_chartab[ch]&mask) ? msg_get(MSG_ON) : msg_get(MSG_OFF));
 	return 1;
 }
 
@@ -1702,7 +1703,6 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 	unsigned long flags;
 	int on_off = 2;
 	char *label;
-	static const char *lock_status[] = { " off", " on", "" };
 	if (synth == NULL || up_flag || spk_killed)
 		return;
 	spk_lock(flags);
@@ -1711,15 +1711,15 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 		do_flush();
 	switch (value) {
 	case KVAL(K_CAPS):
-		label = "caps lock";
+		label = msg_get(MSG_KEYNAME_CAPSLOCK);
 		on_off = (vc_kbd_led(kbd_table + vc->vc_num, VC_CAPSLOCK));
 		break;
 	case KVAL(K_NUM):
-		label = "num lock";
+		label = msg_get(MSG_KEYNAME_NUMLOCK);
 		on_off = (vc_kbd_led(kbd_table + vc->vc_num, VC_NUMLOCK));
 		break;
 	case KVAL(K_HOLD):
-		label = "scroll lock";
+		label = msg_get(MSG_KEYNAME_SCROLLLOCK);
 		on_off = (vc_kbd_led(kbd_table + vc->vc_num, VC_SCROLLOCK));
 		if (speakup_console[vc->vc_num])
 			speakup_console[vc->vc_num]->tty_stopped = on_off;
@@ -1729,7 +1729,7 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 		spk_unlock(flags);
 		return;
 	}
-	synth_printf("%s %s\n", label, lock_status[on_off]);
+	synth_printf("%s %s\n", label, msg_get(MSG_STATUS_START + on_off));
 	spk_unlock(flags);
 }
 
@@ -1793,7 +1793,7 @@ speakup_win_set(struct vc_data *vc)
 			win_right = spk_x;
 		}
 		snprintf(info, sizeof(info), "%s at line %d, column %d",
-			(win_start) ? "end" : "start",
+			(win_start) ? msg_get(MSG_END) : msg_get(MSG_START),
 			(int)spk_y+1, (int)spk_x+1);
 	}
 	synth_printf("%s\n", info);

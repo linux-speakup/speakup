@@ -21,6 +21,8 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_BRIGHT] = "bright ",
 	[MSG_ON_BLINKING] = "on blinking",
 	[MSG_ON] = "on",
+	[MSG_OFF] = "off",
+	[MSG_STATUS_QUIET] = "",
 	[MSG_NO_WINDOW] = "no window",
 	[MSG_CURSORING_OFF] = "cursoring off",
 	[MSG_CURSORING_ON] = "cursoring on",
@@ -44,6 +46,10 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_EDGE_LEFT] = "left, ",
 	[MSG_EDGE_RIGHT] = "right, ",
 	[MSG_EDGE_QUIET] = "",
+	[MSG_NUMBER] = "number",
+	[MSG_SPACE] = "space",
+	[MSG_START] = "start",
+	[MSG_END] = "end",
 
 	/* Color names. */
 	[MSG_COLOR_BLACK] = "black",
