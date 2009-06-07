@@ -204,7 +204,7 @@ void synth_write(const char *buf, size_t count)
 void synth_printf(const char *fmt, ...)
 {
 	va_list args;
-	unsigned char buf[80], *p;
+	unsigned char buf[160], *p;
 	int r;
 
 	va_start(args, fmt);
