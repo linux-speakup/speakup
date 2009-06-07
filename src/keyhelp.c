@@ -152,7 +152,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		if (ch < 'a' || ch > 'z')
 			return -1;
 		if (letter_offsets[ch-'a'] == -1) {
-			synth_printf("no commands for %c\n", ch);
+			synth_printf(msg_get(MSG_NO_COMMAND), ch);
 			return 1;
 		}
 	cur_item = letter_offsets[ch-'a'];
@@ -187,7 +187,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		}
 		key += (state_tbl[i] << 8);
 		say_key(key);
-		synth_printf("is %s\n", name);
+		synth_printf(msg_get(MSG_KEYDESC), name);
 		return 1;
 	}
 	name = msg_get(MSG_FUNCNAMES_START + cur_item);
@@ -201,7 +201,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
 		if (n > 0)
-			synth_printf("%s", "or ");
+			synth_printf("%s ", msg_get(MSG_DISJUNCTION));
 		say_key(val);
 	}
 	return 1;

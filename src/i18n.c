@@ -50,6 +50,31 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_SPACE] = "space",
 	[MSG_START] = "start",
 	[MSG_END] = "end",
+	[MSG_CTRL] = "control-",
+	[MSG_DISJUNCTION] = "or",
+
+/* Messages with embedded format specifiers. */
+	[MSG_POS_INFO] = "line %ld, col %ld, t t y %d\n",
+	[MSG_CHAR_INFO] = "hex %02x, decimal %d",
+	[MSG_REPEAT_DESC] = " times %d . ",
+	[MSG_REPEAT_DESC2] = " repeated %d . ",
+	[MSG_WINDOW_LINE] = "window is line %d",
+	[MSG_WINDOW_BOUNDARY] = "%s at line %d, column %d",
+	[MSG_EDIT_PROMPT] = "edit  %s, press space when done",
+	[MSG_NO_COMMAND] = "no commands for %c\n",
+	[MSG_KEYDESC] = "is %s\n",
+
+	/* Control keys. */
+	/* Most of these duplicate the entries in state names. */
+	[MSG_CTL_SHIFT] = "shift",
+	[MSG_CTL_ALTGR] = "altgr",
+	[MSG_CTL_CONTROL] = "control",
+	[MSG_CTL_ALT] = "ault",
+	[MSG_CTL_LSHIFT] = "l shift",
+	[MSG_CTL_SPEAKUP] = "speakup",
+	[MSG_CTL_LCONTROL] = "l control",
+	[MSG_CTL_RCONTROL] = "r control",
+	[MSG_CTL_CAPSSHIFT] = "caps shift",
 
 	/* Color names. */
 	[MSG_COLOR_BLACK] = "black",

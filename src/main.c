@@ -122,7 +122,6 @@ extern k_handler_fn k_handler[16];
 
 static void spkup_write(const char *in_buf, int count);
 
-static const char str_ctl[] = "control-";
 
 static char *phonetic[] = {
 	"alfa", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
@@ -429,7 +428,7 @@ static void speak_char(u_char ch)
 		synth_printf("%s", str_caps_stop);
 	} else {
 		if (*cp == '^') {
-			synth_printf("%s", str_ctl);
+			synth_printf("%s", msg_get(MSG_CTRL));
 			cp++;
 		}
 		synth_printf("%s", cp);
@@ -692,7 +691,7 @@ static void spell_word(struct vc_data *vc)
 		} else {
 			cp1 = characters[ch];
 			if (*cp1 == '^') {
-				synth_printf("%s", str_ctl);
+				synth_printf("%s", msg_get(MSG_CTRL));
 				cp1++;
 			}
 		}
@@ -981,7 +980,7 @@ static void say_last_char(struct vc_data *vc)
 
 static void say_position(struct vc_data *vc)
 {
-	synth_printf("line %ld, col %ld, t t y %d\n", spk_y + 1, spk_x + 1,
+	synth_printf(msg_get(MSG_POS_INFO), spk_y + 1, spk_x + 1,
 		vc->vc_num + 1);
 }
 
@@ -990,7 +989,7 @@ static void say_char_num(struct vc_data *vc)
 {
 	u_short ch = get_char(vc, (u_short *) spk_pos);
 	ch &= 0xff;
-	synth_printf("hex %02x, decimal %d", ch, ch);
+	synth_printf(msg_get(MSG_CHAR_INFO), ch, ch);
 }
 
 /* these are stub functions to keep keyboard.c happy. */
@@ -1038,7 +1037,7 @@ static void spkup_write(const char *in_buf, int count)
 				continue;
 		} else {
 			if ((last_type&CH_RPT) && rep_count > 2)
-				synth_printf(" times %d . ", ++rep_count);
+				synth_printf(msg_get(MSG_REPEAT_DESC), ++rep_count);
 			rep_count = 0;
 		}
 		if (ch == spk_lastkey) {
@@ -1076,16 +1075,12 @@ static void spkup_write(const char *in_buf, int count)
 	spk_lastkey = 0;
 	if (in_count > 2 && rep_count > 2) {
 		if (last_type&CH_RPT)
-			synth_printf(" repeated %d . ", ++rep_count);
+			synth_printf(msg_get(MSG_REPEAT_DESC2), ++rep_count);
 		rep_count = 0;
 	}
 }
 
-static char *ctl_key_ids[] = {
-	"shift", "altgr", "control", "ault", "l shift", "speakup",
-"l control", "r control", "caps shift"
-};
-#define NUM_CTL_LABELS 9
+static const int NUM_CTL_LABELS = (MSG_CTL_END - MSG_CTL_START + 1);
 
 static void read_all_doc(struct vc_data *vc);
 static void cursor_done(u_long data);
@@ -1117,7 +1112,7 @@ static void do_handle_shift(struct vc_data *vc, u_char value, char up_flag)
 		do_flush();
 	}
 	if (say_ctrl && value < NUM_CTL_LABELS)
-		synth_printf("%s", ctl_key_ids[value]);
+		synth_printf("%s", msg_get(MSG_CTL_START + value));
 	spk_unlock(flags);
 }
 
@@ -1782,7 +1777,7 @@ speakup_win_set(struct vc_data *vc)
 		win_left = 0;
 		win_right = vc->vc_cols-1;
 		win_bottom = spk_y;
-		snprintf(info, sizeof(info), "window is line %d",
+		snprintf(info, sizeof(info), msg_get(MSG_WINDOW_LINE),
 				(int)win_top+1);
 	} else {
 		if (!win_start) {
@@ -1792,7 +1787,7 @@ speakup_win_set(struct vc_data *vc)
 			win_bottom = spk_y;
 			win_right = spk_x;
 		}
-		snprintf(info, sizeof(info), "%s at line %d, column %d",
+		snprintf(info, sizeof(info), msg_get(MSG_WINDOW_BOUNDARY),
 			(win_start) ? msg_get(MSG_END) : msg_get(MSG_START),
 			(int)spk_y+1, (int)spk_x+1);
 	}
@@ -1832,7 +1827,7 @@ speakup_bits(struct vc_data *vc)
 		return;
 	}
 	pb_edit = &punc_info[val];
-	synth_printf("edit  %s, press space when done", pb_edit->name);
+	synth_printf(msg_get(MSG_EDIT_PROMPT), pb_edit->name);
 	special_handler = edit_bits;
 }
 

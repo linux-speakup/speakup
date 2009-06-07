@@ -50,6 +50,34 @@ enum msg_index_t {
 	MSG_SPACE,
 	MSG_START, /* A little confusing, given our convention. */
 	MSG_END, /* A little confusing, given our convention. */
+	MSG_CTRL,
+
+/* A message containing the single word "or". */
+	MSG_DISJUNCTION,
+
+/* Messages with format specifiers. */
+	MSG_POS_INFO,
+	MSG_CHAR_INFO,
+	MSG_REPEAT_DESC,
+	MSG_REPEAT_DESC2,
+	MSG_WINDOW_LINE,
+	MSG_WINDOW_BOUNDARY,
+	MSG_EDIT_PROMPT,
+	MSG_NO_COMMAND,
+	MSG_KEYDESC,
+
+	/* Control keys. */
+	MSG_CTL_START,
+	MSG_CTL_SHIFT = MSG_CTL_START,
+	MSG_CTL_ALTGR,
+	MSG_CTL_CONTROL,
+	MSG_CTL_ALT,
+	MSG_CTL_LSHIFT,
+	MSG_CTL_SPEAKUP,
+	MSG_CTL_LCONTROL,
+	MSG_CTL_RCONTROL,
+	MSG_CTL_CAPSSHIFT,
+	MSG_CTL_END = MSG_CTL_CAPSSHIFT,
 
 /* Colors. */
 	MSG_COLORS_START,
