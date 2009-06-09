@@ -65,8 +65,7 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION(SPEAKUP_VERSION);
 
 char *synth_name;
-module_param_named(synth, synth_name, charp, 0);
-
+module_param_named(synth, synth_name, charp, S_IRUGO);
 module_param_named(quiet, quiet_boot, bool, S_IRUGO);
 
 MODULE_PARM_DESC(synth, "Synth to start if speakup is built in.");
@@ -2239,6 +2238,7 @@ static void __exit speakup_exit(void)
 	}
 	for (i = 0; speakup_console[i]; i++)
 		kfree(speakup_console[i]);
+	speakup_kobj_exit();
 }
 
 /* call by: module_init() */
@@ -2252,6 +2252,10 @@ static int __init speakup_init(void)
 	first_console = kzalloc(sizeof(*first_console), GFP_KERNEL);
 	if (!first_console)
 		return -ENOMEM;
+	if (speakup_kobj_init() < 0) {
+		speakup_kobj_exit();
+		return -ENOMEM;
+	}
 
 	reset_default_chars();
 	reset_default_chartab();

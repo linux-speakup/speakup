@@ -15,13 +15,6 @@ static int set_chartab(const char *val, struct kernel_param *kp);
 static int get_chartab(char *buffer, struct kernel_param *kp);
 static int set_keymap(const char *val, struct kernel_param *kp);
 static int get_keymap(char *buffer, struct kernel_param *kp);
-static int set_silent(const char *val, struct kernel_param *kp);
-static int set_synth(const char *val, struct kernel_param *kp);
-static int get_synth(char *buffer, struct kernel_param *kp);
-static int send_synth_direct(const char *buffer, struct kernel_param *kp);
-static int get_version(char *buffer, struct kernel_param *kp);
-static int set_punc(const char *val, struct kernel_param *kp);
-static int get_punc(char *buffer, struct kernel_param *kp);
 static int set_vars(const char *val, struct kernel_param *kp);
 static int get_vars(char *buffer, struct kernel_param *kp);
 
@@ -31,44 +24,20 @@ static int get_vars(char *buffer, struct kernel_param *kp);
 module_param_call(characters, set_characters, get_characters, NULL, 0664);
 module_param_call(chartab, set_chartab, get_chartab, NULL, 0664);
 module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
-module_param_call(silent, set_silent, NULL, NULL, 0220);
-module_param_call(synth, set_synth, get_synth, NULL, 0664);
-module_param_call(synth_direct, send_synth_direct, NULL, NULL, 0220);
-module_param_call(version, NULL, get_version, NULL, 0444);
 
-module_param_call(delimiters, set_punc, get_punc, NULL, 0664);
-module_param_call(ex_num, set_punc, get_punc, NULL, 0664);
-module_param_call(punc_all, set_punc, get_punc, NULL, 0664);
-module_param_call(punc_most, set_punc, get_punc, NULL, 0664);
-module_param_call(punc_some, set_punc, get_punc, NULL, 0664);
-module_param_call(repeats, set_punc, get_punc, NULL, 0664);
-
-module_param_call(attrib_bleep, set_vars, get_vars, NULL, 0664);
-module_param_call(bell_pos, set_vars, get_vars, NULL, 0664);
-module_param_call(bleeps, set_vars, get_vars, NULL, 0664);
-module_param_call(bleep_time, set_vars, get_vars, NULL, 0664);
 module_param_call(caps_start, set_vars, get_vars, NULL, 0664);
 module_param_call(caps_stop, set_vars, get_vars, NULL, 0664);
-module_param_call(cursor_time, set_vars, get_vars, NULL, 0664);
 module_param_call(delay_time, set_vars, get_vars, NULL, 0644);
-module_param_call(full_time, set_vars, get_vars, NULL, 0644);
-module_param_call(jiffy_delta, set_vars, get_vars, NULL, 0644);
-module_param_call(key_echo, set_vars, get_vars, NULL, 0664);
-module_param_call(no_interrupt, set_vars, get_vars, NULL, 0664);
-module_param_call(punc_level, set_vars, get_vars, NULL, 0664);
-module_param_call(reading_punc, set_vars, get_vars, NULL, 0664);
-module_param_call(say_control, set_vars, get_vars, NULL, 0664);
-module_param_call(say_word_ctl, set_vars, get_vars, NULL, 0664);
-module_param_call(spell_delay, set_vars, get_vars, NULL, 0664);
-module_param_call(trigger_time, set_vars, get_vars, NULL, 0644);
-
 module_param_call(direct, set_vars, get_vars, NULL, 0664);
+module_param_call(full_time, set_vars, get_vars, NULL, 0644);
 module_param_call(freq, set_vars, get_vars, NULL, 0664);
+module_param_call(jiffy_delta, set_vars, get_vars, NULL, 0644);
 module_param_call(lang, set_vars, get_vars, NULL, 0664);
 module_param_call(pitch, set_vars, get_vars, NULL, 0664);
 module_param_call(punct, set_vars, get_vars, NULL, 0664);
 module_param_call(rate, set_vars, get_vars, NULL, 0664);
 module_param_call(tone, set_vars, get_vars, NULL, 0664);
+module_param_call(trigger_time, set_vars, get_vars, NULL, 0644);
 module_param_call(voice, set_vars, get_vars, NULL, 0664);
 module_param_call(vol, set_vars, get_vars, NULL, 0664);
 
@@ -520,216 +489,6 @@ static int get_keymap(char *buffer, struct kernel_param *kp)
 	}
 	cp += sprintf(cp, "0, %d", KEY_MAP_VER);
 	return (int)(cp-buffer);
-}
-
-/*
- * This is the set handler for silent.
- * There is not a get handler because reading this parameter is not useful.
- */
-static int set_silent(const char *val, struct kernel_param *kp)
-{
-	int count;
-	struct vc_data *vc = vc_cons[fg_console].d;
-	char ch = 0, shut;
-	unsigned long flags;
-
-	count = strlen(val);
-	if (count > 0 || count < 3) {
-		ch = val[0];
-		if (ch == '\n')
-			ch = '0';
-	}
-	if (ch < '0' || ch > '7') {
-		pr_warn("silent value '%c' not in range (0,7)\n", ch);
-		return -EINVAL;
-	}
-	spk_lock(flags);
-	if (ch&2) {
-		shut = 1;
-		do_flush();
-	} else
-		shut = 0;
-	if (ch&4)
-		shut |= 0x40;
-	if (ch&1)
-		spk_shut_up |= shut;
-	else
-		spk_shut_up &= ~shut;
-	spk_unlock(flags);
-	return 0;
-}
-
-/*
- * This is the function which switches synthesizers when the requested
- * synthesizer driver is either built in or loaded.
- */
-static int set_synth(const char *val, struct kernel_param *kp)
-{
-	int count;
-	char new_synth_name[10];
-
-	if (!val)
-		return -EINVAL;
-
-	count = strlen(val);
-	if (count < 2 || count > 9)
-		return -EINVAL;
-	strncpy(new_synth_name, val, count);
-	if (new_synth_name[count - 1] == '\n')
-		count--;
-	new_synth_name[count] = '\0';
-	strlwr(new_synth_name);
-	if ((synth != NULL) && (!strcmp(new_synth_name, synth->name))) {
-		pr_warn("%s already in use\n", new_synth_name);
-	} else if (synth_init(new_synth_name) != 0) {
-		pr_warn("failed to init synth %s\n", new_synth_name);
-		return -ENODEV;
-	}
-	return 0;
-}
-
-/*
- * This function shows which synthesizer is active when the user reads the
- * synth_name parameter.
- */
-static int get_synth(char *buffer, struct kernel_param *kp)
-{
-	int rv;
-
-	if (synth == NULL)
-		rv = sprintf(buffer, "none");
-	else
-		rv = sprintf(buffer, synth->name);
-	return rv;
-}
-
-/*
- * This is the set handler for synth_direct.
- * There is not a get handler because reading this parameter is not useful.
- */
-static int send_synth_direct(const char *val, struct kernel_param *kp)
-{
-	u_char buf[256];
-	int count;
-	int bytes;
-	const char *ptr = val;
-
-	if (!val)
-		return -EINVAL;
-
-	if (synth == NULL)
-		return -EPERM;
-
-	count = strlen(val);
-	while (count > 0) {
-		bytes = min_t(size_t, count, 250);
-		strncpy(buf, ptr, bytes);
-		buf[bytes] = '\0';
-		xlate(buf);
-		synth_printf("%s", buf);
-		ptr += bytes;
-		count -= bytes;
-	}
-	return 0;
-}
-
-/*
- * This function is called when a user reads the version pseudo file.
- */
-static int get_version(char *buffer, struct kernel_param *kp)
-{
-	char *cp;
-
-	cp = buffer;
-	cp += sprintf(cp, "Speakup version %s", SPEAKUP_VERSION);
-	if (synth != NULL)
-		cp += sprintf(cp, "\n%s synthesizer driver version %s",
-		synth->name, synth->version);
-	return cp - buffer;
-}
-
-/*
- * This is the set handler for the punctuation settings.
- */
-static int set_punc(const char *val, struct kernel_param *kp)
-{
-	int ret;
-	int count;
-	struct st_var_header *p_header;
-	struct punc_var_t *var;
-	char punc_buf[100];
-	unsigned long flags;
-
-	ret = 0;
-	count = strlen(val);
-	if (count < 1 || count > 99)
-		return -EINVAL;
-
-	p_header = var_header_by_name(strip_prefix(kp->name));
-	if (p_header == NULL) {
-		pr_warn("p_header is null, kp-> name is %s\n", kp->name);
-		return -EINVAL;
-	}
-
-	var = get_punc_var(p_header->var_id);
-	if (var == NULL) {
-		pr_warn("var is null, p_header->var_id is %i\n",
-				p_header->var_id);
-		return -EINVAL;
-	}
-
-	strncpy(punc_buf, val, count);
-
-	while (count && punc_buf[count - 1] == '\n')
-		count--;
-	punc_buf[count] = '\0';
-
-	spk_lock(flags);
-
-	if (*punc_buf == 'd' || *punc_buf == 'r')
-		count = set_mask_bits(0, var->value, 3);
-	else
-		count = set_mask_bits(punc_buf, var->value, 3);
-
-	spk_unlock(flags);
-	if (count < 0)
-		ret = count;
-	return ret;
-}
-
-/*
- * This is the get handler for the punctuation settings.
- */
-static int get_punc(char *buffer, struct kernel_param *kp)
-{
-	int i;
-	char *cp = buffer;
-	struct st_var_header *p_header;
-	struct punc_var_t *var;
-	struct st_bits_data *pb;
-	short mask;
-
-	p_header = var_header_by_name(strip_prefix(kp->name));
-	if (p_header == NULL) {
-		pr_warn("p_header is null, kp-> name is %s\n", kp->name);
-		return -EINVAL;
-	}
-
-	var = get_punc_var(p_header->var_id);
-	if (var == NULL) {
-		pr_warn("var is null, p_header->var_id is %i\n",
-				p_header->var_id);
-		return -EINVAL;
-	}
-
-	pb = (struct st_bits_data *) &punc_info[var->value];
-	mask = pb->mask;
-	for (i = 33; i < 128; i++) {
-		if (!(spk_chartab[i]&mask))
-			continue;
-		*cp++ = (char)i;
-	}
-	return cp-buffer;
 }
 
 /*

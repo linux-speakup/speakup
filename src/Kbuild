@@ -20,6 +20,7 @@ speakup-objs := \
 	devsynth.o \
 	main.o \
 	keyhelp.o \
+	kobjects.o \
 	paramhelpers.o \
 	selection.o \
 	serialio.o \
