@@ -30,8 +30,7 @@ static ssize_t chars_show(struct kobject *kobj, struct kobj_attribute *attr,
 
 	for (i = 0; i < 256; i++) {
 		cp = (characters[i]) ? characters[i] : "NULL";
-//		len += sprintf(buf + len, "%d\t%s\n", i, cp);
-		len += sprintf(buf + len, "%s\n", cp);
+		len += sprintf(buf + len, "%d\t%s\n", i, cp);
 	}
 	return len;
 }
@@ -75,8 +74,7 @@ static ssize_t chartab_show(struct kobject *kobj, struct kobj_attribute *attr,
 			cp = "B_CAPSYM";
 		else if (IS_TYPE(i, B_SYM))
 			cp = "B_SYM";
-//		len += sprintf(buf + len, "%d\t%s\n", i, cp);
-		len += sprintf(buf + len, "%s\n", cp);
+		len += sprintf(buf + len, "%d\t%s\n", i, cp);
 	}
 	return len;
 }
