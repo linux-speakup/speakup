@@ -19,6 +19,113 @@
 #include "spk_priv.h"
 
 /*
+ * This is called when a user reads the characters parameter.
+ */
+static ssize_t chars_show(struct kobject *kobj, struct kobj_attribute *attr,
+	char *buf)
+{
+	int i;
+	int len = 0;
+	char *cp;
+
+	for (i = 0; i < 256; i++) {
+		cp = (characters[i]) ? characters[i] : "NULL";
+//		len += sprintf(buf + len, "%d\t%s\n", i, cp);
+		len += sprintf(buf + len, "%s\n", cp);
+	}
+	return len;
+}
+
+/*
+ * This is called when a user changes the characters parameter.
+ */
+static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
+	const char *buf, size_t count)
+{
+	return count;
+}
+
+/*
+ * This is called when a user reads the chartab parameter.
+ */
+static ssize_t chartab_show(struct kobject *kobj, struct kobj_attribute *attr,
+	char *buf)
+{
+	int i;
+	int len = 0;
+	char *cp;
+
+	for (i = 0; i < 256; i++) {
+		cp = "0";
+		if (IS_TYPE(i, B_CTL))
+			cp = "B_CTL";
+		else if (IS_TYPE(i, WDLM))
+			cp = "WDLM";
+		else if (IS_TYPE(i, A_PUNC))
+			cp = "A_PUNC";
+		else if (IS_TYPE(i, PUNC))
+			cp = "PUNC";
+		else if (IS_TYPE(i, NUM))
+			cp = "NUM";
+		else if (IS_TYPE(i, A_CAP))
+			cp = "A_CAP";
+		else if (IS_TYPE(i, ALPHA))
+			cp = "ALPHA";
+		else if (IS_TYPE(i, B_CAPSYM))
+			cp = "B_CAPSYM";
+		else if (IS_TYPE(i, B_SYM))
+			cp = "B_SYM";
+//		len += sprintf(buf + len, "%d\t%s\n", i, cp);
+		len += sprintf(buf + len, "%s\n", cp);
+	}
+	return len;
+}
+
+/*
+ * This is called when a user changes the chartab parameter.
+ */
+static ssize_t chartab_store(struct kobject *kobj, struct kobj_attribute *attr,
+	const char *buf, size_t count)
+{
+	return count;
+}
+
+/*
+ * This is called when a user reads the keymap parameter.
+ */
+static ssize_t keymap_show(struct kobject *kobj, struct kobj_attribute *attr,
+	char *buf)
+{
+	char *cp = buf;
+	int i, n, num_keys, nstates;
+	u_char *cp1 = key_buf + SHIFT_TBL_SIZE, ch;
+	num_keys = (int)(*cp1);
+	nstates = (int)cp1[1];
+	cp += sprintf(cp, "%d, %d, %d,\n", KEY_MAP_VER, num_keys, nstates);
+	cp1 += 2; /* now pointing at shift states */
+/* dump num_keys+1 as first row is shift states + flags,
+   each subsequent row is key + states */
+	for (n = 0; n <= num_keys; n++) {
+		for (i = 0; i <= nstates; i++) {
+			ch = *cp1++;
+			cp += sprintf(cp, "%d,", (int)ch);
+			*cp++ = (i < nstates) ? SPACE : '\n';
+		}
+	}
+	cp += sprintf(cp, "0, %d\n", KEY_MAP_VER);
+	return (int)(cp-buf);
+}
+
+/*
+ * This is called when a user changes the keymap parameter.
+ */
+static ssize_t keymap_store(struct kobject *kobj, struct kobj_attribute *attr,
+	const char *buf, size_t count)
+{
+	return count;
+}
+
+/*
  * This is called when a user changes the value of the silent parameter.
  */
 static ssize_t silent_store(struct kobject *kobj, struct kobj_attribute *attr,
@@ -344,12 +451,12 @@ static ssize_t var_store(struct kobject *kobj, struct kobj_attribute *attr,
 /*
  * Declare the attributes.
  */
-/*
-characters
-chartab
-keymap
-*/
-
+static struct kobj_attribute characters_attribute =
+	__ATTR(characters, USER_RW, chars_show, chars_store);
+static struct kobj_attribute chartab_attribute =
+	__ATTR(chartab, USER_RW, chartab_show, chartab_store);
+static struct kobj_attribute keymap_attribute =
+	__ATTR(keymap, USER_RW, keymap_show, keymap_store);
 static struct kobj_attribute silent_attribute =
 	__ATTR(silent, USER_W, NULL, silent_store);
 static struct kobj_attribute synth_attribute =
@@ -437,6 +544,9 @@ static struct kobj_attribute vol_attribute =
  * at once.
  */
 static struct attribute *main_attrs[] = {
+	&characters_attribute.attr,
+	&chartab_attribute.attr,
+	&keymap_attribute.attr,
 	&silent_attribute.attr,
 	&synth_attribute.attr,
 	&synth_direct_attribute.attr,
