@@ -328,8 +328,11 @@ int synth_init(char *synth_name)
 			synth = synths[i];
 
 	/* If we got one, initialize it now. */
-	if (synth)
+	if (synth) {
 		ret = do_synth_init(synth);
+		if (ret && synth->attributes.attrs)
+			ret = sysfs_create_group(speakup_kobj, &synth->attributes);
+	}
 	mutex_unlock(&spk_mutex);
 
 	return ret;
@@ -387,6 +390,8 @@ void synth_release(void)
 		speakup_unregister_var(var->var_id);
 	stop_serial_interrupt();
 	synth->release();
+	if (synth->attributes.attrs)
+		sysfs_remove_group(speakup_kobj, &synth->attributes);
 	synth = NULL;
 }
 

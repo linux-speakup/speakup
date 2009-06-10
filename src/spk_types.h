@@ -173,6 +173,7 @@ struct spk_synth {
 	unsigned char (*get_index)(void);
 	struct synth_indexing indexing;
 	int alive;
+	struct attribute_group attributes;
 };
 
 struct speakup_info_t {
