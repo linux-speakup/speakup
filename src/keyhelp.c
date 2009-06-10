@@ -28,51 +28,6 @@
 #define MAXKEYS 256
 static u_short key_offsets[MAXFUNCS], key_data[MAXKEYS];
 static u_short masks[] = { 32, 16, 8, 4, 2, 1 };
-static char help_info[] =
-"press space to leav help, cursor up or down to scroll, \
-or a letter to go to commands in list";
-static char *statenames[] = {
-	" double", " speakup", " alt",
-	" ctrl", " altgr", " shift"
-};
-static char *keynames[] = {
-	"escape", "1", "2", "3", "4",
-	"5", "6", "7", "8", "9",
-	"0", "minus", "equal", "back space", "tab",
-	"q", "w", "e", "r", "t",
-	"y", "u", "i", "o", "p",
-	"left brace", "right brace", "enter", "left control", "a",
-	"s", "d", "f", "g", "h",
-	"j", "k", "l", "semicolon", "apostrophe",
-	"accent", "left shift", "back slash", "z", "x",
-	"c", "v", "b", "n", "m",
-	"comma", "dot", "slash", "right shift", "keypad asterisk",
-	"left alt", "space", "caps lock", "f1", "f2",
-	"f3", "f4", "f5", "f6", "f7",
-	"f8", "f9", "f10", "num lock", "scroll lock",
-	"keypad 7", "keypad 8", "keypad 9", "keypad minus", "keypad 4",
-	"keypad 5", "keypad 6", "keypad plus", "keypad 1", "keypad 2",
-	"keypad 3", "keypad 0", "keypad dot", "103rd", "f13",
-	"102nd", "f11", "f12", "f14", "f15",
-	"f16", "f17", "f18", "f19", "f20",
-	"keypad enter", "right control", "keypad slash", "sysrq", "right alt",
-	"line feed", "home", "up", "page up", "left",
-	"right", "end", "down", "page down", "insert",
-	"delete", "macro", "mute", "volume down", "volume up",
-	"power", "keypad equal", "keypad plusminus", "pause", "f21",
-	"f22", "f23", "f24", "keypad comma", "left meta",
-	"right meta", "compose", "stop", "again", "props",
-	"undo", "front", "copy", "open", "paste",
-	"find", "cut", "help", "menu", "calc",
-	"setup", "sleep", "wakeup", "file", "send file",
-	"delete file", "transfer", "prog1", "prog2", "www",
-	"msdos", "coffee", "direction", "cycle windows", "mail",
-	"bookmarks", "computer", "back", "forward", "close cd",
-	"eject cd", "eject close cd", "next song", "play pause", "previous song",
-	"stop cd", "record", "rewind", "phone", "iso",
-	"config", "home page", "refresh", "exit", "move",
-	"edit", "scroll up", "scroll down", "keypad left paren", "keypad right paren",
-};
 
 static short letter_offsets[26] =
 { -1, -1, -1, -1, -1, -1, -1, -1,
@@ -98,43 +53,6 @@ static u_char funcvals[] = {
 	TONE_INC, VOICE_DEC, VOICE_INC, VOL_DEC,
 	VOL_INC, CLEAR_WIN, SAY_WIN, SET_WIN,
 	ENABLE_WIN, SAY_WORD, SAY_NEXT_WORD, SAY_PREV_WORD, 0
-};
-
-static char *funcnames[] = {
-	"attribute bleep decrement", "attribute bleep increment",
-	"bleeps decrement", "bleeps increment",
-	"character, first", "character, last",
-	"character, say current",
-	"character, say hex and decimal", "character, say next",
-	"character, say phonetic", "character, say previous",
-	"cursor park", "cut",
-	"edit delimiters", "edit exnum",
-	"edit most", "edit repeats", "edit some",
-	"go to", "go to bottom edge", "go to left edge",
-	"go to right edge", "go to top edge", "help",
-	"line, say current", "line, say next",
-	"line, say previous", "line, say with indent",
-	"paste", "pitch decrement", "pitch increment",
-	"punctuation decrement", "punctuation increment",
-	"punc level decrement", "punc level increment",
-	"quiet",
-	"rate decrement", "rate increment",
-	"reading punctuation decrement", "reading punctuation increment",
-	"say attributes",
-	"say from left", "say from top",
-	"say position", "say screen",
-	"say to bottom", "say to right",
-	"speakup", "speakup lock",
-	"speakup off", "speech kill",
-	"spell delay decrement", "spell delay increment",
-	"spell word", "spell word phoneticly",
-	"tone decrement", "tone increment",
-	"voice decrement", "voice increment",
-	"volume decrement", "volume increment",
-	"window, clear", "window, say",
-	"window, set", "window, silence",
-	"word, say current", "word, say next",
-	"word, say previous", 0
 };
 
 static u_char *state_tbl;
@@ -195,20 +113,22 @@ static void say_key(int key)
 	key &= 0xff;
 	for (i = 0; i < 6; i++) {
 		if (state & masks[i])
-			synth_printf("%s", statenames[i]);
+			synth_printf(" %s", msg_get(MSG_STATES_START + i));
 	}
-	synth_printf(" %s\n", keynames[--key]);
+	synth_printf(" %s\n", msg_get(MSG_KEYNAMES_START + (--key)));
 }
 
 static int help_init(void)
 {
 	char start = SPACE;
 	int i;
+	int num_funcs = MSG_FUNCNAMES_END - MSG_FUNCNAMES_START + 1;
 state_tbl = our_keys[0]+SHIFT_TBL_SIZE+2;
-	for (i = 0; funcnames[i]; i++) {
-		if (start == *funcnames[i])
+	for (i = 0; i < num_funcs; i++) {
+		char *cur_funcname = msg_get(MSG_FUNCNAMES_START + i);
+		if (start == *cur_funcname)
 			continue;
-		start = *funcnames[i];
+		start = *cur_funcname;
 		letter_offsets[(start&31)-1] = i;
 	}
 	return 0;
@@ -225,19 +145,19 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 	if (type == KT_LATIN) {
 		if (ch == SPACE) {
 			special_handler = NULL;
-			synth_printf("%s\n", "leaving help");
+			synth_printf("%s\n", msg_get(MSG_LEAVING_HELP));
 			return 1;
 		}
 		ch |= 32; /* lower case */
 		if (ch < 'a' || ch > 'z')
 			return -1;
 		if (letter_offsets[ch-'a'] == -1) {
-			synth_printf("no commands for %c\n", ch);
+			synth_printf(msg_get(MSG_NO_COMMAND), ch);
 			return 1;
 		}
 	cur_item = letter_offsets[ch-'a'];
 	} else if (type == KT_CUR) {
-		if (ch == 0 && funcnames[cur_item+1] != NULL)
+		if (ch == 0 && (cur_item + 1) <= MSG_FUNCNAMES_END)
 			cur_item++;
 		else if (ch == 3 && cur_item > 0)
 			cur_item--;
@@ -245,18 +165,18 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			return -1;
 	} else if (type == KT_SPKUP && ch == SPEAKUP_HELP && !special_handler) {
 		special_handler = handle_help;
-		synth_printf("%s\n", help_info);
+		synth_printf("%s\n", msg_get(MSG_HELP_INFO));
 		build_key_data(); /* rebuild each time in case new mapping */
 		return 1;
 	} else {
 		name = NULL;
 		if (type != KT_SPKUP) {
-			synth_printf("%s\n", keynames[key-1]);
+			synth_printf("%s\n", msg_get(MSG_KEYNAMES_START + key-1));
 			return 1;
 		}
 		for (i = 0; funcvals[i] != 0 && !name; i++) {
 			if (ch == funcvals[i])
-				name = funcnames[i];
+				name = msg_get(MSG_FUNCNAMES_START + i);
 		}
 		if (!name)
 			return -1;
@@ -267,21 +187,21 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		}
 		key += (state_tbl[i] << 8);
 		say_key(key);
-		synth_printf("is %s\n", name);
+		synth_printf(msg_get(MSG_KEYDESC), name);
 		return 1;
 	}
-	name = funcnames[cur_item];
+	name = msg_get(MSG_FUNCNAMES_START + cur_item);
 	func = funcvals[cur_item];
 	synth_printf("%s", name);
 	if (key_offsets[func] == 0) {
-		synth_printf("%s\n", " is unassigned");
+		synth_printf(" %s\n", msg_get(MSG_IS_UNASSIGNED));
 		return 1;
 	}
 	p_keys = key_data + key_offsets[func];
 	for (n = 0; p_keys[n]; n++) {
 		val = p_keys[n];
 		if (n > 0)
-			synth_printf("%s", "or ");
+			synth_printf("%s ", msg_get(MSG_DISJUNCTION));
 		say_key(val);
 	}
 	return 1;

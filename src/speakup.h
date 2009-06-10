@@ -3,6 +3,7 @@
 #include <linux/version.h>
 
 #include "spk_types.h"
+#include "i18n.h"
 
 #define SPEAKUP_VERSION "3.0.5"
 #define KEY_MAP_VER 119
