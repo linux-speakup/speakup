@@ -652,7 +652,7 @@ static struct attribute_group i18n_attr_group = {
 };
 
 static struct kobject *accessibility_kobj;
-static struct kobject *speakup_kobj;
+struct kobject *speakup_kobj;
 
 int speakup_kobj_init(void)
 {
