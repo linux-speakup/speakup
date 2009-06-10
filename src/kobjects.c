@@ -449,10 +449,6 @@ static ssize_t var_store(struct kobject *kobj, struct kobj_attribute *attr,
 /*
  * Declare the attributes.
  */
-static struct kobj_attribute characters_attribute =
-	__ATTR(characters, USER_RW, chars_show, chars_store);
-static struct kobj_attribute chartab_attribute =
-	__ATTR(chartab, USER_RW, chartab_show, chartab_store);
 static struct kobj_attribute keymap_attribute =
 	__ATTR(keymap, USER_RW, keymap_show, keymap_store);
 static struct kobj_attribute silent_attribute =
@@ -502,6 +498,14 @@ static struct kobj_attribute say_word_ctl_attribute =
 static struct kobj_attribute spell_delay_attribute =
 	__ATTR(spell_delay, USER_RW, var_show, var_store);
 
+/*
+ * These attributes are i18n related.
+ */
+static struct kobj_attribute characters_attribute =
+	__ATTR(characters, USER_RW, chars_show, chars_store);
+static struct kobj_attribute chartab_attribute =
+	__ATTR(chartab, USER_RW, chartab_show, chartab_store);
+
 	/*
 	 * The attributes below here are synthesizer specific and
 	 * should not be present if the synthesizer does not support them.
@@ -538,12 +542,10 @@ static struct kobj_attribute vol_attribute =
 	__ATTR(vol, USER_RW, var_show, var_store);
 
 /*
- * Create a group of attributes so that we can create and destroy them all
+ * Create groups of attributes so that we can create and destroy them all
  * at once.
  */
 static struct attribute *main_attrs[] = {
-	&characters_attribute.attr,
-	&chartab_attribute.attr,
 	&keymap_attribute.attr,
 	&silent_attribute.attr,
 	&synth_attribute.attr,
@@ -570,6 +572,12 @@ static struct attribute *main_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
+static struct attribute *i18n_attrs[] = {
+	&characters_attribute.attr,
+	&chartab_attribute.attr,
+	NULL,
+};
+
 /*
  * An unnamed attribute group will put all of the attributes directly in
  * the kobject directory.  If we specify a name, a subdirectory will be
@@ -578,6 +586,11 @@ static struct attribute *main_attrs[] = {
  */
 static struct attribute_group main_attr_group = {
 	.attrs = main_attrs,
+};
+
+static struct attribute_group i18n_attr_group = {
+	.attrs = i18n_attrs,
+	.name = "i18n",
 };
 
 static struct kobject *accessibility_kobj;
@@ -608,6 +621,10 @@ int speakup_kobj_init(void)
 
 	/* Create the files associated with this kobject */
 	retval = sysfs_create_group(speakup_kobj, &main_attr_group);
+	if (retval)
+		speakup_kobj_exit();
+
+	retval = sysfs_create_group(speakup_kobj, &i18n_attr_group);
 	if (retval)
 		speakup_kobj_exit();
 
