@@ -457,7 +457,11 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	char *buf_pointer = buf;
 	enum msg_index_t cursor;
 	int index = 0;
+	*buf_pointer = '\0'; /* buf_pointer always looking at a NUL byte. */
+
 	for (cursor = first; cursor <= last; cursor++, index++) {
+		if(bufsize <= 1) /* full buffer. */
+			break;
 		int printed = scnprintf(buf_pointer, bufsize, "%d %s\n",
 			index, msg_get(cursor));
 		buf_pointer += printed; /* point to NUL following text. */
