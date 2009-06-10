@@ -580,6 +580,8 @@ static struct kobj_attribute colors_message_attribute =
 	__ATTR(colors_message, USER_RW, colors_message_show, NULL);
 static struct kobj_attribute fancy_message_attribute =
 	__ATTR(fancy_message, USER_RW, fancy_message_show, NULL);
+static struct kobj_attribute funcnames_message_attribute =
+	__ATTR(funcnames_message, USER_RW, funcnames_message_show, NULL);
 static struct kobj_attribute keynames_message_attribute =
 	__ATTR(keynames_message, USER_RW, keynames_message_show, NULL);
 static struct kobj_attribute misc_message_attribute =
@@ -659,6 +661,7 @@ static struct attribute *i18n_attrs[] = {
 	&ctl_keys_message_attribute.attr,
 	&colors_message_attribute.attr,
 	&fancy_message_attribute.attr,
+	&funcnames_message_attribute.attr,
 	&keynames_message_attribute.attr,
 	&misc_message_attribute.attr,
 	&states_message_attribute.attr,
