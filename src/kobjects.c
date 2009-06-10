@@ -474,47 +474,77 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	return buf_pointer - buf;
 }
 
-static ssize_t misc_message_show(struct kobject *kobj, struct kobj_attribute *attr,
-	char *buf)
+static ssize_t message_store_helper(const char *buf, size_t count,
+	enum msg_index_t first, enum msg_index_t last)
 {
-	return message_show_helper(buf, MSG_MISC_START, MSG_MISC_END);
-}
+	return count; /* Allow the write, and do nothing. */
+} /* message_store_helper */
 
-static ssize_t fancy_message_show(struct kobject *kobj, struct kobj_attribute *attr,
-	char *buf)
+struct msg_set {
+	char *name;
+	enum msg_index_t start;
+	enum msg_index_t end;
+};
+
+static struct msg_set all_sets [] = {
+	{"ctl_keys_message", MSG_CTL_START, MSG_CTL_END},
+	{"colors_message", MSG_COLORS_START, MSG_COLORS_END},
+	{"fancy_message", MSG_FANCY_START, MSG_FANCY_END},
+	{"funcnames_message", MSG_FUNCNAMES_START, MSG_FUNCNAMES_END},
+	{"keynames_message", MSG_KEYNAMES_START, MSG_KEYNAMES_END},
+	{"misc_message", MSG_MISC_START, MSG_MISC_END},
+	{"states_message", MSG_STATES_START, MSG_STATES_END},
+};
+
+static const  int num_sets = sizeof(all_sets) / sizeof(struct msg_set);
+
+/*
+ * Find a message set, given its name.  Return a pointer to the structure
+ * if found, or NULL otherwise.
+*/
+
+static struct msg_set *find_message_set(const char *set_name)
 {
-	return message_show_helper(buf, MSG_FANCY_START, MSG_FANCY_END);
-}
+	struct msg_set *set = NULL;
+	int i;
+	for (i = 0; i < num_sets; i++) {
+		if (!strcmp(all_sets[i].name, set_name)) {
+			set = &all_sets[i];
+			break;
+		}
+	}
 
-static ssize_t ctl_keys_message_show(struct kobject *kobj,
+	return set;
+} /* find_msg_set */
+
+static ssize_t message_show(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
 {
-	return message_show_helper(buf, MSG_CTL_START, MSG_CTL_END);
-}
+	ssize_t retval = 0;
+	struct msg_set *set = find_message_set(attr->attr.name);
 
-static ssize_t colors_message_show(struct kobject *kobj,
-	struct kobj_attribute *attr, char *buf)
-{
-	return message_show_helper(buf, MSG_COLORS_START, MSG_COLORS_END);
-}
+	if(set != NULL)
+		retval = message_show_helper(buf, set->start, set->end);
+	else
+		retval = -ENOENT;
 
-static ssize_t states_message_show(struct kobject *kobj,
-	struct kobj_attribute *attr, char *buf)
-{
-	return message_show_helper(buf, MSG_STATES_START, MSG_STATES_END);
-}
+	/* User sees "no such file or directory" if the set name is not known. */
+	return retval;
+} /* message_show */
 
-static ssize_t keynames_message_show(struct kobject *kobj,
-	struct kobj_attribute *attr, char *buf)
+static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
+	const char *buf, size_t count)
 {
-	return message_show_helper(buf, MSG_KEYNAMES_START, MSG_KEYNAMES_END);
-}
+	ssize_t retval = 0;
+	struct msg_set *set = find_message_set(attr->attr.name);
 
-static ssize_t funcnames_message_show(struct kobject *kobj,
-	struct kobj_attribute *attr, char *buf)
-{
-	return message_show_helper(buf, MSG_FUNCNAMES_START, MSG_FUNCNAMES_END);
-}
+	if (set != NULL)
+		retval = message_store_helper(buf, count, set->start, set->end);
+	else
+		retval = -ENOENT;
+
+	return retval;
+} /* message_store */
 
 /* End i18n-message functions. */
 
@@ -578,19 +608,19 @@ static struct kobj_attribute characters_attribute =
 static struct kobj_attribute chartab_attribute =
 	__ATTR(chartab, USER_RW, chartab_show, chartab_store);
 static struct kobj_attribute ctl_keys_message_attribute =
-	__ATTR(ctl_keys_message, USER_RW, ctl_keys_message_show, NULL);
+	__ATTR(ctl_keys_message, USER_RW, message_show, message_store);
 static struct kobj_attribute colors_message_attribute =
-	__ATTR(colors_message, USER_RW, colors_message_show, NULL);
+	__ATTR(colors_message, USER_RW, message_show, message_store);
 static struct kobj_attribute fancy_message_attribute =
-	__ATTR(fancy_message, USER_RW, fancy_message_show, NULL);
+	__ATTR(fancy_message, USER_RW, message_show, message_store);
 static struct kobj_attribute funcnames_message_attribute =
-	__ATTR(funcnames_message, USER_RW, funcnames_message_show, NULL);
+	__ATTR(funcnames_message, USER_RW, message_show, message_store);
 static struct kobj_attribute keynames_message_attribute =
-	__ATTR(keynames_message, USER_RW, keynames_message_show, NULL);
+	__ATTR(keynames_message, USER_RW, message_show, message_store);
 static struct kobj_attribute misc_message_attribute =
-	__ATTR(misc_message, USER_RW, misc_message_show, NULL);
+	__ATTR(misc_message, USER_RW, message_show, message_store);
 static struct kobj_attribute states_message_attribute =
-	__ATTR(states_message, USER_RW, states_message_show, NULL);
+	__ATTR(states_message, USER_RW, message_show, message_store);
 
 /*
  * Create groups of attributes so that we can create and destroy them all
