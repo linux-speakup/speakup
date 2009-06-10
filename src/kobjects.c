@@ -329,7 +329,7 @@ static ssize_t punc_store(struct kobject *kobj, struct kobj_attribute *attr,
 /*
  * This function is called when a user reads one of the variable parameters.
  */
-static ssize_t var_show(struct kobject *kobj, struct kobj_attribute *attr,
+ssize_t spk_var_show(struct kobject *kobj, struct kobj_attribute *attr,
 	char *buf)
 {
 	int rv = 0;
@@ -377,12 +377,13 @@ static ssize_t var_show(struct kobject *kobj, struct kobj_attribute *attr,
 	}
 	return rv;
 }
+EXPORT_SYMBOL_GPL(spk_var_show);
 
 /*
  * This function is called when a user echos a value to one of the
  * variable parameters.
  */
-static ssize_t var_store(struct kobject *kobj, struct kobj_attribute *attr,
+ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 			 const char *buf, size_t count)
 {
 	struct st_var_header *param;
@@ -445,6 +446,7 @@ static ssize_t var_store(struct kobject *kobj, struct kobj_attribute *attr,
 		pr_info("%s reset to default value\n", attr->attr.name);
 	return count;
 }
+EXPORT_SYMBOL_GPL(spk_var_store);
 
 /*
  * Functions for reading and writing lists of i18n messages.  Incomplete.
@@ -543,29 +545,29 @@ static struct kobj_attribute repeats_attribute =
 	__ATTR(repeats, USER_RW, punc_show, punc_store);
 
 static struct kobj_attribute attrib_bleep_attribute =
-	__ATTR(attrib_bleep, USER_RW, var_show, var_store);
+	__ATTR(attrib_bleep, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute bell_pos_attribute =
-	__ATTR(bell_pos, USER_RW, var_show, var_store);
+	__ATTR(bell_pos, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute bleep_time_attribute =
-	__ATTR(bleep_time, USER_RW, var_show, var_store);
+	__ATTR(bleep_time, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute bleeps_attribute =
-	__ATTR(bleeps, USER_RW, var_show, var_store);
+	__ATTR(bleeps, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute cursor_time_attribute =
-	__ATTR(cursor_time, USER_RW, var_show, var_store);
+	__ATTR(cursor_time, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute key_echo_attribute =
-	__ATTR(key_echo, USER_RW, var_show, var_store);
+	__ATTR(key_echo, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute no_interrupt_attribute =
-	__ATTR(no_interrupt, USER_RW, var_show, var_store);
+	__ATTR(no_interrupt, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute punc_level_attribute =
-	__ATTR(punc_level, USER_RW, var_show, var_store);
+	__ATTR(punc_level, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute reading_punc_attribute =
-	__ATTR(reading_punc, USER_RW, var_show, var_store);
+	__ATTR(reading_punc, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute say_control_attribute =
-	__ATTR(say_control, USER_RW, var_show, var_store);
+	__ATTR(say_control, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute say_word_ctl_attribute =
-	__ATTR(say_word_ctl, USER_RW, var_show, var_store);
+	__ATTR(say_word_ctl, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute spell_delay_attribute =
-	__ATTR(spell_delay, USER_RW, var_show, var_store);
+	__ATTR(spell_delay, USER_RW, spk_var_show, spk_var_store);
 
 /*
  * These attributes are i18n related.
@@ -588,41 +590,6 @@ static struct kobj_attribute misc_message_attribute =
 	__ATTR(misc_message, USER_RW, misc_message_show, NULL);
 static struct kobj_attribute states_message_attribute =
 	__ATTR(states_message, USER_RW, states_message_show, NULL);
-
-	/*
-	 * The attributes below here are synthesizer specific and
-	 * should not be present if the synthesizer does not support them.
-	 */
-static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, USER_RW, var_show, var_store);
-static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, USER_RW, var_show, var_store);
-static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, USER_RW, var_show, var_store);
-static struct kobj_attribute direct_attribute =
-	__ATTR(direct, USER_RW, var_show, var_store);
-static struct kobj_attribute freq_attribute =
-	__ATTR(freq, USER_RW, var_show, var_store);
-static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, ROOT_W, var_show, var_store);
-static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, ROOT_W, var_show, var_store);
-static struct kobj_attribute lang_attribute =
-	__ATTR(lang, USER_RW, var_show, var_store);
-static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, USER_RW, var_show, var_store);
-static struct kobj_attribute punct_attribute =
-	__ATTR(punct, USER_RW, var_show, var_store);
-static struct kobj_attribute rate_attribute =
-	__ATTR(rate, USER_RW, var_show, var_store);
-static struct kobj_attribute tone_attribute =
-	__ATTR(tone, USER_RW, var_show, var_store);
-static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, ROOT_W, var_show, var_store);
-static struct kobj_attribute voice_attribute =
-	__ATTR(voice, USER_RW, var_show, var_store);
-static struct kobj_attribute vol_attribute =
-	__ATTR(vol, USER_RW, var_show, var_store);
 
 /*
  * Create groups of attributes so that we can create and destroy them all

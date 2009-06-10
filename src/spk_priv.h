@@ -56,6 +56,10 @@ extern char synth_buffer_getc(void);
 extern char synth_buffer_peek(void);
 extern int synth_buffer_empty(void);
 extern struct var_t *get_var(enum var_id_t var_id);
+extern ssize_t spk_var_show(struct kobject *kobj, struct kobj_attribute *attr,
+	char *buf);
+extern ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
+	const char *buf, size_t count);
 
 extern int serial_synth_probe(struct spk_synth *synth);
 extern const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);
