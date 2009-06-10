@@ -447,6 +447,71 @@ static ssize_t var_store(struct kobject *kobj, struct kobj_attribute *attr,
 }
 
 /*
+ * Functions for reading and writing lists of i18n messages.  Incomplete.
+ */
+
+static ssize_t message_show_helper(char *buf, enum msg_index_t first,
+	enum msg_index_t last)
+{
+	size_t bufsize = PAGE_SIZE;
+	char *buf_pointer = buf;
+	enum msg_index_t cursor;
+	int index = 0;
+	for (cursor = first; cursor <= last; cursor++, index++) {
+		int printed = scnprintf(buf_pointer, bufsize, "%d %s\n",
+			index, msg_get(cursor));
+		buf_pointer += printed; /* point to NUL following text. */
+		bufsize -= printed;
+	}
+
+	return buf_pointer - buf;
+}
+
+static ssize_t misc_message_show(struct kobject *kobj, struct kobj_attribute *attr,
+	char *buf)
+{
+	return message_show_helper(buf, MSG_MISC_START, MSG_MISC_END);
+}
+
+static ssize_t fancy_message_show(struct kobject *kobj, struct kobj_attribute *attr,
+	char *buf)
+{
+	return message_show_helper(buf, MSG_FANCY_START, MSG_FANCY_END);
+}
+
+static ssize_t ctl_keys_message_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return message_show_helper(buf, MSG_CTL_START, MSG_CTL_END);
+}
+
+static ssize_t colors_message_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return message_show_helper(buf, MSG_COLORS_START, MSG_COLORS_END);
+}
+
+static ssize_t states_message_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return message_show_helper(buf, MSG_STATES_START, MSG_STATES_END);
+}
+
+static ssize_t keynames_message_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return message_show_helper(buf, MSG_KEYNAMES_START, MSG_KEYNAMES_END);
+}
+
+static ssize_t funcnames_message_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return message_show_helper(buf, MSG_FUNCNAMES_START, MSG_FUNCNAMES_END);
+}
+
+/* End i18n-message functions. */
+
+/*
  * Declare the attributes.
  */
 static struct kobj_attribute keymap_attribute =
