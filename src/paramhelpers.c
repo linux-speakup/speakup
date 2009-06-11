@@ -8,15 +8,12 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-static char *strip_prefix(const char *name);
 static int set_characters(const char *val, struct kernel_param *kp);
 static int get_characters(char *buffer, struct kernel_param *kp);
 static int set_chartab(const char *val, struct kernel_param *kp);
 static int get_chartab(char *buffer, struct kernel_param *kp);
 static int set_keymap(const char *val, struct kernel_param *kp);
 static int get_keymap(char *buffer, struct kernel_param *kp);
-static int set_vars(const char *val, struct kernel_param *kp);
-static int get_vars(char *buffer, struct kernel_param *kp);
 
 /*
  * The first thing we do is define the parameters.
@@ -24,22 +21,6 @@ static int get_vars(char *buffer, struct kernel_param *kp);
 module_param_call(characters, set_characters, get_characters, NULL, 0664);
 module_param_call(chartab, set_chartab, get_chartab, NULL, 0664);
 module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
-
-module_param_call(caps_start, set_vars, get_vars, NULL, 0664);
-module_param_call(caps_stop, set_vars, get_vars, NULL, 0664);
-module_param_call(delay_time, set_vars, get_vars, NULL, 0644);
-module_param_call(direct, set_vars, get_vars, NULL, 0664);
-module_param_call(full_time, set_vars, get_vars, NULL, 0644);
-module_param_call(freq, set_vars, get_vars, NULL, 0664);
-module_param_call(jiffy_delta, set_vars, get_vars, NULL, 0644);
-module_param_call(lang, set_vars, get_vars, NULL, 0664);
-module_param_call(pitch, set_vars, get_vars, NULL, 0664);
-module_param_call(punct, set_vars, get_vars, NULL, 0664);
-module_param_call(rate, set_vars, get_vars, NULL, 0664);
-module_param_call(tone, set_vars, get_vars, NULL, 0664);
-module_param_call(trigger_time, set_vars, get_vars, NULL, 0644);
-module_param_call(voice, set_vars, get_vars, NULL, 0664);
-module_param_call(vol, set_vars, get_vars, NULL, 0664);
 
 /*
  * These timer functions are used for characters and charmap below.
@@ -61,23 +42,6 @@ static void show_char_results(u_long data)
 }
 
 static DEFINE_TIMER(chars_timer, show_char_results, 0, 0);
-
-/*
- * This function returns the portion of a string that follows the last period.
- * The idea is to get rid of the "speakup." prefix on module parameter names
- * if speakup is built into the kernel, and return the full string otherwise.
- */
-static char *strip_prefix(const char *name)
-{
-	char *cp;
-
-	cp = strrchr(name, '.');
-	if (cp == NULL)
-		cp = (char *) name;
-	else
-		cp++;
-	return cp;
-}
 
 char *strlwr(char *s)
 {
@@ -489,129 +453,4 @@ static int get_keymap(char *buffer, struct kernel_param *kp)
 	}
 	cp += sprintf(cp, "0, %d", KEY_MAP_VER);
 	return (int)(cp-buffer);
-}
-
-/*
- * This function is called when a user echos a value to one of the
- * variable parameters.
- */
-static int set_vars(const char *val, struct kernel_param *kp)
-{
-	struct st_var_header *param;
-	int ret;
-	int len;
-	char *cp;
-	struct var_t *var_data;
-	int value;
-
-	if (!val)
-		return -EINVAL;
-
-	param = var_header_by_name(strip_prefix(kp->name));
-	if (param == NULL)
-		return -EINVAL;
-	if (param->data == NULL)
-		return 0;
-
-	ret = 0;
-	cp = xlate((char *) val);
-	len = strlen(val); /* xlate may have changed the length of the string */
-
-	switch (param->var_type) {
-	case VAR_NUM:
-	case VAR_TIME:
-		if (*cp == 'd' || *cp == 'r' || *cp == '\0')
-			len = E_DEFAULT;
-		else if (*cp == '+' || *cp == '-')
-			len = E_INC;
-		else
-			len = E_SET;
-		speakup_s2i(cp, &value);
-		ret = set_num_var(value, param, len);
-		if (ret == E_RANGE) {
-			var_data = param->data;
-			pr_warn("value for %s out of range, expect %d to %d\n",
-				strip_prefix(kp->name),
-				var_data->u.n.low, var_data->u.n.high);
-		}
-		break;
-	case VAR_STRING:
-		/*
-		 * Strip balanced quote and newline character, if present.
-		*/
-		if((len >= 1) && (val[len - 1] == '\n'))
-			--len;
-		if((len >= 2) && (val[0] == '"') && (val[len - 1] == '"')) {
-			++val;
-			len -= 2;
-		}
-		cp = (char *) val; /* non-const pointer to val */
-		cp[len] = '\0'; /* Ensure NUL-termination. */
-		ret = set_string_var(val, param, len);
-		if (ret == E_TOOLONG)
-			pr_warn("value too long for %s\n",
-					strip_prefix(kp->name));
-		break;
-	default:
-		pr_warn("%s unknown type %d\n",
-			param->name, (int)param->var_type);
-	break;
-	}
-	if (ret == SET_DEFAULT)
-		pr_info("%s reset to default value\n", strip_prefix(kp->name));
-	return 0;
-}
-
-/*
- * This function is called when a user reads one of the variable parameters.
- */
-static int get_vars(char *buffer, struct kernel_param *kp)
-{
-	int rv = 0;
-	struct st_var_header *param;
-	struct var_t *var;
-		char *cp1;
-	char *cp;
-	char ch;
-
-	if (buffer == NULL)
-		return -EINVAL;
-
-	param = var_header_by_name(strip_prefix(kp->name));
-	if (param == NULL)
-		return -EINVAL;
-
-	var = (struct var_t *) param->data;
-
-	switch (param->var_type) {
-	case VAR_NUM:
-	case VAR_TIME:
-		if (var)
-			rv = sprintf(buffer, "%i", var->u.n.value);
-		else
-			rv = sprintf(buffer, "0");
-		break;
-	case VAR_STRING:
-		if (var) {
-			cp1 = buffer;
-			*cp1++ = '"';
-			for (cp = (char *)param->p_val; (ch = *cp); cp++) {
-				if (ch >= ' ' && ch < '~')
-					*cp1++ = ch;
-				else
-					cp1 += sprintf(cp1, "\\""x%02x", ch);
-			}
-			*cp1++ = '"';
-			*cp1 = '\0';
-			rv = cp1-buffer;
-		} else {
-			rv = sprintf(buffer, "\"\"");
-		}
-		break;
-	default:
-		rv = sprintf(buffer, "Bad parameter  %s, type %i",
-			param->name, param->var_type);
-		break;
-	}
-	return rv;
 }
