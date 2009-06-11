@@ -237,13 +237,13 @@ get_more:
 	}
 	len = strlen(cp);
 	if (characters[num] == default_chars[num])
-		p_new = kmalloc(len+1, GFP_KERNEL);
+		p_new = kmalloc(len+1, GFP_ATOMIC);
 	else if (strlen(characters[num]) >= len)
 		p_new = characters[num];
 	else {
 		kfree(characters[num]);
 		characters[num] = default_chars[num];
-		p_new = kmalloc(len+1, GFP_KERNEL);
+		p_new = kmalloc(len+1, GFP_ATOMIC);
 	}
 	if (!p_new) {
 		count = -ENOMEM;

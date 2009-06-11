@@ -3,7 +3,8 @@
 
 #include <linux/module.h>
 #include <linux/string.h>
-#include "i18n.h"
+#include "speakup.h"
+#include "spk_priv.h"
 
 static char *speakup_msgs[MSG_LAST_INDEX];
 static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
@@ -412,15 +413,18 @@ char *msg_get(enum msg_index_t index)
 char *msg_set(enum msg_index_t index, char *text)
 {
 	char *newstr = NULL;
+	unsigned long flags;
 
 	if((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX)) {
 		newstr = kmalloc(strlen(text) + 1, GFP_KERNEL);
 		if(newstr != NULL) {
 			strcpy(newstr, text);
+			spk_lock(flags);
 			if((speakup_msgs[index] != speakup_default_msgs[index])
 			    && (speakup_msgs[index] != NULL))
 				kfree(speakup_msgs[index]);
 			speakup_msgs[index] = newstr;
+			spk_unlock(flags);
 		}
 	}
 
@@ -439,13 +443,16 @@ void reset_default_msgs(void)
 void free_user_strings(void)
 {
 	enum msg_index_t index;
+	unsigned long flags;
+	spk_lock(flags);
 	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++) {
 		if((speakup_msgs[index] != speakup_default_msgs[index])
 		    && (speakup_msgs[index] != NULL)) {
 			kfree(speakup_msgs[index]);
-			speakup_msgs[index] = NULL;
+			speakup_msgs[index] = speakup_default_msgs[index];
 		}
 	}
+	spk_unlock(flags);
 }
 
 /*
