@@ -348,6 +348,46 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_FUNCNAME_WORD_SAY_PREVIOUS] = "word, say previous",
 };
 
+static struct msg_set all_sets [] = {
+	{
+		.name = "ctl_keys_message",
+		.start = MSG_CTL_START,
+		.end = MSG_CTL_END,
+	},
+	{
+		.name = "colors_message",
+		.start = MSG_COLORS_START,
+		.end = MSG_COLORS_END,
+	},
+	{
+		.name = "fancy_message",
+		.start = MSG_FANCY_START,
+		.end = MSG_FANCY_END,
+	},
+	{
+		.name = "funcnames_message",
+		.start = MSG_FUNCNAMES_START,
+		.end = MSG_FUNCNAMES_END,
+	},
+	{
+		.name = "keynames_message",
+		.start = MSG_KEYNAMES_START,
+		.end = MSG_KEYNAMES_END,
+	},
+	{
+		.name = "misc_message",
+		.start = MSG_MISC_START,
+		.end = MSG_MISC_END,
+	},
+	{
+		.name = "states_message",
+		.start = MSG_STATES_START,
+		.end = MSG_STATES_END,
+	},
+};
+
+static const  int num_sets = sizeof(all_sets) / sizeof(struct msg_set);
+
 char *msg_get(enum msg_index_t index)
 {
 	char *ch;
@@ -369,7 +409,6 @@ char *msg_get(enum msg_index_t index)
  * - Unable to allocate memory.
  * - Illegal index.
 */
-
 char *msg_set(enum msg_index_t index, char *text)
 {
 	char *newstr = NULL;
@@ -389,14 +428,16 @@ char *msg_set(enum msg_index_t index, char *text)
 }
 
 /* Called at initialization time, to establish default messages. */
-void reset_default_msgs(void) {
+void reset_default_msgs(void)
+{
 	enum msg_index_t index;
 	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++)
 		speakup_msgs[index] = speakup_default_msgs[index];
 }
 
 /* Free user-supplied strings when module is unloaded: */
-void free_user_strings(void) {
+void free_user_strings(void)
+{
 	enum msg_index_t index;
 	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++) {
 		if((speakup_msgs[index] != speakup_default_msgs[index])
@@ -406,3 +447,21 @@ void free_user_strings(void) {
 		}
 	}
 }
+
+/*
+ * Find a message set, given its name.  Return a pointer to the structure
+ * if found, or NULL otherwise.
+*/
+struct msg_set *find_message_set(const char *set_name)
+{
+	struct msg_set *set = NULL;
+	int i;
+	for (i = 0; i < num_sets; i++) {
+		if (!strcmp(all_sets[i].name, set_name)) {
+			set = &all_sets[i];
+			break;
+		}
+	}
+
+	return set;
+} /* find_msg_set */

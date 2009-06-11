@@ -3,7 +3,7 @@
 /* Internationalization declarations */
 
 enum msg_index_t {
-	MSG_FIRST_INDEX = 0,
+	MSG_FIRST_INDEX ,
 	MSG_MISC_START = MSG_FIRST_INDEX,
 	MSG_BLANK = MSG_MISC_START,
 	MSG_IAM_ALIVE,
@@ -214,9 +214,16 @@ enum msg_index_t {
 	MSG_LAST_INDEX
 };
 
+struct msg_set {
+	char *name;
+	enum msg_index_t start;
+	enum msg_index_t end;
+};
+
 extern char *msg_get(enum msg_index_t index);
 extern char *msg_set(enum msg_index_t index, char *text);
 extern void free_user_strings(void);
 extern void reset_default_msgs(void);
+extern struct msg_set *find_message_set(const char *set_name);
 
 #endif

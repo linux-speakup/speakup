@@ -480,55 +480,14 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	return count; /* Allow the write, and do nothing. */
 } /* message_store_helper */
 
-struct msg_set {
-	char *name;
-	enum msg_index_t start;
-	enum msg_index_t end;
-};
-
-static struct msg_set all_sets [] = {
-	{"ctl_keys_message", MSG_CTL_START, MSG_CTL_END},
-	{"colors_message", MSG_COLORS_START, MSG_COLORS_END},
-	{"fancy_message", MSG_FANCY_START, MSG_FANCY_END},
-	{"funcnames_message", MSG_FUNCNAMES_START, MSG_FUNCNAMES_END},
-	{"keynames_message", MSG_KEYNAMES_START, MSG_KEYNAMES_END},
-	{"misc_message", MSG_MISC_START, MSG_MISC_END},
-	{"states_message", MSG_STATES_START, MSG_STATES_END},
-};
-
-static const  int num_sets = sizeof(all_sets) / sizeof(struct msg_set);
-
-/*
- * Find a message set, given its name.  Return a pointer to the structure
- * if found, or NULL otherwise.
-*/
-
-static struct msg_set *find_message_set(const char *set_name)
-{
-	struct msg_set *set = NULL;
-	int i;
-	for (i = 0; i < num_sets; i++) {
-		if (!strcmp(all_sets[i].name, set_name)) {
-			set = &all_sets[i];
-			break;
-		}
-	}
-
-	return set;
-} /* find_msg_set */
-
 static ssize_t message_show(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
 {
 	ssize_t retval = 0;
 	struct msg_set *set = find_message_set(attr->attr.name);
 
-	if(set != NULL)
-		retval = message_show_helper(buf, set->start, set->end);
-	else
-		retval = -ENOENT;
-
-	/* User sees "no such file or directory" if the set name is not known. */
+	BUG_ON(! set);
+	retval = message_show_helper(buf, set->start, set->end);
 	return retval;
 } /* message_show */
 
@@ -538,11 +497,8 @@ static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
 	ssize_t retval = 0;
 	struct msg_set *set = find_message_set(attr->attr.name);
 
-	if (set != NULL)
-		retval = message_store_helper(buf, count, set->start, set->end);
-	else
-		retval = -ENOENT;
-
+	BUG_ON(! set);
+	retval = message_store_helper(buf, count, set->start, set->end);
 	return retval;
 } /* message_store */
 
