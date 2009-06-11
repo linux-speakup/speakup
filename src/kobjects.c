@@ -465,7 +465,7 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	for (cursor = first; cursor <= last; cursor++, index++) {
 		if(bufsize <= 1) /* full buffer. */
 			break;
-		printed = scnprintf(buf_pointer, bufsize, "%d %s\n",
+		printed = scnprintf(buf_pointer, bufsize, "%d\t%s\n",
 			index, msg_get(cursor));
 		buf_pointer += printed; /* point to NUL following text. */
 		bufsize -= printed;
