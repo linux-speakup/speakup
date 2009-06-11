@@ -31,7 +31,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.11"
+#define DRV_VERSION "2.12"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static unsigned char last_char;
@@ -53,6 +53,52 @@ static struct var_t vars[] = {
 	{ PUNCT, .u.n = {"[:pu %c]", 0, 0, 2, 0, 0, "nsa" }},
 	{ VOICE, .u.n = {"[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" }},
 	V_LAST_VAR
+};
+
+/*
+ * These attributes will appear in /sys/accessibility/speakup/decext.
+ */
+static struct kobj_attribute caps_start_attribute =
+	__ATTR(caps_start, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute caps_stop_attribute =
+	__ATTR(caps_stop, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute pitch_attribute =
+	__ATTR(pitch, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute punct_attribute =
+	__ATTR(punct, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute rate_attribute =
+	__ATTR(rate, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute voice_attribute =
+	__ATTR(voice, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute vol_attribute =
+	__ATTR(vol, USER_RW, spk_var_show, spk_var_store);
+
+static struct kobj_attribute delay_time_attribute =
+	__ATTR(delay_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute full_time_attribute =
+	__ATTR(full_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute jiffy_delta_attribute =
+	__ATTR(jiffy_delta, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute trigger_time_attribute =
+	__ATTR(trigger_time, ROOT_W, spk_var_show, spk_var_store);
+
+/*
+ * Create a group of attributes so that we can create and destroy them all
+ * at once.
+ */
+static struct attribute *synth_attrs[] = {
+	&caps_start_attribute.attr,
+	&caps_stop_attribute.attr,
+	&pitch_attribute.attr,
+	&punct_attribute.attr,
+	&rate_attribute.attr,
+	&voice_attribute.attr,
+	&vol_attribute.attr,
+	&delay_time_attribute.attr,
+	&full_time_attribute.attr,
+	&jiffy_delta_attribute.attr,
+	&trigger_time_attribute.attr,
+	NULL,	/* need to NULL terminate the list of attributes */
 };
 
 static struct spk_synth synth_decext = {
@@ -84,7 +130,11 @@ static struct spk_synth synth_decext = {
 		.lowindex = 0,
 		.highindex = 0,
 		.currindex = 0,
-	}
+	},
+	.attributes = {
+		.attrs = synth_attrs,
+		.name = "decext",
+	},
 };
 
 static void do_catch_up(struct spk_synth *synth)

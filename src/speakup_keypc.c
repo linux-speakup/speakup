@@ -30,7 +30,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.7"
+#define DRV_VERSION "2.8"
 #define SYNTH_IO_EXTENT	0x04
 #define SWAIT udelay(70)
 #define synth_writable() (inb_p(synth_port + UART_RX) & 0x10)
@@ -55,6 +55,43 @@ static struct var_t vars[] = {
 	{ RATE, .u.n = {"\04%c ", 8, 0, 10, 81, -8, NULL }},
 	{ PITCH, .u.n = {"[f%d]", 5, 0, 9, 40, 10, NULL }},
 	V_LAST_VAR
+};
+
+/*
+ * These attributes will appear in /sys/accessibility/speakup/keypc.
+ */
+static struct kobj_attribute caps_start_attribute =
+	__ATTR(caps_start, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute caps_stop_attribute =
+	__ATTR(caps_stop, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute pitch_attribute =
+	__ATTR(pitch, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute rate_attribute =
+	__ATTR(rate, USER_RW, spk_var_show, spk_var_store);
+
+static struct kobj_attribute delay_time_attribute =
+	__ATTR(delay_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute full_time_attribute =
+	__ATTR(full_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute jiffy_delta_attribute =
+	__ATTR(jiffy_delta, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute trigger_time_attribute =
+	__ATTR(trigger_time, ROOT_W, spk_var_show, spk_var_store);
+
+/*
+ * Create a group of attributes so that we can create and destroy them all
+ * at once.
+ */
+static struct attribute *synth_attrs[] = {
+	&caps_start_attribute.attr,
+	&caps_stop_attribute.attr,
+	&pitch_attribute.attr,
+	&rate_attribute.attr,
+	&delay_time_attribute.attr,
+	&full_time_attribute.attr,
+	&jiffy_delta_attribute.attr,
+	&trigger_time_attribute.attr,
+	NULL,	/* need to NULL terminate the list of attributes */
 };
 
 static struct spk_synth synth_keypc = {
@@ -85,7 +122,11 @@ static struct spk_synth synth_keypc = {
 		.lowindex = 0,
 		.highindex = 0,
 		.currindex = 0,
-	}
+	},
+	.attributes = {
+		.attrs = synth_attrs,
+		.name = "keypc",
+	},
 };
 
 static char *oops(void)

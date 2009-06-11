@@ -34,7 +34,7 @@
 #include "speakup.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.7"
+#define DRV_VERSION "2.8"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts + UART_RX) == 'F')
@@ -58,6 +58,49 @@ static struct var_t vars[] = {
 	{ VOL, .u.n = {"\033A%d", 5, 0, 9, 0, 0, NULL }},
 	{ TONE, .u.n = {"\033V%d", 5, 0, 9, 0, 0, NULL }},
 	V_LAST_VAR
+};
+
+/*
+ * These attributes will appear in /sys/accessibility/speakup/acntpc.
+ */
+static struct kobj_attribute caps_start_attribute =
+	__ATTR(caps_start, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute caps_stop_attribute =
+	__ATTR(caps_stop, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute pitch_attribute =
+	__ATTR(pitch, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute rate_attribute =
+	__ATTR(rate, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute tone_attribute =
+	__ATTR(tone, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute vol_attribute =
+	__ATTR(vol, USER_RW, spk_var_show, spk_var_store);
+
+static struct kobj_attribute delay_time_attribute =
+	__ATTR(delay_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute full_time_attribute =
+	__ATTR(full_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute jiffy_delta_attribute =
+	__ATTR(jiffy_delta, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute trigger_time_attribute =
+	__ATTR(trigger_time, ROOT_W, spk_var_show, spk_var_store);
+
+/*
+ * Create a group of attributes so that we can create and destroy them all
+ * at once.
+ */
+static struct attribute *synth_attrs[] = {
+	&caps_start_attribute.attr,
+	&caps_stop_attribute.attr,
+	&pitch_attribute.attr,
+	&rate_attribute.attr,
+	&tone_attribute.attr,
+	&vol_attribute.attr,
+	&delay_time_attribute.attr,
+	&full_time_attribute.attr,
+	&jiffy_delta_attribute.attr,
+	&trigger_time_attribute.attr,
+	NULL,	/* need to NULL terminate the list of attributes */
 };
 
 static struct spk_synth synth_acntpc = {
@@ -88,7 +131,11 @@ static struct spk_synth synth_acntpc = {
 		.lowindex = 0,
 		.highindex = 0,
 		.currindex = 0,
-	}
+	},
+	.attributes = {
+		.attrs = synth_attrs,
+		.name = "acntpc",
+	},
 };
 
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)

@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.4"
+#define DRV_VERSION "2.5"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -53,6 +53,64 @@ static struct var_t vars[] = {
 	{ FREQUENCY, .u.n = {"\x01%df", 5, 0, 9, 0, 0, NULL }},
 	{ DIRECT, .u.n = {NULL, 0, 0, 1, 0, 0, NULL }},
 	V_LAST_VAR
+};
+
+/*
+ * These attributes will appear in /sys/accessibility/speakup/soft.
+ */
+static struct kobj_attribute caps_start_attribute =
+	__ATTR(caps_start, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute caps_stop_attribute =
+	__ATTR(caps_stop, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute freq_attribute =
+	__ATTR(freq, USER_RW, spk_var_show, spk_var_store);
+//static struct kobj_attribute lang_attribute =
+//	__ATTR(lang, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute pitch_attribute =
+	__ATTR(pitch, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute punct_attribute =
+	__ATTR(punct, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute rate_attribute =
+	__ATTR(rate, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute tone_attribute =
+	__ATTR(tone, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute voice_attribute =
+	__ATTR(voice, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute vol_attribute =
+	__ATTR(vol, USER_RW, spk_var_show, spk_var_store);
+
+static struct kobj_attribute delay_time_attribute =
+	__ATTR(delay_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute direct_attribute =
+	__ATTR(direct, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute full_time_attribute =
+	__ATTR(full_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute jiffy_delta_attribute =
+	__ATTR(jiffy_delta, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute trigger_time_attribute =
+	__ATTR(trigger_time, ROOT_W, spk_var_show, spk_var_store);
+
+/*
+ * Create a group of attributes so that we can create and destroy them all
+ * at once.
+ */
+static struct attribute *synth_attrs[] = {
+	&caps_start_attribute.attr,
+	&caps_stop_attribute.attr,
+	&freq_attribute.attr,
+//	&lang_attribute.attr,
+	&pitch_attribute.attr,
+	&punct_attribute.attr,
+	&rate_attribute.attr,
+	&tone_attribute.attr,
+	&voice_attribute.attr,
+	&vol_attribute.attr,
+	&delay_time_attribute.attr,
+	&direct_attribute.attr,
+	&full_time_attribute.attr,
+	&jiffy_delta_attribute.attr,
+	&trigger_time_attribute.attr,
+	NULL,	/* need to NULL terminate the list of attributes */
 };
 
 static struct spk_synth synth_soft = {
@@ -82,7 +140,11 @@ static struct spk_synth synth_soft = {
 		.lowindex = 1,
 		.highindex = 5,
 		.currindex = 1,
-	}
+	},
+	.attributes = {
+		.attrs = synth_attrs,
+		.name = "soft",
+	},
 };
 
 static int softsynth_open(struct inode *inode, struct file *fp)
