@@ -508,7 +508,7 @@ static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
  * Declare the attributes.
  */
 static struct kobj_attribute keymap_attribute =
-	__ATTR(keymap, USER_RW, keymap_show, keymap_store);
+	__ATTR(keymap, ROOT_W, keymap_show, keymap_store);
 static struct kobj_attribute silent_attribute =
 	__ATTR(silent, USER_W, NULL, silent_store);
 static struct kobj_attribute synth_attribute =
