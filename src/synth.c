@@ -330,8 +330,6 @@ int synth_init(char *synth_name)
 	/* If we got one, initialize it now. */
 	if (synth) {
 		ret = do_synth_init(synth);
-		if (ret && synth->attributes.attrs)
-			ret = sysfs_create_group(speakup_kobj, &synth->attributes);
 	}
 	mutex_unlock(&spk_mutex);
 
@@ -367,6 +365,9 @@ static int do_synth_init(struct spk_synth *in_synth)
 		speakup_register_var(var);
 	if (!quiet_boot)
 		synth_printf("%s found\n", synth->long_name);
+	if (synth->attributes.name
+	&& sysfs_create_group(speakup_kobj, &(synth->attributes)) < 0)
+		return -ENOMEM;
 	synth_flags = synth->flags;
 	wake_up_interruptible_all(&speakup_event);
 	if (speakup_task)
@@ -386,12 +387,12 @@ void synth_release(void)
 	synth->alive = 0;
 	del_timer(&thread_timer);
 	spk_unlock(flags);
+	if (synth->attributes.name)
+		sysfs_remove_group(speakup_kobj, &(synth->attributes));
 	for (var = synth->vars; var->var_id != MAXVARS; var++)
 		speakup_unregister_var(var->var_id);
 	stop_serial_interrupt();
 	synth->release();
-	if (synth->attributes.attrs)
-		sysfs_remove_group(speakup_kobj, &synth->attributes);
 	synth = NULL;
 }
 
