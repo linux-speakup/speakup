@@ -1205,14 +1205,13 @@ static void toggle_cursoring(struct vc_data *vc)
 void reset_default_chars(void)
 {
 	int i;
-	if (default_chars[(int)'a'] == NULL) /* lowers are null first time */
-		for (i = (int)'a'; default_chars[i] == NULL; i++)
-			default_chars[i] = default_chars[i - 32];
-	else /* free any non-default */
-		for (i = 0; i < 256; i++) {
-			if (characters[i] != default_chars[i])
-				kfree(characters[i]);
-		}
+
+	/* First, free any non-default */
+	for (i = 0; i < 256; i++) {
+		if ((characters[i] != NULL)
+		    && (characters[i] != default_chars[i]))
+			kfree(characters[i]);
+	}
 	memcpy(characters, default_chars, sizeof(default_chars));
 }
 
