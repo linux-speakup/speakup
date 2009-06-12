@@ -28,11 +28,9 @@ static ssize_t chars_show(struct kobject *kobj, struct kobj_attribute *attr,
 {
 	int i;
 	int len = 0;
-	char *cp;
 
 	for (i = 0; i < 256; i++) {
-		cp = (characters[i]) ? characters[i] : "NULL";
-		len += sprintf(buf + len, "%d\t%s\n", i, cp);
+		len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
 	}
 	return len;
 }
@@ -41,20 +39,17 @@ static ssize_t chars_show(struct kobject *kobj, struct kobj_attribute *attr,
  * Print informational messages or warnings after updating
  * character descriptions.
  */
-
 static void report_char_status(int reset, int received, int used, int rejected)
 {
 	int len;
 	char buf[80];
 
-	if (reset)
+	if (reset) {
 		pr_info("character descriptions reset to defaults\n");
-	else {
-		if (received == 0)
-			return;
+	} else if (received ) {
 		len = snprintf(buf, sizeof(buf),
 			       " updated %d of %d character descriptions\n",
-			       used, received);
+				       used, received);
 		if (rejected)
 			snprintf(buf + (len - 1), sizeof(buf) - (len - 1),
 				 " with %d reject%s\n",
