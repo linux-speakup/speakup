@@ -31,7 +31,7 @@ static ssize_t chars_chartab_show(struct kobject *kobj,
 	char *cp;
 
 	for (i = 0; i < 256; i++) {
-		if(strcmp("characters", attr->attr.name) == 0) {
+		if (strcmp("characters", attr->attr.name) == 0) {
 			len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
 		} else {
 			if (IS_TYPE(i, B_CTL))
@@ -62,19 +62,24 @@ static ssize_t chars_chartab_show(struct kobject *kobj,
 
 /*
  * Print informational messages or warnings after updating
- * character descriptions.
+ * character descriptions or chartab entries.
  */
-static void report_char_status(int reset, int received, int used, int rejected)
+static void report_char_chartab_status(int reset, int received, int used,
+	int rejected, int do_characters)
 {
+	char *object_type[] = {
+		"character class entries",
+		"character descriptions",
+	};
 	int len;
 	char buf[80];
 
 	if (reset) {
-		pr_info("character descriptions reset to defaults\n");
+		pr_info("%s reset to defaults\n", object_type[do_characters]);
 	} else if (received ) {
 		len = snprintf(buf, sizeof(buf),
-			       " updated %d of %d character descriptions\n",
-				       used, received);
+			       " updated %d of %d %s\n",
+				       used, received, object_type[do_characters]);
 		if (rejected)
 			snprintf(buf + (len - 1), sizeof(buf) - (len - 1),
 				 " with %d reject%s\n",
@@ -84,23 +89,27 @@ static void report_char_status(int reset, int received, int used, int rejected)
 }
 
 /*
- * This is called when a user changes the characters parameter.
+ * This is called when a user changes the characters or chartab parameters.
  */
-static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
-	const char *buf, size_t count)
+static ssize_t chars_chartab_store(struct kobject *kobj,
+	struct kobj_attribute *attr, const char *buf, size_t count)
 {
-	char *linefeed = NULL;
 	char *cp = (char *) buf;
 	char *end = cp + count - 1; /* the null at the end of the buffer */
-	char *descptr = NULL;
-	char *newstr = NULL;
+	char *linefeed = NULL;
+	char keyword[MAX_DESC_LEN + 1];
+	char *outptr = NULL;	/* Will hold keyword or desc. */
+	char *temp = NULL;
+	char *desc = NULL;
 	ssize_t retval = count;
 	unsigned long flags;
 	unsigned long index = 0;
+	int charclass = 0;
 	int received = 0;
 	int used = 0;
 	int rejected = 0;
 	int reset = 0;
+	int do_characters = !strcmp(attr->attr.name, "characters");
 	size_t desc_length = 0;
 	int i;
 
@@ -109,14 +118,16 @@ static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 		while ((cp < end) && (*cp == ' ' || *cp == '\t'))
 			cp++;
+
 		if (cp == end)
 			break;
 		if ((*cp == '\n') || strchr("dDrR", *cp)) {
 			reset = 1;
 			break;
 		}
-		linefeed = strchr(cp, '\n');
 		received++;
+
+		linefeed = strchr(cp, '\n');
 		if (!linefeed) {
 			rejected++;
 			break;
@@ -127,57 +138,73 @@ static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 			cp = linefeed + 1;
 			continue;
 		}
-		index = simple_strtoul(cp, &descptr, 10);
 
-		/* We have at least one digit, so descptr > cp.
-		 * The first non-digit may have been *linefeed, so
-		 * descptr <= linefeed. */
-		cp = linefeed + 1;
+		/*
+		 * At this point, we know that the string pointed to by cp
+		 * begins with a number, so that is the array index.
+		 */
+		index = simple_strtoul(cp, &temp, 10);
 		if (index > 255) {
 			rejected++;
+			cp = linefeed + 1;
 			continue;
 		}
 
-		while ((descptr < linefeed)
-		       && (*descptr == ' ' || *descptr == '\t'))
-			descptr++;
+		while ((temp < linefeed) && (*temp == ' ' || *temp == '\t'))
+			temp++;
 
-		desc_length = linefeed - descptr;
-		newstr = kmalloc(desc_length + 1, GFP_ATOMIC);
-		if (newstr == NULL) {
-			retval = -ENOMEM;
-			reset = 1;	/* just reset on error. */
-			break;
+		desc_length = linefeed - temp;
+		if (desc_length > MAX_DESC_LEN) {
+			rejected++;
+			cp = linefeed + 1;
+			continue;
+		}
+		if (do_characters) {
+			desc = kmalloc(desc_length + 1, GFP_ATOMIC);
+			if (! desc) {
+				retval = -ENOMEM;
+				reset = 1;	/* just reset on error. */
+				break;
+			}
+			outptr = desc;
+		} else {
+			outptr = keyword;
 		}
 
 		for (i = 0; i < desc_length; i++)
-			newstr[i] = descptr[i];
-		newstr[desc_length] = '\0';
+			outptr[i] = temp[i];
+		outptr[desc_length] = '\0';
 
-		if (characters[index] != default_chars[index])
-			kfree(characters[index]);
-
-		characters[index] = newstr;
-		used++;
+		if (do_characters) {
+			if (characters[index] != default_chars[index])
+				kfree(characters[index]);
+			characters[index] = desc;
+			used++;
+		} else {
+			charclass = chartab_get_value(keyword);
+			if (charclass == 0) {
+				rejected++;
+				cp = linefeed + 1;
+				continue;
+			}
+			if (charclass != spk_chartab[index]) {
+				spk_chartab[index] = charclass;
+				used++;
+			}
+		}
+		cp = linefeed + 1;
 	}
 
-	if (reset)
-		reset_default_chars();
+	if (reset) {
+		if (do_characters)
+			reset_default_chars();
+		else
+			reset_default_chartab();
+	}
 
 	spk_unlock(flags);
-
-	report_char_status(reset, received, used, rejected);
-
+	report_char_chartab_status(reset, received, used, rejected, do_characters);
 	return retval;
-}
-
-/*
- * This is called when a user changes the chartab parameter.
- */
-static ssize_t chartab_store(struct kobject *kobj, struct kobj_attribute *attr,
-	const char *buf, size_t count)
-{
-	return count;
 }
 
 /*
@@ -516,9 +543,9 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 		/*
 		 * Strip balanced quote and newline character, if present.
 		*/
-		if((len >= 1) && (buf[len - 1] == '\n'))
+		if ((len >= 1) && (buf[len - 1] == '\n'))
 			--len;
-		if((len >= 2) && (buf[0] == '"') && (buf[len - 1] == '"')) {
+		if ((len >= 2) && (buf[0] == '"') && (buf[len - 1] == '"')) {
 			++buf;
 			len -= 2;
 		}
@@ -555,7 +582,7 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	*buf_pointer = '\0'; /* buf_pointer always looking at a NUL byte. */
 
 	for (cursor = first; cursor <= last; cursor++, index++) {
-		if(bufsize <= 1) /* full buffer. */
+		if (bufsize <= 1) /* full buffer. */
 			break;
 		printed = scnprintf(buf_pointer, bufsize, "%d\t%s\n",
 			index, msg_get(cursor));
@@ -652,9 +679,9 @@ static struct kobj_attribute spell_delay_attribute =
  * These attributes are i18n related.
  */
 static struct kobj_attribute characters_attribute =
-	__ATTR(characters, USER_RW, chars_chartab_show, chars_store);
+	__ATTR(characters, USER_RW, chars_chartab_show, chars_chartab_store);
 static struct kobj_attribute chartab_attribute =
-	__ATTR(chartab, USER_RW, chars_chartab_show, chartab_store);
+	__ATTR(chartab, USER_RW, chars_chartab_show, chars_chartab_store);
 static struct kobj_attribute ctl_keys_message_attribute =
 	__ATTR(ctl_keys_message, USER_RW, message_show, message_store);
 static struct kobj_attribute colors_message_attribute =
