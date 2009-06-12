@@ -8,37 +8,13 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-static int set_chartab(const char *val, struct kernel_param *kp);
-static int get_chartab(char *buffer, struct kernel_param *kp);
 static int set_keymap(const char *val, struct kernel_param *kp);
 static int get_keymap(char *buffer, struct kernel_param *kp);
 
 /*
  * The first thing we do is define the parameters.
  */
-module_param_call(chartab, set_chartab, get_chartab, NULL, 0664);
 module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
-
-/*
- * These timer functions are used for characters and charmap below.
- */
-static int strings, rejects, updates;
-
-static void show_char_results(u_long data)
-{
-	int len;
-	char buf[80];
-	len = snprintf(buf, sizeof(buf),
-		       " updated %d of %d character descriptions\n",
-		       updates, strings);
-	if (rejects)
-		snprintf(buf + (len - 1),  sizeof(buf) - (len - 1),
-			 " with %d reject%s\n",
-			 rejects, rejects > 1 ? "s" : "");
-	printk(buf);
-}
-
-static DEFINE_TIMER(chars_timer, show_char_results, 0, 0);
 
 char *strlwr(char *s)
 {
@@ -133,125 +109,6 @@ char *xlate(char *s)
 		*p2 = '\0';
 	}
 	return s;
-}
-
-/*
- * This is the set handler for chartab.
- */
-static int set_chartab(const char *val, struct kernel_param *kp)
-{
-	static int cnt = 0;
-	int state = 0;
-	static char desc[MAX_DESC_LEN + 1];
-	static u_long jiff_last = 0;
-	u_long count = strlen(val);
-	int i = 0, num;
-	char ch, *cp;
-	int value = 0;
-	unsigned long flags;
-
-	spk_lock(flags);
-	/* reset certain vars if enough time has elapsed since last called */
-	if (jiffies - jiff_last > 10)
-		cnt = state = strings = rejects = updates = 0;
-	jiff_last = jiffies;
-get_more:
-	desc[cnt] = '\0';
-	state = 0;
-	for ( ; i < count && state < 2; i++) {
-		ch =  val[i];
-		if (ch == '\n') {
-			desc[cnt] = '\0';
-			state = 2;
-		} else if (cnt < MAX_DESC_LEN)
-			desc[cnt++] = ch;
-	}
-	if (state < 2)
-		goto out;
-	cp = desc;
-	while (*cp && (unsigned char)(*cp) <= SPACE)
-		cp++;
-	if ((!cnt) || strchr("dDrR", *cp)) {
-		reset_default_chartab();
-		pr_info("character descriptions reset to defaults\n");
-		cnt = 0;
-		goto out;
-	}
-	cnt = 0;
-	if (*cp == '#')
-		goto get_more;
-	num = -1;
-	cp = speakup_s2i(cp, &num);
-	while (*cp && (unsigned char)(*cp) <= SPACE)
-		cp++;
-	if (num < 0 || num > 255) {
-		/* not in range */
-		rejects++;
-		strings++;
-		goto get_more;
-	}
-	/*	if (num >= 27 && num <= 31)
-	 *		goto get_more; */
-
-	value = chartab_get_value(cp);
-	if (!value) {
-		/* not in range */
-		rejects++;
-		strings++;
-		goto get_more;
-	}
-
-	if (value == spk_chartab[num]) {
-		strings++;
-		goto get_more;
-	}
-
-	spk_chartab[num] = value;
-	updates++;
-	strings++;
-	if (i < count)
-		goto get_more;
-	mod_timer(&chars_timer, jiffies + 5);
-out:
-	spk_unlock(flags);
-	return count;
-}
-
-/*
- * This is the get handler for chartab.
- */
-static int get_chartab(char *buffer, struct kernel_param *kp)
-{
-	int i;
-	int len = 0;
-	char *cp;
-
-	for (i = 0; i < 256; i++) {
-		cp = "0";
-		if (IS_TYPE(i, B_CTL))
-			cp = "B_CTL";
-		else if (IS_TYPE(i, WDLM))
-			cp = "WDLM";
-		else if (IS_TYPE(i, A_PUNC))
-			cp = "A_PUNC";
-		else if (IS_TYPE(i, PUNC))
-			cp = "PUNC";
-		else if (IS_TYPE(i, NUM))
-			cp = "NUM";
-		else if (IS_TYPE(i, A_CAP))
-			cp = "A_CAP";
-		else if (IS_TYPE(i, ALPHA))
-			cp = "ALPHA";
-		else if (IS_TYPE(i, B_CAPSYM))
-			cp = "B_CAPSYM";
-		else if (IS_TYPE(i, B_SYM))
-			cp = "B_SYM";
-		len += sprintf(buffer + len, "%d\t%s\n", i, cp);
-	}
-
-	/* Buffer should not end in a newline.  Snip it. */
-	buffer[--len] = '\0';
-	return len;
 }
 
 /*
