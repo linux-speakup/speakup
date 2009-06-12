@@ -11,9 +11,11 @@
  * Released under the GPL version 2 only.
  *
  */
+#include <linux/kernel.h>
 #include <linux/kobject.h>
 #include <linux/string.h>
 #include <linux/sysfs.h>
+#include <linux/ctype.h>
 
 #include "speakup.h"
 #include "spk_priv.h"
@@ -36,12 +38,119 @@ static ssize_t chars_show(struct kobject *kobj, struct kobj_attribute *attr,
 }
 
 /*
+ * Print informational messages or warnings after updating
+ * character descriptions.
+ */
+
+static void report_char_status(int reset, int received, int used, int rejected)
+{
+	int len;
+	char buf[80];
+
+	if (reset)
+		pr_info("character descriptions reset to defaults\n");
+	else {
+		if (received == 0)
+			return;
+		len = snprintf(buf, sizeof(buf),
+			       " updated %d of %d character descriptions\n",
+			       used, received);
+		if (rejected)
+			snprintf(buf + (len - 1), sizeof(buf) - (len - 1),
+				 " with %d reject%s\n",
+				 rejected, rejected > 1 ? "s" : "");
+		printk(buf);
+	}
+}
+
+/*
  * This is called when a user changes the characters parameter.
  */
 static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 	const char *buf, size_t count)
 {
-	return count;
+	const char *linefeed = NULL;
+	const char *cp = buf;
+	const char *end;
+	char *descptr = NULL;
+	char *newstr = NULL;
+	ssize_t retval = count;
+	unsigned long flags;
+	unsigned long index = 0;
+	int received = 0;
+	int used = 0;
+	int rejected = 0;
+	int reset = 0;
+	size_t desc_length = 0;
+	int i;
+
+	spk_lock(flags);
+	end = buf + count - 1;	/* end is pointer to NUL */
+
+	while (cp < end) {
+
+		while ((cp < end) && (*cp == ' ' || *cp == '\t'))
+			cp++;
+		if (cp == end)
+			break;
+		if ((*cp == '\n') || strchr("dDrR", *cp)) {
+			reset = 1;
+			break;
+		}
+		linefeed = strchr(cp, '\n');
+		received++;
+		if (!linefeed) {
+			rejected++;
+			break;
+		}
+
+		if (isdigit(*cp)) {
+			index = simple_strtoul(cp, &descptr, 10);
+
+			/* We have at least one digit, so descptr > cp.
+			 * The first non-digit may have been *linefeed, so
+			 * descptr <= linefeed. */
+			cp = linefeed + 1;
+			if (index > 255) {
+				rejected++;
+				continue;
+			}
+
+			while ((descptr < linefeed)
+			       && (*descptr == ' ' || *descptr == '\t'))
+				descptr++;
+
+			desc_length = linefeed - descptr;
+			newstr = kmalloc(desc_length + 1, GFP_ATOMIC);
+			if (newstr == NULL) {
+				retval = -ENOMEM;
+				reset = 1;	/* just reset on error. */
+				break;
+			}
+
+			for (i = 0; i < desc_length; i++)
+				newstr[i] = descptr[i];
+			newstr[desc_length] = '\0';
+
+			if (characters[index] != default_chars[index])
+				kfree(characters[index]);
+
+			characters[index] = newstr;
+			used++;
+		} else {	/* not "index description" */
+			rejected++;
+			cp = linefeed + 1;
+		}
+	}
+
+	if (reset)
+		reset_default_chars();
+
+	spk_unlock(flags);
+
+	report_char_status(reset, received, used, rejected);
+
+	return retval;
 }
 
 /*
