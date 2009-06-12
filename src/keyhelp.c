@@ -153,6 +153,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 			return -1;
 		if (letter_offsets[ch-'a'] == -1) {
 			synth_printf(msg_get(MSG_NO_COMMAND), ch);
+			synth_printf("\n");
 			return 1;
 		}
 	cur_item = letter_offsets[ch-'a'];
@@ -188,6 +189,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		key += (state_tbl[i] << 8);
 		say_key(key);
 		synth_printf(msg_get(MSG_KEYDESC), name);
+		synth_printf("\n");
 		return 1;
 	}
 	name = msg_get(MSG_FUNCNAMES_START + cur_item);

@@ -981,6 +981,7 @@ static void say_position(struct vc_data *vc)
 {
 	synth_printf(msg_get(MSG_POS_INFO), spk_y + 1, spk_x + 1,
 		vc->vc_num + 1);
+	synth_printf("\n");
 }
 
 /* Added by brianb */

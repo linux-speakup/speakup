@@ -55,15 +55,15 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_DISJUNCTION] = "or",
 
 /* Messages with embedded format specifiers. */
-	[MSG_POS_INFO] = "line %ld, col %ld, t t y %d\n",
+	[MSG_POS_INFO] = "line %ld, col %ld, t t y %d",
 	[MSG_CHAR_INFO] = "hex %02x, decimal %d",
 	[MSG_REPEAT_DESC] = " times %d . ",
 	[MSG_REPEAT_DESC2] = " repeated %d . ",
 	[MSG_WINDOW_LINE] = "window is line %d",
 	[MSG_WINDOW_BOUNDARY] = "%s at line %d, column %d",
 	[MSG_EDIT_PROMPT] = "edit  %s, press space when done",
-	[MSG_NO_COMMAND] = "no commands for %c\n",
-	[MSG_KEYDESC] = "is %s\n",
+	[MSG_NO_COMMAND] = "no commands for %c",
+	[MSG_KEYDESC] = "is %s",
 
 	/* Control keys. */
 	/* Most of these duplicate the entries in state names. */
