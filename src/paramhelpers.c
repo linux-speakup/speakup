@@ -8,6 +8,8 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
+static int set_characters(const char *val, struct kernel_param *kp);
+static int get_characters(char *buffer, struct kernel_param *kp);
 static int set_chartab(const char *val, struct kernel_param *kp);
 static int get_chartab(char *buffer, struct kernel_param *kp);
 static int set_keymap(const char *val, struct kernel_param *kp);
@@ -16,6 +18,7 @@ static int get_keymap(char *buffer, struct kernel_param *kp);
 /*
  * The first thing we do is define the parameters.
  */
+module_param_call(characters, set_characters, get_characters, NULL, 0664);
 module_param_call(chartab, set_chartab, get_chartab, NULL, 0664);
 module_param_call(keymap, set_keymap, get_keymap, NULL, 0644);
 
@@ -133,6 +136,115 @@ char *xlate(char *s)
 		*p2 = '\0';
 	}
 	return s;
+}
+
+/*
+ * This is the set handler for characters.
+ */
+static int set_characters(const char *val, struct kernel_param *kp)
+{
+	static int cnt = 0;
+	static int state = 0;
+	static char desc[MAX_DESC_LEN + 1];
+	static u_long jiff_last = 0;
+	u_long count = strlen(val);
+	int i = 0, num;
+	int len;
+	char ch, *cp, *p_new;
+	unsigned long flags;
+
+	/* reset certain vars if enough time has elapsed since last called */
+	spk_lock(flags);
+	if (jiffies - jiff_last > 10)
+		cnt = state = strings = rejects = updates = 0;
+	jiff_last = jiffies;
+get_more:
+	desc[cnt] = '\0';
+	state = 0;
+	for ( ; i < count && state < 2; i++) {
+		ch =  val[i];
+		if (ch == '\n') {
+			desc[cnt] = '\0';
+			state = 2;
+		} else if (cnt < MAX_DESC_LEN)
+			desc[cnt++] = ch;
+	}
+	if (state < 2)
+		goto out;
+	cp = desc;
+	while (*cp && (unsigned char)(*cp) <= SPACE)
+		cp++;
+	if ((!cnt) || strchr("dDrR", *cp)) {
+		reset_default_chars();
+		pr_info("character descriptions reset to defaults\n");
+		cnt = 0;
+		goto out;
+	}
+	cnt = 0;
+	if (*cp == '#')
+		goto get_more;
+	num = -1;
+	cp = speakup_s2i(cp, &num);
+	while (*cp && (unsigned char)(*cp) <= SPACE)
+		cp++;
+	if (num < 0 || num > 255) {
+		/* not in range */
+		rejects++;
+		strings++;
+		goto get_more;
+	}
+	if (num >= 27 && num <= 31)
+		goto get_more;
+	if (!strcmp(cp, characters[num])) {
+		strings++;
+		goto get_more;
+	}
+	len = strlen(cp);
+	if (characters[num] == default_chars[num])
+		p_new = kmalloc(len+1, GFP_ATOMIC);
+	else if (strlen(characters[num]) >= len)
+		p_new = characters[num];
+	else {
+		kfree(characters[num]);
+		characters[num] = default_chars[num];
+		p_new = kmalloc(len+1, GFP_ATOMIC);
+	}
+	if (!p_new) {
+		count = -ENOMEM;
+		goto out;
+	}
+	strcpy(p_new, cp);
+	characters[num] = p_new;
+	updates++;
+	strings++;
+	if (i < count)
+		goto get_more;
+	mod_timer(&chars_timer, jiffies + 5);
+out:
+	spk_unlock(flags);
+	return count;
+}
+
+/*
+ * This is the get handler for characters.
+ */
+static int get_characters(char *buffer, struct kernel_param *kp)
+{
+	int i;
+	int len = 0;
+	char *cp;
+
+	for (i = 0; i < 256; i++) {
+		cp = (characters[i]) ? characters[i] : "NULL";
+		len += sprintf(buffer + len, "%d\t%s\n", i, cp);
+	}
+
+	/* Loop leaves a newline at the end of the buffer, but buffer
+	 * shouldn't end with a newline.  Snip it.
+	*/
+	buffer[--len] = '\0';
+
+	return len;
 }
 
 /*
