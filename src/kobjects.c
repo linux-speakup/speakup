@@ -21,16 +21,41 @@
 #include "spk_priv.h"
 
 /*
- * This is called when a user reads the characters parameter.
+ * This is called when a user reads the characters or chartab sys file.
  */
-static ssize_t chars_show(struct kobject *kobj, struct kobj_attribute *attr,
-	char *buf)
+static ssize_t chars_chartab_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
 {
 	int i;
 	int len = 0;
+	char *cp;
 
 	for (i = 0; i < 256; i++) {
-		len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
+		if(strcmp("characters", attr->attr.name) == 0) {
+			len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
+		} else {
+			if (IS_TYPE(i, B_CTL))
+				cp = "B_CTL";
+			else if (IS_TYPE(i, WDLM))
+				cp = "WDLM";
+			else if (IS_TYPE(i, A_PUNC))
+				cp = "A_PUNC";
+			else if (IS_TYPE(i, PUNC))
+				cp = "PUNC";
+			else if (IS_TYPE(i, NUM))
+				cp = "NUM";
+			else if (IS_TYPE(i, A_CAP))
+				cp = "A_CAP";
+			else if (IS_TYPE(i, ALPHA))
+				cp = "ALPHA";
+			else if (IS_TYPE(i, B_CAPSYM))
+				cp = "B_CAPSYM";
+			else if (IS_TYPE(i, B_SYM))
+				cp = "B_SYM";
+			else
+				cp = "0";
+			len += sprintf(buf + len, "%d\t%s\n", i, cp);
+		}
 	}
 	return len;
 }
@@ -146,41 +171,6 @@ static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 	report_char_status(reset, received, used, rejected);
 
 	return retval;
-}
-
-/*
- * This is called when a user reads the chartab parameter.
- */
-static ssize_t chartab_show(struct kobject *kobj, struct kobj_attribute *attr,
-	char *buf)
-{
-	int i;
-	int len = 0;
-	char *cp;
-
-	for (i = 0; i < 256; i++) {
-		cp = "0";
-		if (IS_TYPE(i, B_CTL))
-			cp = "B_CTL";
-		else if (IS_TYPE(i, WDLM))
-			cp = "WDLM";
-		else if (IS_TYPE(i, A_PUNC))
-			cp = "A_PUNC";
-		else if (IS_TYPE(i, PUNC))
-			cp = "PUNC";
-		else if (IS_TYPE(i, NUM))
-			cp = "NUM";
-		else if (IS_TYPE(i, A_CAP))
-			cp = "A_CAP";
-		else if (IS_TYPE(i, ALPHA))
-			cp = "ALPHA";
-		else if (IS_TYPE(i, B_CAPSYM))
-			cp = "B_CAPSYM";
-		else if (IS_TYPE(i, B_SYM))
-			cp = "B_SYM";
-		len += sprintf(buf + len, "%d\t%s\n", i, cp);
-	}
-	return len;
 }
 
 /*
@@ -664,9 +654,9 @@ static struct kobj_attribute spell_delay_attribute =
  * These attributes are i18n related.
  */
 static struct kobj_attribute characters_attribute =
-	__ATTR(characters, USER_RW, chars_show, chars_store);
+	__ATTR(characters, USER_RW, chars_chartab_show, chars_store);
 static struct kobj_attribute chartab_attribute =
-	__ATTR(chartab, USER_RW, chartab_show, chartab_store);
+	__ATTR(chartab, USER_RW, chars_chartab_show, chartab_store);
 static struct kobj_attribute ctl_keys_message_attribute =
 	__ATTR(ctl_keys_message, USER_RW, message_show, message_store);
 static struct kobj_attribute colors_message_attribute =
