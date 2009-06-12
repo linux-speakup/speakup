@@ -89,9 +89,9 @@ static void report_char_status(int reset, int received, int used, int rejected)
 static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 	const char *buf, size_t count)
 {
-	const char *linefeed = NULL;
-	const char *cp = buf;
-	const char *end;
+	char *linefeed = NULL;
+	char *cp = (char *) buf;
+	char *end = cp + count - 1; /* the null at the end of the buffer */
 	char *descptr = NULL;
 	char *newstr = NULL;
 	ssize_t retval = count;
@@ -105,8 +105,6 @@ static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 	int i;
 
 	spk_lock(flags);
-	end = buf + count - 1;	/* end is pointer to NUL */
-
 	while (cp < end) {
 
 		while ((cp < end) && (*cp == ' ' || *cp == '\t'))
@@ -124,43 +122,43 @@ static ssize_t chars_store(struct kobject *kobj, struct kobj_attribute *attr,
 			break;
 		}
 
-		if (isdigit(*cp)) {
-			index = simple_strtoul(cp, &descptr, 10);
-
-			/* We have at least one digit, so descptr > cp.
-			 * The first non-digit may have been *linefeed, so
-			 * descptr <= linefeed. */
-			cp = linefeed + 1;
-			if (index > 255) {
-				rejected++;
-				continue;
-			}
-
-			while ((descptr < linefeed)
-			       && (*descptr == ' ' || *descptr == '\t'))
-				descptr++;
-
-			desc_length = linefeed - descptr;
-			newstr = kmalloc(desc_length + 1, GFP_ATOMIC);
-			if (newstr == NULL) {
-				retval = -ENOMEM;
-				reset = 1;	/* just reset on error. */
-				break;
-			}
-
-			for (i = 0; i < desc_length; i++)
-				newstr[i] = descptr[i];
-			newstr[desc_length] = '\0';
-
-			if (characters[index] != default_chars[index])
-				kfree(characters[index]);
-
-			characters[index] = newstr;
-			used++;
-		} else {	/* not "index description" */
+		if (! isdigit(*cp)) {
 			rejected++;
 			cp = linefeed + 1;
+			continue;
 		}
+		index = simple_strtoul(cp, &descptr, 10);
+
+		/* We have at least one digit, so descptr > cp.
+		 * The first non-digit may have been *linefeed, so
+		 * descptr <= linefeed. */
+		cp = linefeed + 1;
+		if (index > 255) {
+			rejected++;
+			continue;
+		}
+
+		while ((descptr < linefeed)
+		       && (*descptr == ' ' || *descptr == '\t'))
+			descptr++;
+
+		desc_length = linefeed - descptr;
+		newstr = kmalloc(desc_length + 1, GFP_ATOMIC);
+		if (newstr == NULL) {
+			retval = -ENOMEM;
+			reset = 1;	/* just reset on error. */
+			break;
+		}
+
+		for (i = 0; i < desc_length; i++)
+			newstr[i] = descptr[i];
+		newstr[desc_length] = '\0';
+
+		if (characters[index] != default_chars[index])
+			kfree(characters[index]);
+
+		characters[index] = newstr;
+		used++;
 	}
 
 	if (reset)
