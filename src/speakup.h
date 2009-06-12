@@ -61,6 +61,7 @@ extern void synth_start(void);
 extern int set_key_info(const u_char *key_info, u_char *k_buffer);
 extern char *strlwr(char *s);
 extern char *speakup_s2i(char *start, int *dest);
+extern char *s2uchar(char *start, char *dest);
 extern char *xlate(char *s);
 extern int speakup_kobj_init(void);
 extern void speakup_kobj_exit(void);
