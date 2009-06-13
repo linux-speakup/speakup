@@ -239,7 +239,67 @@ static ssize_t keymap_show(struct kobject *kobj, struct kobj_attribute *attr,
 static ssize_t keymap_store(struct kobject *kobj, struct kobj_attribute *attr,
 	const char *buf, size_t count)
 {
-	return count;
+	int i;
+	ssize_t ret = count;
+	char *in_buff = NULL;
+	char *cp;
+	u_char *cp1;
+	unsigned long flags;
+
+	spk_lock(flags);
+	in_buff = kmalloc(count, GFP_ATOMIC);
+	if (! in_buff) {
+		spk_unlock(flags);
+		return -ENOMEM;
+	}
+	memcpy(in_buff, buf, count);
+	if (strchr("dDrR", *in_buff)) {
+		set_key_info(key_defaults, key_buf);
+		pr_info("keymap set to default values\n");
+		kfree(in_buff);
+		spk_unlock(flags);
+		return count;
+	}
+	if (in_buff[count - 1] == '\n')
+		count--;
+	in_buff[count] = '\0';
+	cp = in_buff;
+	cp1 = (u_char *)in_buff;
+	for (i = 0; i < 3; i++) {
+		cp = s2uchar(cp, cp1);
+		cp1++;
+	}
+	i = (int)cp1[-2]+1;
+	i *= (int)cp1[-1]+1;
+	i += 2; /* 0 and last map ver */
+	if (cp1[-3] != KEY_MAP_VER || cp1[-1] > 10 ||
+			i+SHIFT_TBL_SIZE+4 >= sizeof(key_buf)) {
+		pr_warn("i %d %d %d %d\n", i,
+				(int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
+		kfree(in_buff);
+		spk_unlock(flags);
+		return -EINVAL;
+	}
+	while (--i >= 0) {
+		cp = s2uchar(cp, cp1);
+		cp1++;
+		if (!(*cp))
+			break;
+	}
+	if (i != 0 || cp1[-1] != KEY_MAP_VER || cp1[-2] != 0) {
+		ret = -EINVAL;
+		pr_warn("end %d %d %d %d\n", i,
+				(int)cp1[-3], (int)cp1[-2], (int)cp1[-1]);
+	} else {
+		if (set_key_info(in_buff, key_buf)) {
+			set_key_info(key_defaults, key_buf);
+			ret = -EINVAL;
+			pr_warn("set key failed\n");
+		}
+	}
+	kfree(in_buff);
+	spk_unlock(flags);
+	return ret;
 }
 
 /*
