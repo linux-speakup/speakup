@@ -351,37 +351,37 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 
 static struct msg_set all_sets [] = {
 	{
-		.name = "ctl_keys_message",
+		.name = "ctl_keys",
 		.start = MSG_CTL_START,
 		.end = MSG_CTL_END,
 	},
 	{
-		.name = "colors_message",
+		.name = "colors",
 		.start = MSG_COLORS_START,
 		.end = MSG_COLORS_END,
 	},
 	{
-		.name = "fancy_message",
+		.name = "fancy",
 		.start = MSG_FANCY_START,
 		.end = MSG_FANCY_END,
 	},
 	{
-		.name = "funcnames_message",
+		.name = "function_names",
 		.start = MSG_FUNCNAMES_START,
 		.end = MSG_FUNCNAMES_END,
 	},
 	{
-		.name = "keynames_message",
+		.name = "key_names",
 		.start = MSG_KEYNAMES_START,
 		.end = MSG_KEYNAMES_END,
 	},
 	{
-		.name = "misc_message",
+		.name = "misc",
 		.start = MSG_MISC_START,
 		.end = MSG_MISC_END,
 	},
 	{
-		.name = "states_message",
+		.name = "states",
 		.start = MSG_STATES_START,
 		.end = MSG_STATES_END,
 	},

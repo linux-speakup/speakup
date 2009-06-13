@@ -741,20 +741,20 @@ static struct kobj_attribute characters_attribute =
 	__ATTR(characters, USER_RW, chars_chartab_show, chars_chartab_store);
 static struct kobj_attribute chartab_attribute =
 	__ATTR(chartab, USER_RW, chars_chartab_show, chars_chartab_store);
-static struct kobj_attribute ctl_keys_message_attribute =
-	__ATTR(ctl_keys_message, USER_RW, message_show, message_store);
-static struct kobj_attribute colors_message_attribute =
-	__ATTR(colors_message, USER_RW, message_show, message_store);
-static struct kobj_attribute fancy_message_attribute =
-	__ATTR(fancy_message, USER_RW, message_show, message_store);
-static struct kobj_attribute funcnames_message_attribute =
-	__ATTR(funcnames_message, USER_RW, message_show, message_store);
-static struct kobj_attribute keynames_message_attribute =
-	__ATTR(keynames_message, USER_RW, message_show, message_store);
-static struct kobj_attribute misc_message_attribute =
-	__ATTR(misc_message, USER_RW, message_show, message_store);
-static struct kobj_attribute states_message_attribute =
-	__ATTR(states_message, USER_RW, message_show, message_store);
+static struct kobj_attribute ctl_keys_attribute =
+	__ATTR(ctl_keys, USER_RW, message_show, message_store);
+static struct kobj_attribute colors_attribute =
+	__ATTR(colors, USER_RW, message_show, message_store);
+static struct kobj_attribute fancy_attribute =
+	__ATTR(fancy, USER_RW, message_show, message_store);
+static struct kobj_attribute function_names_attribute =
+	__ATTR(function_names, USER_RW, message_show, message_store);
+static struct kobj_attribute key_names_attribute =
+	__ATTR(key_names, USER_RW, message_show, message_store);
+static struct kobj_attribute misc_attribute =
+	__ATTR(misc, USER_RW, message_show, message_store);
+static struct kobj_attribute states_attribute =
+	__ATTR(states, USER_RW, message_show, message_store);
 
 /*
  * Create groups of attributes so that we can create and destroy them all
@@ -790,13 +790,13 @@ static struct attribute *main_attrs[] = {
 static struct attribute *i18n_attrs[] = {
 	&characters_attribute.attr,
 	&chartab_attribute.attr,
-	&ctl_keys_message_attribute.attr,
-	&colors_message_attribute.attr,
-	&fancy_message_attribute.attr,
-	&funcnames_message_attribute.attr,
-	&keynames_message_attribute.attr,
-	&misc_message_attribute.attr,
-	&states_message_attribute.attr,
+	&ctl_keys_attribute.attr,
+	&colors_attribute.attr,
+	&fancy_attribute.attr,
+	&function_names_attribute.attr,
+	&key_names_attribute.attr,
+	&misc_attribute.attr,
+	&states_attribute.attr,
 	NULL,
 };
 
