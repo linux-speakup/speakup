@@ -247,12 +247,12 @@ static ssize_t keymap_store(struct kobject *kobj, struct kobj_attribute *attr,
 	unsigned long flags;
 
 	spk_lock(flags);
-	in_buff = kmalloc(count, GFP_ATOMIC);
+	in_buff = kmalloc(count + 1, GFP_ATOMIC);
 	if (! in_buff) {
 		spk_unlock(flags);
 		return -ENOMEM;
 	}
-	memcpy(in_buff, buf, count);
+	memcpy(in_buff, buf, count + 1);
 	if (strchr("dDrR", *in_buff)) {
 		set_key_info(key_defaults, key_buf);
 		pr_info("keymap set to default values\n");
@@ -261,8 +261,7 @@ static ssize_t keymap_store(struct kobject *kobj, struct kobj_attribute *attr,
 		return count;
 	}
 	if (in_buff[count - 1] == '\n')
-		count--;
-	in_buff[count] = '\0';
+	in_buff[count - 1] = '\0';
 	cp = in_buff;
 	cp1 = (u_char *)in_buff;
 	for (i = 0; i < 3; i++) {
