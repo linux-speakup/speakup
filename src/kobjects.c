@@ -652,10 +652,119 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	return buf_pointer - buf;
 }
 
-static ssize_t message_store_helper(const char *buf, size_t count,
-	enum msg_index_t first, enum msg_index_t last)
+static void report_i18n_status(int reset, int received, int used,
+	int rejected, char *setname)
 {
-	return count; /* Allow the write, and do nothing. */
+	int len;
+	char buf[160];
+
+	if (reset) {
+		pr_info("i18n messages from set %s reset to defaults\n",
+			setname);
+	} else if (received ) {
+		len = snprintf(buf, sizeof(buf),
+			       " updated %d of %d i18n messages from set %s\n",
+				       used, received, setname);
+		if (rejected)
+			snprintf(buf + (len - 1), sizeof(buf) - (len - 1),
+				 " with %d reject%s\n",
+				 rejected, rejected > 1 ? "s" : "");
+		printk(buf);
+	}
+}
+
+static ssize_t message_store_helper(const char *buf, size_t count,
+	struct msg_set_t *set)
+{
+	char *cp = (char *) buf;
+	char *end = cp + count - 1; /* the null at the end of the buffer */
+	char *linefeed = NULL;
+	char *temp = NULL;
+	char *msg_stored = NULL;	/* Message stored successfully? */
+	ssize_t retval = count;
+	size_t desc_length = 0;
+	unsigned long index = 0;
+	int received = 0;
+	int used = 0;
+	int rejected = 0;
+	int reset = 0;
+	enum msg_index_t firstmessage = set->start;
+	enum msg_index_t lastmessage = set->end;
+	enum msg_index_t curmessage;
+
+	if (firstmessage == MSG_FANCY_START)
+		return count;	/* Don't want to deal with fancy right now. */
+
+	while (cp < end) {
+
+		while ((cp < end) && (*cp == ' ' || *cp == '\t'))
+			cp++;	/* Ignore space and tab. */
+
+		if (cp == end)
+			break;
+		if ((*cp == '\n') || strchr("dDrR", *cp)) {
+			reset = 1;
+			break;
+		}
+		received++;
+
+		linefeed = strchr(cp, '\n');
+		if (!linefeed) {
+			rejected++;
+			break;
+		}
+
+		if (! isdigit(*cp)) {
+			rejected++;
+			cp = linefeed + 1;
+			continue;
+		}
+
+		/*
+		 * At this point, we know that the string pointed to by cp
+		 * begins with a number, so that is the array index.
+		 */
+		index = simple_strtoul(cp, &temp, 10);
+		if (index > 255) {
+			rejected++;
+			cp = linefeed + 1;
+			continue;
+		}
+
+		while ((temp < linefeed) && (*temp == ' ' || *temp == '\t'))
+			temp++;
+
+		desc_length = linefeed - temp;
+		curmessage = firstmessage + index;
+
+		/*
+		 * Note the check (curmessage < firstmessage).  It is not
+		 * redundant.  Suppose that the user gave us an index
+		 * equal to ULONG_MAX - 1.  If firstmessage > 1, then
+		 * firstmessage + index < firstmessage!
+		 */
+
+		if ((curmessage < firstmessage) || (curmessage > lastmessage)) {
+			rejected++;	/* Reject bogus index. */
+			cp = linefeed + 1;
+			continue;
+		}
+
+		msg_stored = msg_set(curmessage, temp, desc_length);
+		if (!msg_stored) {
+			retval = -ENOMEM;	/* Memory allocation failure. */
+			reset = 1;
+			break;
+		}
+
+		cp = linefeed + 1;
+	}
+
+	if (reset)
+		reset_msg_set(set);
+
+	report_i18n_status(reset, received, used, rejected, set->name);
+	return retval;
 } /* message_store_helper */
 
 static ssize_t message_show(struct kobject *kobj,
@@ -676,7 +785,7 @@ static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
 	struct msg_set_t *set = find_msg_set(attr->attr.name);
 
 	BUG_ON(! set);
-	retval = message_store_helper(buf, count, set->start, set->end);
+	retval = message_store_helper(buf, count, set);
 	return retval;
 } /* message_store */
 
