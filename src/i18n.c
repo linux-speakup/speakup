@@ -472,3 +472,21 @@ struct msg_set *find_message_set(const char *set_name)
 
 	return set;
 } /* find_msg_set */
+
+void reset_i18n_subarray(struct msg_set *set)
+{
+	unsigned long flags;
+	enum msg_index_t i;
+
+	spk_lock(flags);
+
+	for(i = set->start; i <= set->end; i++) {
+		if((speakup_msgs[i] != speakup_default_msgs[i])
+		    && (speakup_msgs[i] != NULL))
+			kfree(speakup_msgs[i]);
+		speakup_msgs[i] = speakup_default_msgs[i];
+	}
+
+	spk_unlock(flags);
+}
+

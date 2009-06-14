@@ -225,5 +225,6 @@ extern char *msg_set(enum msg_index_t index, char *text);
 extern void free_user_strings(void);
 extern void reset_default_msgs(void);
 extern struct msg_set *find_message_set(const char *set_name);
+extern void reset_i18n_subarray(struct msg_set *set);
 
 #endif
