@@ -404,21 +404,23 @@ char *msg_get(enum msg_index_t index)
  * If the function fails, then user_messages is untouched.
  * Arguments:
  * - index: a message number, as found in i18n.h.
- * - message: NUL-terminated text of message.
+ * - text:  text of message.  Not NUL-terminated.
+ * - length: number of bytes in text.
  * Return value: pointer to new message on success, NULL on failure.
  * Failure conditions:
  * - Unable to allocate memory.
  * - Illegal index.
 */
-char *msg_set(enum msg_index_t index, char *text)
+char *msg_set(enum msg_index_t index, char *text, size_t length)
 {
 	char *newstr = NULL;
 	unsigned long flags;
 
 	if ((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX)) {
-		newstr = kmalloc(strlen(text) + 1, GFP_KERNEL);
+		newstr = kmalloc(length + 1, GFP_KERNEL);
 		if (newstr) {
-			strcpy(newstr, text);
+			memcpy(newstr, text, length);
+			text[length] = '\0';
 			spk_lock(flags);
 			if (speakup_msgs[index] != speakup_default_msgs[index])
 				kfree(speakup_msgs[index]);

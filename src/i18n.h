@@ -221,7 +221,7 @@ struct msg_set_t {
 };
 
 extern char *msg_get(enum msg_index_t index);
-extern char *msg_set(enum msg_index_t index, char *text);
+extern char *msg_set(enum msg_index_t index, char *text, size_t length);
 extern struct msg_set_t *find_msg_set(const char *set_name);
 extern void reset_msg_set(struct msg_set_t *set);
 extern void initialize_msgs(void);
