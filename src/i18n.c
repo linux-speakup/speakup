@@ -349,7 +349,7 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_FUNCNAME_WORD_SAY_PREVIOUS] = "word, say previous",
 };
 
-static struct msg_set all_sets [] = {
+static struct msg_set_t all_sets [] = {
 	{
 		.name = "ctl_keys",
 		.start = MSG_CTL_START,
@@ -387,7 +387,7 @@ static struct msg_set all_sets [] = {
 	},
 };
 
-static const  int num_sets = sizeof(all_sets) / sizeof(struct msg_set);
+static const  int num_sets = sizeof(all_sets) / sizeof(struct msg_set_t);
 
 char *msg_get(enum msg_index_t index)
 {
@@ -459,9 +459,9 @@ void free_user_strings(void)
  * Find a message set, given its name.  Return a pointer to the structure
  * if found, or NULL otherwise.
 */
-struct msg_set *find_message_set(const char *set_name)
+struct msg_set_t *find_message_set(const char *set_name)
 {
-	struct msg_set *set = NULL;
+	struct msg_set_t *set = NULL;
 	int i;
 	for (i = 0; i < num_sets; i++) {
 		if (!strcmp(all_sets[i].name, set_name)) {
@@ -471,9 +471,9 @@ struct msg_set *find_message_set(const char *set_name)
 	}
 
 	return set;
-} /* find_msg_set */
+}
 
-void reset_i18n_subarray(struct msg_set *set)
+void reset_message_set(struct msg_set_t *set)
 {
 	unsigned long flags;
 	enum msg_index_t i;

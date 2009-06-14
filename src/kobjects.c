@@ -662,7 +662,7 @@ static ssize_t message_show(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
 {
 	ssize_t retval = 0;
-	struct msg_set *set = find_message_set(attr->attr.name);
+	struct msg_set_t *set = find_message_set(attr->attr.name);
 
 	BUG_ON(! set);
 	retval = message_show_helper(buf, set->start, set->end);
@@ -673,7 +673,7 @@ static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
 	const char *buf, size_t count)
 {
 	ssize_t retval = 0;
-	struct msg_set *set = find_message_set(attr->attr.name);
+	struct msg_set_t *set = find_message_set(attr->attr.name);
 
 	BUG_ON(! set);
 	retval = message_store_helper(buf, count, set->start, set->end);

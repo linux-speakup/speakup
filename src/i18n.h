@@ -214,7 +214,7 @@ enum msg_index_t {
 	MSG_LAST_INDEX
 };
 
-struct msg_set {
+struct msg_set_t {
 	char *name;
 	enum msg_index_t start;
 	enum msg_index_t end;
@@ -224,7 +224,7 @@ extern char *msg_get(enum msg_index_t index);
 extern char *msg_set(enum msg_index_t index, char *text);
 extern void free_user_strings(void);
 extern void reset_default_msgs(void);
-extern struct msg_set *find_message_set(const char *set_name);
-extern void reset_i18n_subarray(struct msg_set *set);
+extern struct msg_set_t *find_message_set(const char *set_name);
+extern void reset_message_set(struct msg_set_t *set);
 
 #endif
