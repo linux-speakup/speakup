@@ -33,29 +33,29 @@ static ssize_t chars_chartab_show(struct kobject *kobj,
 	for (i = 0; i < 256; i++) {
 		if (strcmp("characters", attr->attr.name) == 0) {
 			len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
-		} else {
-			if (IS_TYPE(i, B_CTL))
-				cp = "B_CTL";
-			else if (IS_TYPE(i, WDLM))
-				cp = "WDLM";
-			else if (IS_TYPE(i, A_PUNC))
-				cp = "A_PUNC";
-			else if (IS_TYPE(i, PUNC))
-				cp = "PUNC";
-			else if (IS_TYPE(i, NUM))
-				cp = "NUM";
-			else if (IS_TYPE(i, A_CAP))
-				cp = "A_CAP";
-			else if (IS_TYPE(i, ALPHA))
-				cp = "ALPHA";
-			else if (IS_TYPE(i, B_CAPSYM))
-				cp = "B_CAPSYM";
-			else if (IS_TYPE(i, B_SYM))
-				cp = "B_SYM";
-			else
-				cp = "0";
-			len += sprintf(buf + len, "%d\t%s\n", i, cp);
+			continue;
 		}
+		if (IS_TYPE(i, B_CTL))
+			cp = "B_CTL";
+		else if (IS_TYPE(i, WDLM))
+			cp = "WDLM";
+		else if (IS_TYPE(i, A_PUNC))
+			cp = "A_PUNC";
+		else if (IS_TYPE(i, PUNC))
+			cp = "PUNC";
+		else if (IS_TYPE(i, NUM))
+			cp = "NUM";
+		else if (IS_TYPE(i, A_CAP))
+			cp = "A_CAP";
+		else if (IS_TYPE(i, ALPHA))
+			cp = "ALPHA";
+		else if (IS_TYPE(i, B_CAPSYM))
+			cp = "B_CAPSYM";
+		else if (IS_TYPE(i, B_SYM))
+			cp = "B_SYM";
+		else
+			cp = "0";
+		len += sprintf(buf + len, "%d\t%s\n", i, cp);
 	}
 	return len;
 }
@@ -139,10 +139,6 @@ static ssize_t chars_chartab_store(struct kobject *kobj,
 			continue;
 		}
 
-		/*
-		 * At this point, we know that the string pointed to by cp
-		 * begins with a number, so that is the array index.
-		 */
 		index = simple_strtoul(cp, &temp, 10);
 		if (index > 255) {
 			rejected++;
@@ -214,8 +210,12 @@ static ssize_t keymap_show(struct kobject *kobj, struct kobj_attribute *attr,
 	char *buf)
 {
 	char *cp = buf;
-	int i, n, num_keys, nstates;
-	u_char *cp1 = key_buf + SHIFT_TBL_SIZE, ch;
+	int i;
+	int n;
+	int num_keys;
+	int nstates;
+	u_char *cp1 = key_buf + SHIFT_TBL_SIZE;
+	u_char ch;
 	num_keys = (int)(*cp1);
 	nstates = (int)cp1[1];
 	cp += sprintf(cp, "%d, %d, %d,\n", KEY_MAP_VER, num_keys, nstates);
@@ -309,7 +309,8 @@ static ssize_t silent_store(struct kobject *kobj, struct kobj_attribute *attr,
 {
 	int len;
 	struct vc_data *vc = vc_cons[fg_console].d;
-	char ch = 0, shut;
+	char ch = 0;
+	char shut;
 	unsigned long flags;
 
 	len = strlen(buf);
@@ -326,8 +327,9 @@ static ssize_t silent_store(struct kobject *kobj, struct kobj_attribute *attr,
 	if (ch&2) {
 		shut = 1;
 		do_flush();
-	} else
+	} else {
 		shut = 0;
+	}
 	if (ch&4)
 		shut |= 0x40;
 	if (ch&1)
@@ -578,7 +580,6 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 		return 0;
 	ret = 0;
 	cp = xlate((char *) buf);
-	len = strlen(buf); /* xlate may have changed the length of the string */
 
 	switch (param->var_type) {
 	case VAR_NUM:
@@ -599,17 +600,15 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 		}
 		break;
 	case VAR_STRING:
-		/*
-		 * Strip balanced quote and newline character, if present.
-		*/
+		len = strlen(buf);
 		if ((len >= 1) && (buf[len - 1] == '\n'))
 			--len;
 		if ((len >= 2) && (buf[0] == '"') && (buf[len - 1] == '"')) {
 			++buf;
 			len -= 2;
 		}
-		cp = (char *) buf; /* non-const pointer to buf */
-		cp[len] = '\0'; /* Ensure NUL-termination. */
+		cp = (char *) buf;
+		cp[len] = '\0';
 		ret = set_string_var(buf, param, len);
 		if (ret == E_TOOLONG)
 			pr_warn("value too long for %s\n",
@@ -641,11 +640,11 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	*buf_pointer = '\0'; /* buf_pointer always looking at a NUL byte. */
 
 	for (cursor = first; cursor <= last; cursor++, index++) {
-		if (bufsize <= 1) /* full buffer. */
+		if (bufsize <= 1)
 			break;
 		printed = scnprintf(buf_pointer, bufsize, "%d\t%s\n",
 			index, msg_get(cursor));
-		buf_pointer += printed; /* point to NUL following text. */
+		buf_pointer += printed;
 		bufsize -= printed;
 	}
 
@@ -677,10 +676,10 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	struct msg_group_t *group)
 {
 	char *cp = (char *) buf;
-	char *end = cp + count - 1; /* the null at the end of the buffer */
+	char *end = cp + count - 1;
 	char *linefeed = NULL;
 	char *temp = NULL;
-	char *msg_stored = NULL;	/* Message stored successfully? */
+	char *msg_stored = NULL;
 	ssize_t retval = count;
 	size_t desc_length = 0;
 	unsigned long index = 0;
@@ -698,11 +697,11 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	while (cp < end) {
 
 		while ((cp < end) && (*cp == ' ' || *cp == '\t'))
-			cp++;	/* Ignore space and tab. */
+			cp++;
 
 		if (cp == end)
 			break;
-		if ((*cp == '\n') || strchr("dDrR", *cp)) {
+		if (strchr("dDrR", *cp)) {
 			reset = 1;
 			break;
 		}
@@ -720,10 +719,6 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 			continue;
 		}
 
-		/*
-		 * At this point, we know that the string pointed to by cp
-		 * begins with a number, so that is the array index.
-		 */
 		index = simple_strtoul(cp, &temp, 10);
 		if (index > 255) {
 			rejected++;
@@ -745,7 +740,7 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 		 */
 
 		if ((curmessage < firstmessage) || (curmessage > lastmessage)) {
-			rejected++;	/* Reject bogus index. */
+			rejected++;
 			cp = linefeed + 1;
 			continue;
 		}
@@ -765,7 +760,7 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 
 	report_msg_status(reset, received, used, rejected, group->name);
 	return retval;
-} /* message_store_helper */
+}
 
 static ssize_t message_show(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
@@ -788,8 +783,6 @@ static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
 	retval = message_store_helper(buf, count, group);
 	return retval;
 }
-
-/* End i18n-message functions. */
 
 /*
  * Declare the attributes.
@@ -893,7 +886,7 @@ static struct attribute *main_attrs[] = {
 	&say_control_attribute.attr,
 	&say_word_ctl_attribute.attr,
 	&spell_delay_attribute.attr,
-	NULL,	/* need to NULL terminate the list of attributes */
+	NULL,
 };
 
 static struct attribute *i18n_attrs[] = {
