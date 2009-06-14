@@ -222,9 +222,9 @@ struct msg_set_t {
 
 extern char *msg_get(enum msg_index_t index);
 extern char *msg_set(enum msg_index_t index, char *text);
-extern void free_user_strings(void);
-extern void reset_default_msgs(void);
-extern struct msg_set_t *find_message_set(const char *set_name);
-extern void reset_message_set(struct msg_set_t *set);
+extern struct msg_set_t *find_msg_set(const char *set_name);
+extern void reset_msg_set(struct msg_set_t *set);
+extern void initialize_msgs(void);
+extern void free_user_msgs(void);
 
 #endif

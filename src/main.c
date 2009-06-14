@@ -2187,7 +2187,7 @@ static void __exit speakup_exit(void)
 {
 	int i;
 
-	free_user_strings();
+	free_user_msgs();
 	unregister_keyboard_notifier(&keyboard_notifier_block);
 	unregister_vt_notifier(&vt_notifier_block);
 	speakup_unregister_devsynth();
@@ -2219,7 +2219,7 @@ static int __init speakup_init(void)
 	struct vc_data *vc = vc_cons[fg_console].d;
 	struct var_t *var;
 
-	reset_default_msgs(); /* Initialize arrays for i18n. */
+	initialize_msgs(); /* Initialize arrays for i18n. */
 	first_console = kzalloc(sizeof(*first_console), GFP_KERNEL);
 	if (!first_console)
 		return -ENOMEM;

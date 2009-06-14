@@ -415,9 +415,9 @@ char *msg_set(enum msg_index_t index, char *text)
 	char *newstr = NULL;
 	unsigned long flags;
 
-	if((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX)) {
+	if ((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX)) {
 		newstr = kmalloc(strlen(text) + 1, GFP_KERNEL);
-		if(newstr != NULL) {
+		if (newstr) {
 			strcpy(newstr, text);
 			spk_lock(flags);
 			if((speakup_msgs[index] != speakup_default_msgs[index])
@@ -427,49 +427,24 @@ char *msg_set(enum msg_index_t index, char *text)
 			spk_unlock(flags);
 		}
 	}
-
 	return newstr;
-}
-
-/* Called at initialization time, to establish default messages. */
-void reset_default_msgs(void)
-{
-	enum msg_index_t index;
-	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++)
-		speakup_msgs[index] = speakup_default_msgs[index];
-}
-
-/* Free user-supplied strings when module is unloaded: */
-void free_user_strings(void)
-{
-	enum msg_index_t index;
-	unsigned long flags;
-	spk_lock(flags);
-	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++) {
-		if((speakup_msgs[index] != speakup_default_msgs[index])
-		    && (speakup_msgs[index] != NULL)) {
-			kfree(speakup_msgs[index]);
-			speakup_msgs[index] = speakup_default_msgs[index];
-		}
-	}
-	spk_unlock(flags);
 }
 
 /*
  * Find a message set, given its name.  Return a pointer to the structure
  * if found, or NULL otherwise.
 */
-struct msg_set_t *find_message_set(const char *set_name)
+struct msg_set_t *find_msg_set(const char *set_name)
 {
 	struct msg_set_t *set = NULL;
 	int i;
+
 	for (i = 0; i < num_sets; i++) {
 		if (!strcmp(all_sets[i].name, set_name)) {
 			set = &all_sets[i];
 			break;
 		}
 	}
-
 	return set;
 }
 
@@ -486,7 +461,31 @@ void reset_message_set(struct msg_set_t *set)
 			kfree(speakup_msgs[i]);
 		speakup_msgs[i] = speakup_default_msgs[i];
 	}
-
 	spk_unlock(flags);
 }
 
+/* Called at initialization time, to establish default messages. */
+void reset_default_msgs(void)
+{
+	enum msg_index_t index;
+
+	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++)
+		speakup_msgs[index] = speakup_default_msgs[index];
+}
+
+/* Free user-supplied strings when module is unloaded: */
+void free_user_msgs(void)
+{
+	enum msg_index_t index;
+	unsigned long flags;
+
+	spk_lock(flags);
+	for(index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++) {
+		if ((speakup_msgs[index] != speakup_default_msgs[index])
+		    && (speakup_msgs[index] != NULL)) {
+			kfree(speakup_msgs[index]);
+			speakup_msgs[index] = speakup_default_msgs[index];
+		}
+	}
+	spk_unlock(flags);
+}
