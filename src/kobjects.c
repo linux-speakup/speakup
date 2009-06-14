@@ -652,19 +652,19 @@ static ssize_t message_show_helper(char *buf, enum msg_index_t first,
 	return buf_pointer - buf;
 }
 
-static void report_i18n_status(int reset, int received, int used,
-	int rejected, char *setname)
+static void report_msg_status(int reset, int received, int used,
+	int rejected, char *groupname)
 {
 	int len;
 	char buf[160];
 
 	if (reset) {
-		pr_info("i18n messages from set %s reset to defaults\n",
-			setname);
+		pr_info("i18n messages from group %s reset to defaults\n",
+			groupname);
 	} else if (received ) {
 		len = snprintf(buf, sizeof(buf),
-			       " updated %d of %d i18n messages from set %s\n",
-				       used, received, setname);
+			       " updated %d of %d i18n messages from group %s\n",
+				       used, received, groupname);
 		if (rejected)
 			snprintf(buf + (len - 1), sizeof(buf) - (len - 1),
 				 " with %d reject%s\n",
@@ -674,7 +674,7 @@ static void report_i18n_status(int reset, int received, int used,
 }
 
 static ssize_t message_store_helper(const char *buf, size_t count,
-	struct msg_set_t *set)
+	struct msg_group_t *group)
 {
 	char *cp = (char *) buf;
 	char *end = cp + count - 1; /* the null at the end of the buffer */
@@ -688,8 +688,8 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	int used = 0;
 	int rejected = 0;
 	int reset = 0;
-	enum msg_index_t firstmessage = set->start;
-	enum msg_index_t lastmessage = set->end;
+	enum msg_index_t firstmessage = group->start;
+	enum msg_index_t lastmessage = group->end;
 	enum msg_index_t curmessage;
 
 	if (firstmessage == MSG_FANCY_START)
@@ -761,9 +761,9 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	}
 
 	if (reset)
-		reset_msg_set(set);
+		reset_msg_group(group);
 
-	report_i18n_status(reset, received, used, rejected, set->name);
+	report_msg_status(reset, received, used, rejected, group->name);
 	return retval;
 } /* message_store_helper */
 
@@ -771,23 +771,23 @@ static ssize_t message_show(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
 {
 	ssize_t retval = 0;
-	struct msg_set_t *set = find_msg_set(attr->attr.name);
+	struct msg_group_t *group = find_msg_group(attr->attr.name);
 
-	BUG_ON(! set);
-	retval = message_show_helper(buf, set->start, set->end);
+	BUG_ON(! group);
+	retval = message_show_helper(buf, group->start, group->end);
 	return retval;
-} /* message_show */
+}
 
 static ssize_t message_store(struct kobject *kobj, struct kobj_attribute *attr,
 	const char *buf, size_t count)
 {
 	ssize_t retval = 0;
-	struct msg_set_t *set = find_msg_set(attr->attr.name);
+	struct msg_group_t *group = find_msg_group(attr->attr.name);
 
-	BUG_ON(! set);
-	retval = message_store_helper(buf, count, set);
+	BUG_ON(! group);
+	retval = message_store_helper(buf, count, group);
 	return retval;
-} /* message_store */
+}
 
 /* End i18n-message functions. */
 

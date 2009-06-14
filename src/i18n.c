@@ -349,7 +349,7 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_FUNCNAME_WORD_SAY_PREVIOUS] = "word, say previous",
 };
 
-static struct msg_set_t all_sets [] = {
+static struct msg_group_t all_groups [] = {
 	{
 		.name = "ctl_keys",
 		.start = MSG_CTL_START,
@@ -387,7 +387,7 @@ static struct msg_set_t all_sets [] = {
 	},
 };
 
-static const  int num_sets = sizeof(all_sets) / sizeof(struct msg_set_t);
+static const  int num_groups = sizeof(all_groups) / sizeof(struct msg_group_t);
 
 char *msg_get(enum msg_index_t index)
 {
@@ -432,31 +432,31 @@ char *msg_set(enum msg_index_t index, char *text, size_t length)
 }
 
 /*
- * Find a message set, given its name.  Return a pointer to the structure
+ * Find a message group, given its name.  Return a pointer to the structure
  * if found, or NULL otherwise.
 */
-struct msg_set_t *find_msg_set(const char *set_name)
+struct msg_group_t *find_msg_group(const char *group_name)
 {
-	struct msg_set_t *set = NULL;
+	struct msg_group_t *group = NULL;
 	int i;
 
-	for (i = 0; i < num_sets; i++) {
-		if (!strcmp(all_sets[i].name, set_name)) {
-			set = &all_sets[i];
+	for (i = 0; i < num_groups; i++) {
+		if (!strcmp(all_groups[i].name, group_name)) {
+			group = &all_groups[i];
 			break;
 		}
 	}
-	return set;
+	return group;
 }
 
-void reset_message_set(struct msg_set_t *set)
+void reset_msg_group(struct msg_group_t *group)
 {
 	unsigned long flags;
 	enum msg_index_t i;
 
 	spk_lock(flags);
 
-	for(i = set->start; i <= set->end; i++) {
+	for(i = group->start; i <= group->end; i++) {
 		if (speakup_msgs[i] != speakup_default_msgs[i])
 			kfree(speakup_msgs[i]);
 		speakup_msgs[i] = speakup_default_msgs[i];
