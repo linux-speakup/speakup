@@ -465,7 +465,7 @@ void reset_message_set(struct msg_set_t *set)
 }
 
 /* Called at initialization time, to establish default messages. */
-void reset_default_msgs(void)
+void initialize_msgs(void)
 {
 	enum msg_index_t index;
 
