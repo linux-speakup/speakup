@@ -95,7 +95,7 @@ static ssize_t chars_chartab_store(struct kobject *kobj,
 	struct kobj_attribute *attr, const char *buf, size_t count)
 {
 	char *cp = (char *) buf;
-	char *end = cp + count - 1; /* the null at the end of the buffer */
+	char *end = cp + count; /* the null at the end of the buffer */
 	char *linefeed = NULL;
 	char keyword[MAX_DESC_LEN + 1];
 	char *outptr = NULL;	/* Will hold keyword or desc. */
@@ -676,7 +676,7 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	struct msg_group_t *group)
 {
 	char *cp = (char *) buf;
-	char *end = cp + count - 1;
+	char *end = cp + count;
 	char *linefeed = NULL;
 	char *temp = NULL;
 	char *msg_stored = NULL;
