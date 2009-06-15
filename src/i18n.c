@@ -45,7 +45,6 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_EDGE_BOTTOM] = "bottom, ",
 	[MSG_EDGE_LEFT] = "left, ",
 	[MSG_EDGE_RIGHT] = "right, ",
-	[MSG_EDGE_QUIET] = "",
 	[MSG_NUMBER] = "number",
 	[MSG_SPACE] = "space",
 	[MSG_START] = "start",

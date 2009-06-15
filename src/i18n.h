@@ -45,7 +45,6 @@ enum msg_index_t {
 	MSG_EDGE_BOTTOM,
 	MSG_EDGE_LEFT,
 	MSG_EDGE_RIGHT,
-	MSG_EDGE_QUIET,
 	MSG_NUMBER,
 	MSG_SPACE,
 	MSG_START, /* A little confusing, given our convention. */

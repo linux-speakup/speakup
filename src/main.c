@@ -397,8 +397,8 @@ static void announce_edge(struct vc_data *vc, int msg_id)
 {
 	if (bleeps & 1)
 		bleep(spk_y);
-	if (bleeps & 2)
-		synth_printf("%s\n", msg_get(MSG_EDGE_MSGS_START + msg_id -  1));
+	if ((bleeps & 2) && (msg_id < edge_quiet))
+		synth_printf("%s\n", msg_get(MSG_EDGE_MSGS_START + msg_id - 1));
 }
 
 static void speak_char(u_char ch)
