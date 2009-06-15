@@ -4,3 +4,11 @@ This directory contains extra tools which make speakup easier to use.
 Below you will find a brief description of these tools and how to
 use them.
 
+speakupconf
+
+This script was originally written by Steve Holmes
+<steve@holmesgrown.com>, and it is now being maintained as part of the
+speakup project.  Its function is to save and load speakup's
+configurable settings.  If it is run as root, it will save settings in
+/etc/speakup, or if it is run as a user, in $HOME/.speakup.
+

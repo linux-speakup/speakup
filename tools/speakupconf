@@ -1,0 +1,80 @@
+#!/bin/sh
+# script to load/save all the vars in speakup
+#  Copyright (C) 2008 Steve Holmes
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# speakupconf save or speakupconf load
+# if root saves in /etc/speakup/<synth> else in $HOME/.speakup/<synth>
+if [ $UID -eq "0" ]; then
+  SAVEDIR="/etc/speakup"
+  SAVEPERM=-600
+else
+  SAVEDIR="$HOME/.speakup"
+  SAVEPERM=-660
+fi
+SPEAKUPDIR=/sys/module/speakup/parameters
+if [ ! -d $SPEAKUPDIR ]; then
+  echo "no directory $SPEAKUPDIR"
+  exit 0
+fi
+SYNTH=`cat $SPEAKUPDIR/synth`
+case "$1" in
+*group)
+  if [ ! $UID -eq "0" ]; then
+  	echo "This must be run as root."
+	exit 1
+  fi
+  GROUPNAME="$2"
+  if [ -z "$GROUPNAME" ]; then
+  	  echo "No group specified."
+	  exit 1
+  fi
+  chgrp $GROUPNAME $SPEAKUPDIR/*
+;;
+*save)
+  if [ ! -d $SAVEDIR ] ; then
+    echo creating $SAVEDIR
+    mkdir $SAVEDIR
+  fi
+  if [ ! -d $SAVEDIR/$SYNTH ] ; then
+    echo creating $SAVEDIR/$SYNTH
+    mkdir $SAVEDIR/$SYNTH
+  fi
+  cd $SPEAKUPDIR
+  SAVELIST=`find . -perm $SAVEPERM -type f |sed 's/..//' |fgrep -v synth`
+  for f in $SAVELIST; do
+    cp $f $SAVEDIR/$SYNTH/$f
+  done
+;;
+*load)
+  if [ ! -d $SAVEDIR ] ; then
+    echo no directory $SAVEDIR
+    exit 1
+  fi
+  if [ ! -d $SAVEDIR/$SYNTH ] ; then
+    echo no directory $SAVEDIR/$SYNTH
+    exit 1
+  fi
+  cd $SAVEDIR/$SYNTH
+  for f in *; do
+    if [ -w $SPEAKUPDIR/$f ]; then
+      cat $f >$SPEAKUPDIR/$f
+    fi
+  done
+;;
+*)
+  echo "usage: speakupconf group [groupname]/load/save"
+  exit 1
+;;
+esac
