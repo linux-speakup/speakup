@@ -62,7 +62,7 @@ case "$1" in
 	fi
 	cd $SAVEDIR
 	for f in *; do
-		if [ -w $SPEAKUPDIR/$f ]; then
+		if [ -w $SPEAKUPDIR/$f  -a -f $SPEAKUPDIR/$f ]; then
 			cp $f $SPEAKUPDIR
 		fi
 	done
