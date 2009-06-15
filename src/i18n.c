@@ -23,7 +23,6 @@ static char *speakup_default_msgs   [MSG_LAST_INDEX] = {
 	[MSG_ON_BLINKING] = "on blinking",
 	[MSG_OFF] = "off",
 	[MSG_ON] = "on",
-	[MSG_STATUS_QUIET] = "",
 	[MSG_NO_WINDOW] = "no window",
 	[MSG_CURSORING_OFF] = "cursoring off",
 	[MSG_CURSORING_ON] = "cursoring on",

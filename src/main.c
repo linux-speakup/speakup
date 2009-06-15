@@ -1724,7 +1724,9 @@ static void do_handle_spec(struct vc_data *vc, u_char value, char up_flag)
 		spk_unlock(flags);
 		return;
 	}
-	synth_printf("%s %s\n", label, msg_get(MSG_STATUS_START + on_off));
+	if (on_off < 2)
+		synth_printf("%s %s\n",
+			     label, msg_get(MSG_STATUS_START + on_off));
 	spk_unlock(flags);
 }
 
