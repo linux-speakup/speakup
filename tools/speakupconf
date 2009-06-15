@@ -1,10 +1,13 @@
 #!/bin/sh
+#
 # script to load/save all the vars in speakup
+#
+#  Copyright (C) 2009 the speakup team
 #  Copyright (C) 2008 Steve Holmes
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
+#  the Free Software Foundation, either version 2 of the License, or
 #  (at your option) any later version.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -14,67 +17,76 @@
 #
 #  You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# speakupconf save or speakupconf load
-# if root saves in /etc/speakup/<synth> else in $HOME/.speakup/<synth>
-if [ $UID -eq "0" ]; then
-  SAVEDIR="/etc/speakup"
-  SAVEPERM=-600
-else
-  SAVEDIR="$HOME/.speakup"
-  SAVEPERM=-660
-fi
-SPEAKUPDIR=/sys/module/speakup/parameters
+#
+SPEAKUPDIR=/sys/accessibility/speakup
 if [ ! -d $SPEAKUPDIR ]; then
-  echo "no directory $SPEAKUPDIR"
-  exit 0
+	echo "no directory $SPEAKUPDIR"
+	exit 0
 fi
 SYNTH=`cat $SPEAKUPDIR/synth`
+
+if [ `id -u` -eq 0 ]; then
+	SAVEDIR="/etc/speakup"
+else
+	SAVEDIR="$HOME/.speakup"
+fi
+
 case "$1" in
-*group)
-  if [ ! $UID -eq "0" ]; then
-  	echo "This must be run as root."
-	exit 1
-  fi
-  GROUPNAME="$2"
-  if [ -z "$GROUPNAME" ]; then
-  	  echo "No group specified."
-	  exit 1
-  fi
-  chgrp $GROUPNAME $SPEAKUPDIR/*
-;;
 *save)
-  if [ ! -d $SAVEDIR ] ; then
-    echo creating $SAVEDIR
-    mkdir $SAVEDIR
-  fi
-  if [ ! -d $SAVEDIR/$SYNTH ] ; then
-    echo creating $SAVEDIR/$SYNTH
-    mkdir $SAVEDIR/$SYNTH
-  fi
-  cd $SPEAKUPDIR
-  SAVELIST=`find . -perm $SAVEPERM -type f |sed 's/..//' |fgrep -v synth`
-  for f in $SAVELIST; do
-    cp $f $SAVEDIR/$SYNTH/$f
-  done
+	if [ ! -d $SAVEDIR ] ; then
+		echo creating $SAVEDIR
+		mkdir $SAVEDIR
+	fi
+	cd $SPEAKUPDIR
+	DIRLIST=`find . -type d |sed -e 's/..//' -e '/\./d'`
+	for d in $DIRLIST; do
+		if [ ! -d $SAVEDIR/$d ]; then
+			mkdir $SAVEDIR/$d
+		fi
+	done
+	SAVELIST=`find . -readable -writable -type f |sed 's/..//'`
+	for f in $SAVELIST; do
+		case $f in
+			silent|synth*|version)
+			;;
+			*)
+				cp $f $SAVEDIR/$f
+			;;
+		esac
+	done
 ;;
 *load)
-  if [ ! -d $SAVEDIR ] ; then
-    echo no directory $SAVEDIR
-    exit 1
-  fi
-  if [ ! -d $SAVEDIR/$SYNTH ] ; then
-    echo no directory $SAVEDIR/$SYNTH
-    exit 1
-  fi
-  cd $SAVEDIR/$SYNTH
-  for f in *; do
-    if [ -w $SPEAKUPDIR/$f ]; then
-      cat $f >$SPEAKUPDIR/$f
-    fi
-  done
+	if [ ! -d $SAVEDIR ] ; then
+		echo no directory $SAVEDIR
+		exit 1
+	fi
+	cd $SAVEDIR
+	for f in *; do
+		if [ -w $SPEAKUPDIR/$f ]; then
+			cp $f $SPEAKUPDIR
+		fi
+	done
+	if [ -d i18n -a -d $SPEAKUPDIR/i18n ]; then
+		cd i18n
+		for f in *; do
+			if [ -w $SPEAKUPDIR/i18n/$f ]; then
+				cp $f $SPEAKUPDIR/i18n
+			fi
+		done
+		cd ..
+	fi
+	if [ -d $SYNTH -a -d $SPEAKUPDIR/$SYNTH ]; then
+		cd $SYNTH
+		for f in *; do
+			if [ -w $SPEAKUPDIR/$SYNTH/$f ]; then
+				cp $f $SPEAKUPDIR/$SYNTH
+			fi
+		done
+		cd ..
+	fi
 ;;
 *)
-  echo "usage: speakupconf group [groupname]/load/save"
-  exit 1
+	echo "usage: speakupconf load/save"
+	exit 1
 ;;
 esac
