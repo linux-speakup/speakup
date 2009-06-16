@@ -834,6 +834,8 @@ static struct kobj_attribute spell_delay_attribute =
 /*
  * These attributes are i18n related.
  */
+static struct kobj_attribute announcements_attribute =
+	__ATTR(announcements, USER_RW, message_show, message_store);
 static struct kobj_attribute characters_attribute =
 	__ATTR(characters, USER_RW, chars_chartab_show, chars_chartab_store);
 static struct kobj_attribute chartab_attribute =
@@ -848,8 +850,6 @@ static struct kobj_attribute function_names_attribute =
 	__ATTR(function_names, USER_RW, message_show, message_store);
 static struct kobj_attribute key_names_attribute =
 	__ATTR(key_names, USER_RW, message_show, message_store);
-static struct kobj_attribute misc_attribute =
-	__ATTR(misc, USER_RW, message_show, message_store);
 static struct kobj_attribute states_attribute =
 	__ATTR(states, USER_RW, message_show, message_store);
 
@@ -885,6 +885,7 @@ static struct attribute *main_attrs[] = {
 };
 
 static struct attribute *i18n_attrs[] = {
+	&announcements_attribute.attr,
 	&characters_attribute.attr,
 	&chartab_attribute.attr,
 	&ctl_keys_attribute.attr,
@@ -892,7 +893,6 @@ static struct attribute *i18n_attrs[] = {
 	&fancy_attribute.attr,
 	&function_names_attribute.attr,
 	&key_names_attribute.attr,
-	&misc_attribute.attr,
 	&states_attribute.attr,
 	NULL,
 };

@@ -374,9 +374,9 @@ static struct msg_group_t all_groups [] = {
 		.end = MSG_KEYNAMES_END,
 	},
 	{
-		.name = "misc",
-		.start = MSG_MISC_START,
-		.end = MSG_MISC_END,
+		.name = "announcements",
+		.start = MSG_ANNOUNCEMENTS_START,
+		.end = MSG_ANNOUNCEMENTS_END,
 	},
 	{
 		.name = "states",
