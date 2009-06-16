@@ -720,11 +720,6 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 		}
 
 		index = simple_strtoul(cp, &temp, 10);
-		if (index > 255) {
-			rejected++;
-			cp = linefeed + 1;
-			continue;
-		}
 
 		while ((temp < linefeed) && (*temp == ' ' || *temp == '\t'))
 			temp++;
