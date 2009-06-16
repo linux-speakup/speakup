@@ -418,7 +418,7 @@ char *msg_set(enum msg_index_t index, char *text, size_t length)
 		newstr = kmalloc(length + 1, GFP_KERNEL);
 		if (newstr) {
 			memcpy(newstr, text, length);
-			text[length] = '\0';
+			newstr[length] = '\0';
 			spk_lock(flags);
 			if (speakup_msgs[index] != speakup_default_msgs[index])
 				kfree(speakup_msgs[index]);
