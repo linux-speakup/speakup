@@ -373,7 +373,7 @@ static void say_attributes(struct vc_data *vc)
 	int fg = spk_attr & 0x0f;
 	int bg = spk_attr >> 4;
 	if (fg > 8) {
-		synth_printf("%s", msg_get(MSG_BRIGHT));
+		synth_printf("%s ", msg_get(MSG_BRIGHT));
 		fg -= 8;
 	}
 	synth_printf("%s", msg_get(MSG_COLORS_START + fg));
@@ -1041,8 +1041,11 @@ static void spkup_write(const char *in_buf, int count)
 			if (++rep_count > 2)
 				continue;
 		} else {
-			if ((last_type&CH_RPT) && rep_count > 2)
+			if ((last_type&CH_RPT) && rep_count > 2) {
+				synth_printf(" ");
 				synth_printf(msg_get(MSG_REPEAT_DESC), ++rep_count);
+				synth_printf(" ");
+			}
 			rep_count = 0;
 		}
 		if (ch == spk_lastkey) {
@@ -1079,8 +1082,11 @@ static void spkup_write(const char *in_buf, int count)
 	}
 	spk_lastkey = 0;
 	if (in_count > 2 && rep_count > 2) {
-		if (last_type&CH_RPT)
+		if (last_type&CH_RPT) {
+			synth_printf(" ");
 			synth_printf(msg_get(MSG_REPEAT_DESC2), ++rep_count);
+			synth_printf(" ");
+		}
 		rep_count = 0;
 	}
 }
