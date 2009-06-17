@@ -15,14 +15,6 @@ module built speakup and possibly a virtual file system for the
 built-in case.
 
 
-Speakup needs internationalization support.  It's current strings used
-for notification need to be pulled together into an array of strings
-which can be referenced by index thus providing substitutions from
-other languages.  Each language's array of message strings could then
-be loaded by /sysfs psudo files or by loading modules written for that
-purpose.
-
-
 A method needs to be developed to once again provide a way for speakup
 to speak the kernel messages from boot up.  This might be done
 possibly by reading the printk() circular buffer and sending it to the
