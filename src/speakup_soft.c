@@ -28,7 +28,7 @@
 #include "spk_priv.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.5"
+#define DRV_VERSION "2.6"
 #define SOFTSYNTH_MINOR 26 /* might as well give it one more than /dev/synth */
 #define PROCSPEECH 0x0d
 #define CLEAR_SYNTH 0x18
@@ -39,6 +39,7 @@ static int softsynth_is_alive(struct spk_synth *synth);
 static unsigned char get_index(void);
 
 static struct miscdevice synth_device;
+static int initialized = 0;
 static int misc_registered;
 
 static struct var_t vars[] = {
@@ -147,6 +148,25 @@ static struct spk_synth synth_soft = {
 	},
 };
 
+static char *get_initstring(void)
+{
+	static char buf[40];
+	char *cp;
+	struct var_t *var;
+
+	memset(buf, 0, sizeof(buf));
+	cp = buf;
+	var = synth_soft.vars;
+	while (var->var_id != MAXVARS) {
+		if (var->var_id != CAPS_START && var->var_id != CAPS_STOP
+			&& var->var_id != DIRECT)
+			cp = cp + sprintf(cp, var->u.n.synth_fmt, var->u.n.value);
+		var++;
+	}
+	cp = cp + sprintf(cp, "\n");
+	return buf;
+}
+
 static int softsynth_open(struct inode *inode, struct file *fp)
 {
 	unsigned long flags;
@@ -167,6 +187,7 @@ static int softsynth_close(struct inode *inode, struct file *fp)
 	unsigned long flags;
 	spk_lock(flags);
 	synth_soft.alive = 0;
+	initialized = 0;
 	spk_unlock(flags);
 	/* Make sure we let applications go before leaving */
 	speakup_start_ttys();
@@ -178,6 +199,7 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 {
 	int chars_sent = 0;
 	char *cp;
+	char *init;
 	char ch;
 	int empty;
 	unsigned long flags;
@@ -203,12 +225,20 @@ static ssize_t softsynth_read(struct file *fp, char *buf, size_t count,
 	finish_wait(&speakup_event, &wait);
 
 	cp = buf;
+	init = get_initstring();
 	while (chars_sent < count) {
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			ch = '\x18';
 		} else if (synth_buffer_empty()) {
 			break;
+		} else if (! initialized) {
+			if (*init) {
+				ch = *init;
+				init++;
+			} else {
+				initialized = 1;
+			}
 		} else {
 			ch = synth_buffer_getc();
 		}
