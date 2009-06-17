@@ -1,6 +1,7 @@
 /* Internationalization implementation.  Includes definitions of English
  * string arrays, and the i18n pointer. */
 
+#include <linux/ctype.h>
 #include <linux/module.h>
 #include <linux/string.h>
 #include "speakup.h"
@@ -396,6 +397,133 @@ char *msg_get(enum msg_index_t index)
 }
 
 /*
+ * Function: next_specifier
+ * Finds the start of the next format specifier in the argument string.
+ * Return value: pointer to start of format
+ * specifier, or NULL if no specifier exists.
+*/
+static char *next_specifier(char *input)
+{
+	int found = 0;
+	char *next_percent = input;
+
+	while ((next_percent != NULL) && !found) {
+		next_percent = strchr(next_percent, '%');
+		if (next_percent != NULL) {
+			while ((next_percent[0] == '%')
+			       && (next_percent[1] == '%'))
+				next_percent += 2;	/* Advance over doubled percent signs. */
+			if (*next_percent == '%')
+				found = 1;
+			else if (*next_percent == '\0')
+				next_percent = NULL;
+		}
+	}
+
+	return next_percent;
+}
+
+/* Skip over 0 or more flags. */
+static char *skip_flags(char *input)
+{
+	while ((*input != '\0') && strchr(" 0+-#", *input))
+		input++;
+	return input;
+}
+
+/* Skip over width.precision, if it exists. */
+static char *skip_width(char *input)
+{
+	while (isdigit(*input))
+		input++;
+	if (*input == '.') {
+		input++;
+		while (isdigit(*input))
+			input++;
+	}
+	return input;
+}
+
+/*
+ * Skip past the end of the conversion part. 
+ * Note that this code only accepts a handful of conversion specifiers:
+ * c d s x and ld.  Not accidental; these are exactly the ones used in
+ * the default group of fancy messages.
+*/
+static char *skip_conversion(char *input)
+{
+	if ((input[0] == 'l') && (input[1] == 'd'))
+		input += 2;
+	else if ((*input != '\0') && strchr("cdsx", *input))
+		input++;
+	return input;
+}
+
+/*
+ * Function: find_specifier_end
+ * Return a pointer to the end of the format specifier.
+*/
+static char *find_specifier_end(char *input)
+{
+	input++;		/* Advance over %. */
+	input = skip_flags(input);
+	input = skip_width(input);
+	input = skip_conversion(input);
+	return input;
+}
+
+/*
+ * Function: compare_specifiers
+ * Compare the format specifiers pointed to by *input1 and *input2.
+ * Return 1 if they are the same, 0 otherwise.  Advance *input1 and *input2
+ * so that they point to the character following the end of the specifier.
+*/
+static int compare_specifiers(char **input1, char **input2)
+{
+	int same = 0;
+	char *end1 = find_specifier_end(*input1);
+	char *end2 = find_specifier_end(*input2);
+	size_t length1 = end1 - *input1;
+	size_t length2 = end2 - *input2;
+
+	if((length1 == length2) && !memcmp(*input1, *input2, length1))
+		same = 1;
+
+	*input1 = end1;
+	*input2 = end2;
+	return same;
+}
+
+/*
+ * Function: fmt_validate
+ * Check that two format strings contain the same number of format specifiers,
+ * and that the order of specifiers is the same in both strings. 
+ * Return 1 if the condition holds, 0 if it doesn't.
+*/
+static int fmt_validate(char *template, char *user)
+{
+	int valid = 1;
+	int still_comparing = 1;
+	char *template_ptr = template;
+	char *user_ptr = user;
+
+	while (still_comparing && valid) {
+		template_ptr = next_specifier(template_ptr);
+		user_ptr = next_specifier(user_ptr);
+		if (template_ptr && user_ptr) {
+/* Both have at least one more specifier. */
+			valid = compare_specifiers(&template_ptr, &user_ptr);
+		} else {
+/* No more format specifiers in one or both of the strings. */
+			still_comparing = 0;
+			if (template_ptr || user_ptr)
+				valid = 0;	/* One has more specifiers than the other. */
+		}
+	}
+	return valid;
+}
+
+/*
  * Function: msg_set
  * Description: Add a user-supplied message to the user_messages array.
  * The message text is copied to a memory area allocated with kmalloc.
@@ -404,13 +532,13 @@ char *msg_get(enum msg_index_t index)
  * - index: a message number, as found in i18n.h.
  * - text:  text of message.  Not NUL-terminated.
  * - length: number of bytes in text.
- * Return value: pointer to new message on success, NULL on failure.
  * Failure conditions:
- * - Unable to allocate memory.
- * - Illegal index.
+ * -EINVAL -  Invalid format specifiers in "fancy" message or illegal index.
+ * -ENOMEM -  Unable to allocate memory.
 */
-char *msg_set(enum msg_index_t index, char *text, size_t length)
+ssize_t msg_set(enum msg_index_t index, char *text, size_t length)
 {
+	int rc = 0;
 	char *newstr = NULL;
 	unsigned long flags;
 
@@ -419,14 +547,22 @@ char *msg_set(enum msg_index_t index, char *text, size_t length)
 		if (newstr) {
 			memcpy(newstr, text, length);
 			newstr[length] = '\0';
+			if ((index >= MSG_FANCY_START && index <= MSG_FANCY_END)
+				&& ! fmt_validate(speakup_default_msgs[index], newstr)) {
+				return -EINVAL;
+			}
 			spk_lock(flags);
 			if (speakup_msgs[index] != speakup_default_msgs[index])
 				kfree(speakup_msgs[index]);
 			speakup_msgs[index] = newstr;
 			spk_unlock(flags);
+		} else {
+			rc = -ENOMEM;
 		}
+	} else {
+		rc = -EINVAL;
 	}
-	return newstr;
+	return rc;
 }
 
 /*

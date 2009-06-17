@@ -679,7 +679,7 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	char *end = cp + count;
 	char *linefeed = NULL;
 	char *temp = NULL;
-	char *msg_stored = NULL;
+	ssize_t msg_stored = 0;
 	ssize_t retval = count;
 	size_t desc_length = 0;
 	unsigned long index = 0;
@@ -690,9 +690,6 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 	enum msg_index_t firstmessage = group->start;
 	enum msg_index_t lastmessage = group->end;
 	enum msg_index_t curmessage;
-
-	if (firstmessage == MSG_FANCY_START)
-		return count;	/* Don't want to deal with fancy right now. */
 
 	while (cp < end) {
 
@@ -741,10 +738,13 @@ static ssize_t message_store_helper(const char *buf, size_t count,
 		}
 
 		msg_stored = msg_set(curmessage, temp, desc_length);
-		if (!msg_stored) {
-			retval = -ENOMEM;	/* Memory allocation failure. */
-			reset = 1;
+		if (msg_stored < 0) {
+			retval = msg_stored;
+			if (msg_stored == -ENOMEM)
+				reset = 1;
 			break;
+		} else {
+			used++;
 		}
 
 		cp = linefeed + 1;
