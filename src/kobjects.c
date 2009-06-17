@@ -844,8 +844,8 @@ static struct kobj_attribute ctl_keys_attribute =
 	__ATTR(ctl_keys, USER_RW, message_show, message_store);
 static struct kobj_attribute colors_attribute =
 	__ATTR(colors, USER_RW, message_show, message_store);
-static struct kobj_attribute fancy_attribute =
-	__ATTR(fancy, USER_RW, message_show, message_store);
+static struct kobj_attribute formatted_attribute =
+	__ATTR(formatted, USER_RW, message_show, message_store);
 static struct kobj_attribute function_names_attribute =
 	__ATTR(function_names, USER_RW, message_show, message_store);
 static struct kobj_attribute key_names_attribute =
@@ -890,7 +890,7 @@ static struct attribute *i18n_attrs[] = {
 	&chartab_attribute.attr,
 	&ctl_keys_attribute.attr,
 	&colors_attribute.attr,
-	&fancy_attribute.attr,
+	&formatted_attribute.attr,
 	&function_names_attribute.attr,
 	&key_names_attribute.attr,
 	&states_attribute.attr,

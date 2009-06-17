@@ -360,9 +360,9 @@ static struct msg_group_t all_groups [] = {
 		.end = MSG_COLORS_END,
 	},
 	{
-		.name = "fancy",
-		.start = MSG_FANCY_START,
-		.end = MSG_FANCY_END,
+		.name = "formatted",
+		.start = MSG_FORMATTED_START,
+		.end = MSG_FORMATTED_END,
 	},
 	{
 		.name = "function_names",
@@ -448,7 +448,7 @@ static char *skip_width(char *input)
  * Skip past the end of the conversion part. 
  * Note that this code only accepts a handful of conversion specifiers:
  * c d s x and ld.  Not accidental; these are exactly the ones used in
- * the default group of fancy messages.
+ * the default group of formatted messages.
 */
 static char *skip_conversion(char *input)
 {
@@ -533,7 +533,7 @@ static int fmt_validate(char *template, char *user)
  * - text:  text of message.  Not NUL-terminated.
  * - length: number of bytes in text.
  * Failure conditions:
- * -EINVAL -  Invalid format specifiers in "fancy" message or illegal index.
+ * -EINVAL -  Invalid format specifiers in formatted message or illegal index.
  * -ENOMEM -  Unable to allocate memory.
 */
 ssize_t msg_set(enum msg_index_t index, char *text, size_t length)
@@ -547,7 +547,7 @@ ssize_t msg_set(enum msg_index_t index, char *text, size_t length)
 		if (newstr) {
 			memcpy(newstr, text, length);
 			newstr[length] = '\0';
-			if ((index >= MSG_FANCY_START && index <= MSG_FANCY_END)
+			if ((index >= MSG_FORMATTED_START && index <= MSG_FORMATTED_END)
 				&& ! fmt_validate(speakup_default_msgs[index], newstr)) {
 				return -EINVAL;
 			}
