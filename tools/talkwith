@@ -126,11 +126,6 @@ fi
 NEWMOD="soft"
 fi
 #
-if [ "$NEWMOD" != "none" ] && [ `lsmod | grep speakup_$NEWMOD | wc -l` -eq 0 ]
-then
-echo "Module speakup_$NEWMOD does not seem to be installed."
-exit
-fi
 #
 if [ "$OLDMOD" = "soft" ]
 then
@@ -146,14 +141,19 @@ fi
 NEWVOX=$1
 shift
 #
-echo "none" > $DIR1/synth
+echo "$NEWMOD" > $DIR1/synth
+CURMOD=`cat $DIR1/synth` # Did the switch succeed?
+if [ $CURMOD != $NEWMOD ]
+then
+	echo "Unable to change to $NEWMOD, aborting."
+	exit 1
+fi
 if [ "$OLDMOD" = "soft" ]
 then
 kill -TERM `cat /var/run/speechd-up.pid 2>/dev/null` 2>/dev/null
 kill -TERM `cat /var/run/espeakup.pid 2>/dev/null` 2>/dev/null
 fi
 sleep 2
-echo "$NEWMOD" > $DIR1/synth
 if [ "$NEWVOX" = "none" ]
 then
 exit
