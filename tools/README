@@ -12,3 +12,9 @@ speakup project.  Its function is to save and load speakup's
 configurable settings.  If it is run as root, it will save settings in
 /etc/speakup, or if it is run as a user, in $HOME/.speakup.
 
+talkwith
+
+This script was originally written by Chuck Hallenbeck <chuckh@ftml.net>.
+Its function is to make switching between supported synthesizers very
+simple.
+
