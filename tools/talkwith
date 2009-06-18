@@ -163,18 +163,9 @@ then
 	echo "$CONFDIR does not exist, so parameters cannot be loaded."
 	NOCONF="n"
 fi
-#
+
 if [ "$NOCONF" = "n" ]
 then
 # Load synth specific parameters
-if [ $NEWVOX = "spd" ]
-then
-chmod u-r $CONFDIR/i18n/characters $CONFDIR/i18n/chartab
-speakupconf load
-chmod u+r $CONFDIR/i18n/characters $CONFDIR/i18n/chartab
-else
 speakupconf load
 fi
-fi
-
-# end of talkwith
