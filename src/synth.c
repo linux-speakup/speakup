@@ -328,9 +328,10 @@ int synth_init(char *synth_name)
 			synth = synths[i];
 
 	/* If we got one, initialize it now. */
-	if (synth) {
+	if (synth)
 		ret = do_synth_init(synth);
-	}
+	else
+		ret = -ENODEV;
 	mutex_unlock(&spk_mutex);
 
 	return ret;
