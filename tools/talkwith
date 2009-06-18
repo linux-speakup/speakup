@@ -8,7 +8,7 @@
 # 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
+#  the Free Software Foundation, either version 2 of the License, or
 #  (at your option) any later version.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -22,7 +22,7 @@
 # Requirements: Linux speakup 3.1.0 or later
 #
 # To install, copy this script to a directory on the execution path
-# e.g. /usr/bin, or /usr/local/bin.
+# e.g. /usr/sbin, or /usr/local/sbin.
 # This script should be run as root.
 # 
 # Define some variables here
