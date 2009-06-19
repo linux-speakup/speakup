@@ -28,7 +28,6 @@
 # Define some variables
 SPEAKUPDIR="/sys/accessibility/speakup"
 CONFDIR="/etc/speakup"
-NOCONF="n" # do not save or load
 #
 if [ $(id -ru) -gt "0" ]
 then
@@ -43,7 +42,7 @@ exit
 fi
 #
 # Check the command line for options
-if [ "$1" = "-n" ] || [ "$1" = "noconf" ]
+if [ "$1" = "-n" ]
 then
 NOCONF="y" # noconf
 shift
@@ -52,7 +51,7 @@ fi
 if [ "$1" = "" ]
 then
 echo
-echo "Usage: `basename $0` [ noconf ] <synth> [ options ]"
+echo "Usage: `basename $0` [-n] <synth> [ options ]"
 echo
 echo "If the synth name is espeak or spd, the option following "
 echo "the name is simply passed along to espeakup or speechd-up."
@@ -61,7 +60,7 @@ echo "Talkwith does not install or remove modules, so make sure any"
 echo "required driver modules are installed before running talkwith."
 echo "The correct driver for espeak and spd is speakup_soft."
 echo
-echo "If the noconf option is used, speakupconf will not be called"
+echo "If the -n option is used, speakupconf will not be called"
 echo " to load parameters."
 echo
 echo "You may select a synth name from the following list:"
@@ -157,15 +156,7 @@ nice -n 5 speechd-up $* 2>/dev/null
 fi
 fi
 
-
-if [ ! -d $CONFDIR ]
-then
-	echo "$CONFDIR does not exist, so parameters cannot be loaded."
-	NOCONF="n"
-fi
-
-if [ "$NOCONF" = "n" ]
-then
 # Load synth specific parameters
-speakupconf load
+if [ ! -z "$NOCONF"  -a -d $CONFDIR ]; then
+	speakupconf load
 fi
