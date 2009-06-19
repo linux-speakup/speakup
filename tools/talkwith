@@ -157,6 +157,6 @@ fi
 fi
 
 # Load synth specific parameters
-if [ ! -z "$NOCONF"  -a -d $CONFDIR ]; then
+if [ -z "$NOCONF"  -a -d $CONFDIR ]; then
 	speakupconf load
 fi
