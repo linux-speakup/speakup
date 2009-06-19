@@ -43,7 +43,7 @@ fi
 
 # Check the command line for options
 if [ "$1" = "-n" ]; then
-	NOCONF="y" # noconf
+	NOCONF="y"
 	shift
 fi
 
@@ -68,46 +68,17 @@ if [ "$1" = "" ]; then
 	exit
 fi
  
-# check for a valid synth name
-if [ "$1" != "none" ] && \
-# To disallow a particular device, comment out its line below:
-[ "$1" != "acntsa" ] && \
-[ "$1" != "acntpc" ] && \
-[ "$1" != "apollo" ] && \
-[ "$1" != "audptr" ] && \
-[ "$1" != "bns" ] && \
-[ "$1" != "dectlk" ] && \
-[ "$1" != "decext" ] && \
-[ "$1" != "decpc" ] && \
-[ "$1" != "dtlk" ] && \
-[ "$1" != "espeak" ] && \
-[ "$1" != "keypc" ] && \
-[ "$1" != "ltlk" ] && \
-[ "$1" != "spkout" ] && \
-[ "$1" != "spd" ] && \
-[ "$1" != "txprt" ] && \
-[ "$1" != "dummy" ] && \
-# do not comment out the next line!
-[ "$1" != "none" ]; then
-	echo "I didn't recognize the synthesizer type: \"$1\""
-	exit 
-fi
- 
 OLDMOD="`cat $SPEAKUPDIR/synth`"
 NEWMOD=$1
-if [ "$NEWMOD" = "espeak" ] || [ "$NEWMOD" = "spd" ]
-then
-if [ "$NEWMOD" = "espeak" ] && [ ! `which espeakup` ]
-then
-echo "espeakup does not seem to be available."
-exit
-fi
-if [ "$NEWMOD" = "spd" ] && [ ! `which speechd-up` ]
-then
-echo "speechd-up does not seem to be available."
-exit
-fi
-NEWMOD="soft"
+if [ "$NEWMOD" = "espeak" ] || [ "$NEWMOD" = "spd" ]; then
+	if [ "$NEWMOD" = "espeak" ] && [ ! `which espeakup` ]; then
+		echo "espeakup does not seem to be available."
+		exit
+	elif [ "$NEWMOD" = "spd" ] && [ ! `which speechd-up` ]; then
+		echo "speechd-up does not seem to be available."
+		exit
+	fi
+	NEWMOD="soft"
 fi
 
 if [ "$OLDMOD" = "soft" ]; then
@@ -122,18 +93,22 @@ fi
 NEWVOX=$1
 shift
 
-echo "$NEWMOD" > $SPEAKUPDIR/synth
+echo "$NEWMOD" > $SPEAKUPDIR/synth 2> /dev/null
 
 # Did the switch succeed?
-CURMOD=`cat $SPEAKUPDIR/synth`
-if [ $CURMOD != $NEWMOD ]; then
-	echo "Unable to change to $NEWMOD, aborting."
+if [ $? != 0 ]; then
+	echo "Unable to switch to the $NEWMOD synthesizer."
+	echo "This means that the driver is not built in, the module"
+	echo "is not loaded, or $NEWMOD is not a valid synthesizer."
 	exit 1
 fi
 
 if [ "$OLDMOD" = "soft" ]; then
-	kill -TERM `cat /var/run/speechd-up.pid 2>/dev/null` 2>/dev/null
-	kill -TERM `cat /var/run/espeakup.pid 2>/dev/null` 2>/dev/null
+	if [ -f /var/run/speechd-up.pid ]; then
+		kill -TERM `cat /var/run/speechd-up.pid` 2> /dev/null
+	elif [ -f /var/run/espeakup.pid ]; then
+		kill -TERM `cat /var/run/espeakup.pid` 2> /dev/null
+	fi
 fi
 sleep 2
 if [ "$NEWVOX" = "none" ]; then
