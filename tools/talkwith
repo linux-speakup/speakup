@@ -28,50 +28,47 @@
 # Define some variables
 SPEAKUPDIR="/sys/accessibility/speakup"
 CONFDIR="/etc/speakup"
-#
-if [ $(id -ru) -gt "0" ]
-then
-echo "`basename $0` must be run as root."
-exit
+
+# be sure we are root
+if [ $(id -ru) -gt "0" ]; then
+	echo "`basename $0` must be run as root."
+	exit
 fi
-#
-if [ ! -d $SPEAKUPDIR ]
-then
-echo "Speakup does not seem to be installed."
-exit
+
+# make sure speakup is loaded
+if [ ! -d $SPEAKUPDIR ]; then
+	echo "Speakup does not seem to be installed."
+	exit
 fi
-#
+
 # Check the command line for options
-if [ "$1" = "-n" ]
-then
-NOCONF="y" # noconf
-shift
+if [ "$1" = "-n" ]; then
+	NOCONF="y" # noconf
+	shift
 fi
-#
-if [ "$1" = "" ]
-then
-echo
-echo "Usage: `basename $0` [-n] <synth> [ options ]"
-echo
-echo "If the synth name is espeak or spd, the option following "
-echo "the name is simply passed along to espeakup or speechd-up."
-echo
-echo "Talkwith does not install or remove modules, so make sure any"
-echo "required driver modules are installed before running talkwith."
-echo "The correct driver for espeak and spd is speakup_soft."
-echo
-echo "If the -n option is used, speakupconf will not be called"
-echo " to load parameters."
-echo
-echo "You may select a synth name from the following list:"
-echo "acntsa, acntpc, apollo, audptr, bns, dectlk, decext, decpc, dtlk,"
-echo "espeak, keypc, ltlk, spd, spkout, txprt, dummy, or none."
-echo
-exit
+
+if [ "$1" = "" ]; then
+	echo
+	echo "Usage: `basename $0` [-n] <synth> [ options ]"
+	echo
+	echo "If the synth name is espeak or spd, the option following "
+	echo "the name is simply passed along to espeakup or speechd-up."
+	echo
+	echo "Talkwith does not install or remove modules, so make sure any"
+	echo "required driver modules are installed before running talkwith."
+	echo "The correct driver for espeak and spd is speakup_soft."
+	echo
+	echo "If the -n option is used, speakupconf will not be called"
+	echo " to load parameters."
+	echo
+	echo "You may select a synth name from the following list:"
+	echo "acntsa, acntpc, apollo, audptr, bns, dectlk, decext, decpc, dtlk,"
+	echo "espeak, keypc, ltlk, spd, spkout, txprt, dummy, or none."
+	echo
+	exit
 fi
-# 
+ 
 # check for a valid synth name
-#
 if [ "$1" != "none" ] && \
 # To disallow a particular device, comment out its line below:
 [ "$1" != "acntsa" ] && \
@@ -91,12 +88,11 @@ if [ "$1" != "none" ] && \
 [ "$1" != "txprt" ] && \
 [ "$1" != "dummy" ] && \
 # do not comment out the next line!
-[ "$1" != "none" ]
-then
-echo "I didn't recognize the synthesizer type: \"$1\""
-exit 
+[ "$1" != "none" ]; then
+	echo "I didn't recognize the synthesizer type: \"$1\""
+	exit 
 fi
-# 
+ 
 OLDMOD="`cat $SPEAKUPDIR/synth`"
 NEWMOD=$1
 if [ "$NEWMOD" = "espeak" ] || [ "$NEWMOD" = "spd" ]
@@ -113,47 +109,40 @@ exit
 fi
 NEWMOD="soft"
 fi
-#
-#
-if [ "$OLDMOD" = "soft" ]
-then
-if pidof espeakup >/dev/null 2>&1
-then
-OLDVOX=espeak
+
+if [ "$OLDMOD" = "soft" ]; then
+	if pidof espeakup >/dev/null 2>&1; then
+		OLDVOX=espeak
+	else
+		OLDVOX=spd
+	fi
 else
-OLDVOX=spd
-fi
-else
-OLDVOX=$OLDMOD
+	OLDVOX=$OLDMOD
 fi
 NEWVOX=$1
 shift
-#
+
 echo "$NEWMOD" > $SPEAKUPDIR/synth
-CURMOD=`cat $SPEAKUPDIR/synth` # Did the switch succeed?
-if [ $CURMOD != $NEWMOD ]
-then
+
+# Did the switch succeed?
+CURMOD=`cat $SPEAKUPDIR/synth`
+if [ $CURMOD != $NEWMOD ]; then
 	echo "Unable to change to $NEWMOD, aborting."
 	exit 1
 fi
-if [ "$OLDMOD" = "soft" ]
-then
-kill -TERM `cat /var/run/speechd-up.pid 2>/dev/null` 2>/dev/null
-kill -TERM `cat /var/run/espeakup.pid 2>/dev/null` 2>/dev/null
+
+if [ "$OLDMOD" = "soft" ]; then
+	kill -TERM `cat /var/run/speechd-up.pid 2>/dev/null` 2>/dev/null
+	kill -TERM `cat /var/run/espeakup.pid 2>/dev/null` 2>/dev/null
 fi
 sleep 2
-if [ "$NEWVOX" = "none" ]
-then
-exit
+if [ "$NEWVOX" = "none" ]; then
+	exit
 fi
-if [ "$NEWVOX" = "espeak" ]
-then
-espeakup $* >/dev/null 2>&1
-else
-if [ "$NEWVOX" = "spd" ]
-then
-nice -n 5 speechd-up $* 2>/dev/null
-fi
+if [ "$NEWVOX" = "espeak" ]; then
+	espeakup $* >/dev/null 2>&1
+elif [ "$NEWVOX" = "spd" ]; then
+	nice -n 5 speechd-up $* 2>/dev/null
 fi
 
 # Load synth specific parameters
