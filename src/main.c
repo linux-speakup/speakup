@@ -527,14 +527,14 @@ static u_long get_word(struct vc_data *vc)
 		synth_printf("%s\n", msg_get(MSG_SPACE));
 		return 0;
 	} else if ((tmpx < vc->vc_cols - 2)
-		   && (ch == SPACE || IS_WDLM(ch))
+		   && (ch == SPACE || ch == 0 || IS_WDLM(ch))
 		   && ((char) get_char(vc, (u_short *) &tmp_pos+1, &temp) > SPACE)) {
 		tmp_pos += 2;
 		tmpx++;
 	} else
 		while (tmpx > 0) {
 			ch = (char) get_char(vc, (u_short *) tmp_pos - 1, &temp);
-			if ((ch == SPACE || IS_WDLM(ch))
+			if ((ch == SPACE || ch == 0 || IS_WDLM(ch))
 			    && ((char) get_char(vc, (u_short *) tmp_pos, &temp) >
 									SPACE))
 				break;
@@ -547,7 +547,7 @@ static u_long get_word(struct vc_data *vc)
 		tmp_pos += 2;
 		tmpx++;
 		ch = (char) get_char(vc, (u_short *) tmp_pos, &temp);
-		if ((ch == SPACE) || (IS_WDLM(buf[cnt-1]) && (ch > SPACE)))
+		if ((ch == SPACE) || ch == 0 || (IS_WDLM(buf[cnt-1]) && (ch > SPACE)))
 			break;
 		buf[cnt++] = ch;
 	}
@@ -599,7 +599,7 @@ static void say_prev_word(struct vc_data *vc)
 			spk_x--;
 			spk_pos -= 2;
 		ch = (char) get_char(vc, (u_short *) spk_pos, &temp);
-		if (ch == SPACE)
+		if (ch == SPACE || ch == 0)
 			state = 0;
 		else if (IS_WDLM(ch))
 			state = 1;
@@ -632,7 +632,7 @@ static void say_next_word(struct vc_data *vc)
 	}
 	while (1) {
 		ch = (char) get_char(vc, (u_short *) spk_pos, &temp);
-		if (ch == SPACE)
+		if (ch == SPACE || ch == 0)
 			state = 0;
 		else if (IS_WDLM(ch))
 			state = 1;
