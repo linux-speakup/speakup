@@ -61,11 +61,6 @@ case "$1" in
 		exit 1
 	fi
 	cd $SAVEDIR
-	for f in *; do
-		if [ -w $SPEAKUPDIR/$f  -a -f $SPEAKUPDIR/$f ]; then
-			cp $f $SPEAKUPDIR
-		fi
-	done
 	if [ -d i18n -a -d $SPEAKUPDIR/i18n ]; then
 		cd i18n
 		for f in *; do
@@ -75,6 +70,11 @@ case "$1" in
 		done
 		cd ..
 	fi
+	for f in *; do
+		if [ -w $SPEAKUPDIR/$f  -a -f $SPEAKUPDIR/$f ]; then
+			cp $f $SPEAKUPDIR
+		fi
+	done
 	if [ -d $SYNTH -a -d $SPEAKUPDIR/$SYNTH ]; then
 		cd $SYNTH
 		for f in *; do
