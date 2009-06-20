@@ -25,15 +25,15 @@
 # e.g. /usr/sbin, or /usr/local/sbin.
 # This script should be run as root.
 
-# Define some variables
-SPEAKUPDIR="/sys/accessibility/speakup"
-CONFDIR="/etc/speakup"
-
 # be sure we are root
 if [ $(id -ru) -gt "0" ]; then
 	echo "`basename $0` must be run as root."
 	exit
 fi
+
+# Define some variables
+SPEAKUPDIR="/sys/accessibility/speakup"
+CONFDIR="/etc/speakup"
 
 # make sure speakup is loaded
 if [ ! -d $SPEAKUPDIR ]; then
@@ -49,53 +49,70 @@ fi
 
 if [ "$1" = "" ]; then
 	echo
-	echo "Usage: `basename $0` [-n] <synth> [ options ]"
+	echo "Usage: `basename $0` [-n] <synth> <daemon> [options]"
 	echo
-	echo "If the synth name is espeak or spd, the option following "
-	echo "the name is simply passed along to espeakup or speechd-up."
+	echo "-n - do not call speakupconf to load parameters"
+	echo
+	echo "synth - any synthesizer supported by speakup"
+	echo
+	echo "daemon - for the 'soft' synthesizer, this should be either"
+	echo "spd for speechd-up, or espeakup to run espeakup."
+	echo "For the other synthesizers, this is ignored."
+	echo
+	echo "options - for a software synthesizer, the rest of the command line"
+	echo "is passed on to the daemon; otherwise it is ignored."
 	echo
 	echo "Talkwith does not install or remove modules, so make sure any"
-	echo "required driver modules are installed before running talkwith."
-	echo "The correct driver for espeak and spd is speakup_soft."
-	echo
-	echo "If the -n option is used, speakupconf will not be called"
-	echo " to load parameters."
-	echo
-	echo "You may select a synth name from the following list:"
-	echo "acntsa, acntpc, apollo, audptr, bns, dectlk, decext, decpc, dtlk,"
-	echo "espeak, keypc, ltlk, spd, spkout, txprt, dummy, or none."
+	echo "required driver modules are installed or built into the kernel"
+	echo "before running talkwith."
 	echo
 	exit
 fi
  
-OLDMOD="`cat $SPEAKUPDIR/synth`"
 NEWMOD=$1
-if [ "$NEWMOD" = "espeak" ] || [ "$NEWMOD" = "spd" ]; then
-	if [ "$NEWMOD" = "espeak" ] && [ ! `which espeakup` ]; then
-		echo "espeakup does not seem to be available."
-		exit
-	elif [ "$NEWMOD" = "spd" ] && [ ! `which speechd-up` ]; then
-		echo "speechd-up does not seem to be available."
-		exit
-	fi
-	NEWMOD="soft"
-fi
-
-if [ "$OLDMOD" = "soft" ]; then
-	if pidof espeakup >/dev/null 2>&1; then
-		OLDVOX=espeak
-	else
-		OLDVOX=spd
-	fi
-else
-	OLDVOX=$OLDMOD
-fi
-NEWVOX=$1
 shift
 
-echo "$NEWMOD" > $SPEAKUPDIR/synth 2> /dev/null
+# for backward compatibility
+if [ "$NEWMOD" = "spd"  -o "$NEWMOD" = "espeakup" ]; then
+	DAEMON=$NEWMOD
+	NEWMOD=soft
+fi
 
-# Did the switch succeed?
+if [ "$NEWMOD" = "soft" ]; then
+	if which espeakup >& /dev/null; then
+		HAVE_ESPEAKUP=1
+	fi
+	if which speechd-up >& /dev/null; then
+		HAVE_SPD=1
+	fi
+			
+	if [ -z "$HAVE_ESPEAKUP"  -a -z "$HAVE_SPD" ]; then
+		echo "no software speech synthesizers are installed."
+		exit
+	fi
+			
+	if [ -z "$DAEMON" ]; then
+		DAEMON=$1
+		shift
+	fi
+
+	if [ -z "$DAEMON" -a ! -z "$HAVE_ESPEAKUP" ]; then
+		DAEMON="espeakup"
+	elif [ -z "$DAEMON" -a ! -z "$HAVE_SPD" ]; then
+		DAEMON="spd"
+	fi
+	
+	if [ "$DAEMON" = "espeakup" -a -z "$HAVE_ESPEAKUP" ]; then
+		echo "espeakup does not appear to be available."
+		exit
+	elif [ "$DAEMON" = "spd" -a -z "$HAVE_SPD" ]; then
+		echo "speechd-up does not appear to be available."
+		exit
+	fi
+fi
+
+OLDMOD="`cat $SPEAKUPDIR/synth`"
+echo "$NEWMOD" > $SPEAKUPDIR/synth 2> /dev/null
 if [ $? != 0 ]; then
 	echo "Unable to switch to the $NEWMOD synthesizer."
 	echo "This means that the driver is not built in, the module"
@@ -104,20 +121,29 @@ if [ $? != 0 ]; then
 fi
 
 if [ "$OLDMOD" = "soft" ]; then
-	if [ -f /var/run/speechd-up.pid ]; then
-		kill -TERM `cat /var/run/speechd-up.pid` 2> /dev/null
-	elif [ -f /var/run/espeakup.pid ]; then
-		kill -TERM `cat /var/run/espeakup.pid` 2> /dev/null
+	if [ -f /var/run/espeakup.pid ]; then
+		kill `cat /var/run/espeakup.pid` 2> /dev/null
+		if [ -f /var/run/espeakup.pid ]; then
+			rm -f /var/run/espeakup.pid
+		fi
 	fi
+	if [ -f /var/run/speechd-up.pid ]; then
+		kill `cat /var/run/speechd-up.pid` 2> /dev/null
+		if [ -f /var/run/speechd-up.pid ]; then
+			rm -f /var/run/speechd-up.pid
+		fi
+	fi
+	sleep 2
 fi
-sleep 2
-if [ "$NEWVOX" = "none" ]; then
+
+if [ "$NEWMOD" = "none" ]; then
 	exit
-fi
-if [ "$NEWVOX" = "espeak" ]; then
-	espeakup $* >/dev/null 2>&1
-elif [ "$NEWVOX" = "spd" ]; then
-	nice -n 5 speechd-up $* 2>/dev/null
+elif [ "$NEWMOD" = "soft" ]; then
+	if [ "$DAEMON" = "espeakup" ]; then
+		espeakup $*
+	elif [ "$DAEMON" = "spd" ]; then
+		nice -n 5 speechd-up $*
+	fi
 fi
 
 # Load synth specific parameters
