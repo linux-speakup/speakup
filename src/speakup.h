@@ -5,7 +5,7 @@
 #include "spk_types.h"
 #include "i18n.h"
 
-#define SPEAKUP_VERSION "3.1.0"
+#define SPEAKUP_VERSION "3.1.1"
 #define KEY_MAP_VER 119
 #define SHIFT_TBL_SIZE 64
 #define MAX_DESC_LEN 72
