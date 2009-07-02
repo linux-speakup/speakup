@@ -69,7 +69,7 @@ kernel.
 
 acntsa -- Accent SA
 acntpc -- Accent PC
-apolo -- Apolo
+apollo -- Apollo
 audptr -- Audapter
 bns -- Braille 'n Speak
 dectlk -- DecTalk Express (old and new, db9 serial only)
