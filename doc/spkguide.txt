@@ -2,11 +2,12 @@
 The Speakup User's Guide
 For Speakup 3.0 and Later
 By Gene Collins
-Last modified on Sun Jun 29 03:11:10 2008 +0100
-Document version 1.1
+Last modified on Thu Jul 2 16:50:00 2008 -0500
+Document version 1.2
 
 Copyright (c) 2005  Gene Collins
 Copyright (c) 2008  Samuel Thibault
+Copyright (c) 2009  the Speakup Team
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -669,13 +670,50 @@ In Speakup version 2.0 and later, cursor tracking is turned on by
 default.  This means that when you are using an editor, Speakup will
 automatically speak characters as you move left and right with the
 cursor keys, and lines as you move up and down with the cursor keys.
+This is the traditional sort of cursor tracking.
+Recent versions of Speakup provide two additional ways to control the
+text that is spoken when the cursor is moved:
+"highlight tracking" and "read window."
+They are described later in this section.
+Sometimes, these modes get in your way, so you can disable cursor tracking
+altogether.
 
-This is extremely useful, and makes editing files a snap.  But there are
-times when cursor tracking can get in your way.  So Speakup provides a
-toggle to turn cursor tracking on and off.  You do this with the keypad
-asterisk key.  Pressing this key repeatedly will toggle the cursor
-tracking on and off, and you will hear Speakup say, "cursoring off", and
-"cursoring on".
+You may select among the various forms of cursor tracking using the keypad
+asterisk key.
+Each time you press this key, a new mode is selected, and Speakup speaks
+the name of the new mode.  The names for the four possible states of cursor
+tracking are: "cursoring on", "highlight tracking", "read window",
+and "cursoring off."  The keypad asterisk key moves through the list of
+modes in a circular fashion.
+
+If highlight tracking is enabled, Speakup tracks highlighted text,
+rather than the cursor itself. When you move the cursor with the arrow keys,
+Speakup speaks the currently highlighted information.
+This is useful when moving through various menus and dialog boxes.
+If cursor tracking isn't helping you while navigating a menu,
+try highlight tracking.
+
+With the "read window" variety of cursor tracking, you can limit the text
+that Speakup speaks by specifying a window of interest on the screen.
+See section 14 for a description of the process of defining windows.
+When you move the cursor via the arrow keys, Speakup only speaks
+the contents of the window.  This is especially helpful when you are hearing
+superfluous speech.  Consider the following example.
+
+Suppose that you are at a shell prompt.  You use bash, and you want to
+explore your command history using the up and down arrow keys.  If you
+have enabled cursor tracking, you will hear two pieces of information.
+Speakup speaks both your shell prompt and the current entry from the
+command history.  You may not want to hear the prompt repeated
+each time you move, so you can silence it by specifying a window.  Find
+the last line of text on the screen.  Clear the current window by pressing
+the key combination speakup f3.  Use the review cursor to find the first
+character that follows your shell prompt.  Press speakup + f2 twice, to
+define a one-line window.  The boundaries of the window are the
+character following the shell prompt and the end of the line.  Now, cycle
+through the cursor tracking modes using keypad asterisk, until Speakup
+says "read window."  Move through your history using your arrow keys.
+You will notice that Speakup no longer speaks the redundant prompt.
 
 Some folks like to turn cursor tracking off while they are using the
 lynx web browser.  You definitely want to turn cursor tracking off when
