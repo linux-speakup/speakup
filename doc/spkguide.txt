@@ -2,7 +2,7 @@
 The Speakup User's Guide
 For Speakup 3.0 and Later
 By Gene Collins
-Last modified on Thu Jul 2 18:59:00 2009 -0500
+Last modified on Fri Jul 3 15:07:00 2009 -0500
 Document version 1.2
 
 Copyright (c) 2005  Gene Collins
@@ -719,7 +719,7 @@ try highlight tracking.
 
 With the "read window" variety of cursor tracking, you can limit the text
 that Speakup speaks by specifying a window of interest on the screen.
-See section 14 for a description of the process of defining windows.
+See section 15 for a description of the process of defining windows.
 When you move the cursor via the arrow keys, Speakup only speaks
 the contents of the window.  This is especially helpful when you are hearing
 superfluous speech.  Consider the following example.
@@ -915,7 +915,117 @@ find that all the mappings you didn't include in your file got deleted
 from the working map.  Be extremely careful, and always make a backup! 
 You have been warned!
 
-14.  Using Speakup's Windowing Capability
+14.  Internationalizing Speakup
+
+Speakup indicates various conditions to the user by speaking messages.
+For instance, when you move to the left edge of the screen with the
+review keys, Speakup says, "left."
+Prior to version 3.1.0 of Speakup, all of these messages were in English,
+and they could not be changed.  If you used a non-English synthesizer,
+you still heard English messages, such as "left" and "cursoring on."
+In version 3.1.0 or higher, one may load translations for the various
+messages via the /sys filesystem.
+
+The directory /speakup/i18n contains several collections of messages.
+Each group of messages is stored in its own file.
+The following section lists all of these files, along with a brief description
+of each.
+
+14.1.  Files Under the i18n Subdirectory
+
+* announcements:
+This file contains various general announcements, most of which cannot
+be categorized.  You will find messages such as "You killed Speakup",
+"I'm alive", "leaving help", "parked", "unparked", and others.
+You will also find the names of the screen edges and cursor tracking modes
+here.
+
+* characters:
+See section 12 for a description of this file.
+
+* chartab:
+See section 12.  Unlike the rest of the files in the i18n subdirectory,
+this one does not contain messages to be spoken.
+
+* colors:
+When you use the "say attributes" function, Speakup says the name of the
+foreground and background colors.  These names come from the i18n/colors
+file.
+
+* ctl_keys:
+Here, you will find names of control keys.  These are used with Speakup's
+say_control feature.
+
+* formatted:
+This group of messages contains embedded formatting codes, to specify
+the type and width of displayed data.  If you change these, you must
+preserve all of the formatting codes, and they must appear in the order
+used by the default messages.
+
+* function_names:
+Here, you will find a list of names for Speakup functions.  These are used
+by the help system.  For example, suppose that you have activated help mode,
+and you pressed keypad 3.  Speakup says:
+"keypad 3 is character, say next."
+The message "character, say next" names a Speakup function, and it
+comes from this function_names file.
+
+* key_names:
+Again, key_names is used by Speakup's help system.  In the previous
+example, Speakup said that you pressed "keypad 3."
+This name came from the key_names file.
+
+* states:
+This file contains names for key states.
+Again, these are part of the help system.  For instance, if you had pressed
+speakup + keypad 3, you would hear:
+"speakup keypad 3 is go to bottom edge."
+The speakup key is depressed, so the name of the key state is speakup.
+This part of the message comes from the states collection.
+
+14.2.  Loading Your Own Messages
+
+The files under the i18n subdirectory all follow the same format.
+They consist of lines, with one message per line.
+Each message is represented by a number, followed by the text of the message.
+The number is the position of the message in the given collection.
+For example, if you view the file /speakup/i18n/colors, you will see the
+following list:
+
+0	black
+1	blue
+2	green
+3	cyan
+4	red
+5	magenta
+6	yellow
+7	white
+8	grey
+
+You can change one message, or you can change a whole group.
+To load a whole collection of messages from a new source, simply use
+the cp command:
+cp ~/my_colors /speakup/i18n/colors
+You can change an individual message with the echo command,
+as shown in the following example.
+
+The Spanish name for the color blue is azul.
+Looking at the colors file, we see that the name "blue" is at position 1
+within the colors group.  Let's change blue to azul:
+echo '1 azul' > /speakup/i18n/colors
+The next time that Speakup says message 1 from the colors group, it will
+say "azul", rather than "blue."
+
+In the future, translations into various languages will be made available,
+and most users will just load the files necessary for their language.
+
+14.3.  No Support for Non-Western-European Languages
+
+As of the current release, Speakup only supports Western European languages.
+Support for the extended characters used by languages outside of the Western
+European family of languages is a work in progress.
+
+15.  Using Speakup's Windowing Capability
 
 Speakup has the capability of defining and manipulating windows on the
 screen.  Speakup uses the term "Window", to mean a user defined area of
