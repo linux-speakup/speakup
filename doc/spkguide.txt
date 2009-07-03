@@ -2,7 +2,7 @@
 The Speakup User's Guide
 For Speakup 3.0 and Later
 By Gene Collins
-Last modified on Thu Jul 2 16:50:00 2008 -0500
+Last modified on Thu Jul 2 18:59:00 2009 -0500
 Document version 1.2
 
 Copyright (c) 2005  Gene Collins
@@ -360,7 +360,7 @@ of the sys system.
 
 As a convenience, run as root
 
-ln -s /sys/modules/speakup/parameters /speakup
+ln -s /sys/accessibility/speakup /speakup
 
 to directly access speakup parameters from /speakup. 
 You can see these entries by typing the command:
@@ -374,39 +374,62 @@ this:
 /speakup/bell_pos
 /speakup/bleep_time
 /speakup/bleeps
-/speakup/caps_start
-/speakup/caps_stop
-/speakup/characters
 /speakup/cursor_time
-/speakup/delay_time
 /speakup/delimiters
 /speakup/ex_num
-/speakup/freq
-/speakup/full_time
-/speakup/jiffy_delta
 /speakup/key_echo
 /speakup/keymap
 /speakup/no_interrupt
-/speakup/pitch
 /speakup/punc_all
 /speakup/punc_level
 /speakup/punc_most
 /speakup/punc_some
-/speakup/punct
-/speakup/rate
 /speakup/reading_punc
 /speakup/repeats
 /speakup/say_control
 /speakup/say_word_ctl
 /speakup/silent
 /speakup/spell_delay
+/speakup/synth
 /speakup/synth_direct
-/speakup/synth_name
-/speakup/tone
-/speakup/trigger_time
 /speakup/version
-/speakup/voice
-/speakup/vol
+
+/speakup/i18n:
+announcements
+characters
+chartab
+colors
+ctl_keys
+formatted
+function_names
+key_names
+states
+
+/speakup/soft:
+caps_start
+caps_stop
+delay_time
+direct
+freq
+full_time
+jiffy_delta
+pitch
+punct
+rate
+tone
+trigger_time
+voice
+vol
+
+Notice the two subdirectories of /speakup: /speakup/i18n and
+/speakup/soft.
+The i18n subdirectory is described in a later section.
+The files under /speakup/soft represent settings that are specific to the
+driver for the software synthesizer.  If you use the LiteTalk, your
+synthesizer-specific settings would be found in /speakup/ltlk.  In other words,
+a subdirectory named /speakup/KWD is created to hold parameters specific
+to the device whose keyword is KWD.
+These parameters include volume, rate, pitch, and others.
 
 In addition to using the Speakup hot keys to change such things as
 volume, pitch, and rate, you can also echo values to the appropriate
@@ -492,7 +515,8 @@ Looking at entries in the Speakup sys system can be useful in many
 ways.  For example, you might wish to know what level your volume is set
 at.  You could type:
 
-cat /speakup/vol
+cat /speakup/KWD/vol
+# Replace KWD with the keyword for your synthesizer, E.G., ltlk for LiteTalk.
 5
 
 The number five which comes back is the level at which the synthesizer
@@ -511,11 +535,11 @@ on the Speakup list.
 It is possible to change to a different synthesizer while speakup is
 running.  In other words, it is not necessary to reboot the system
 in order to use a different synthesizer.  You can simply echo the
-synthesizer keyword to the /speakup/synth_name sys entry. 
-Depending on your situation, you may wish to echo none to the synth_name
+synthesizer keyword to the /speakup/synth sys entry. 
+Depending on your situation, you may wish to echo none to the synth
 sys entry, to disable speech while one synthesizer is disconnected and
 a second one is connected in its place.  Then echo the keyword for the
-new synthesizer into the synth_name sys entry in order to start speech
+new synthesizer into the synth sys entry in order to start speech
 with the newly connected synthesizer.  See the list of synthesizer
 keywords in section 1 to find the keyword which matches your synth.
 
@@ -775,7 +799,7 @@ keypad slash key.
 
 12.  Changing the Pronunciation of Characters
 
-Through the /speakup/chars sys entry, Speakup gives you the
+Through the /speakup/i18n/characters sys entry, Speakup gives you the
 ability to change how Speakup pronounces a given character.  You could,
 for example, change how some punctuation characters are spoken.  You can
 even change how Speakup will pronounce certain letters.
@@ -812,14 +836,14 @@ upper and lower case z.
 The > symbol redirects the output of the echo command to a file, just
 like in DOS, or at the Windows command prompt.
 
-And finally, /speakup/chars is the file entry in the sys system
+And finally, /speakup/i18n/characters is the file entry in the sys system
 where we want the output to be directed.  Speakup looks at the numeric
 value of the character we want to change, and inserts the pronunciation
 string into an internal table.
 
 You can look at the whole table with the following command:
 
-cat /speakup/chars
+cat /speakup/i18n/characters
 
 Speakup will then print out the entire character pronunciation table.  I
 won't display it here, but leave you to look at it at your convenience.
