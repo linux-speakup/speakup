@@ -26,6 +26,7 @@
 
 #define MAXFUNCS 130
 #define MAXKEYS 256
+static const int num_key_names = MSG_KEYNAMES_END - MSG_KEYNAMES_START + 1;
 static u_short key_offsets[MAXFUNCS], key_data[MAXKEYS];
 static u_short masks[] = { 32, 16, 8, 4, 2, 1 };
 
@@ -115,7 +116,8 @@ static void say_key(int key)
 		if (state & masks[i])
 			synth_printf(" %s", msg_get(MSG_STATES_START + i));
 	}
-	synth_printf(" %s\n", msg_get(MSG_KEYNAMES_START + (--key)));
+	if ((key > 0) && (key <= num_key_names))
+		synth_printf(" %s\n", msg_get(MSG_KEYNAMES_START + (key - 1)));
 }
 
 static int help_init(void)
@@ -171,7 +173,7 @@ int handle_help(struct vc_data *vc, u_char type, u_char ch, u_short key)
 		return 1;
 	} else {
 		name = NULL;
-		if (type != KT_SPKUP) {
+		if ((type != KT_SPKUP) && (key > 0) && (key <= num_key_names)) {
 			synth_printf("%s\n", msg_get(MSG_KEYNAMES_START + key-1));
 			return 1;
 		}
