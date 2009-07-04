@@ -470,7 +470,7 @@ static void say_phonetic_char(struct vc_data *vc)
 	u_short ch;
 	spk_old_attr = spk_attr;
 	ch = get_char(vc, (u_short *) spk_pos, &spk_attr);
-	if (IS_CHAR(ch, B_ALPHA)) {
+	if (isascii(ch) && isalpha(ch)) {
 		ch &= 0x1f;
 		synth_printf("%s\n", phonetic[--ch]);
 	} else {
