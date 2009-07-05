@@ -683,7 +683,7 @@ static void spell_word(struct vc_data *vc)
 			last_cap = str_cap;
 		}
 		if (this_speakup_key == SPELL_PHONETIC
-		    && (IS_CHAR(ch, B_ALPHA))) {
+		    && (isascii(ch) && isalpha(ch))) {
 			ch &= 31;
 			cp1 = phonetic[--ch];
 		} else {
