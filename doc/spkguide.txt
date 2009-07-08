@@ -2,7 +2,7 @@
 The Speakup User's Guide
 For Speakup 3.0 and Later
 By Gene Collins
-Last modified on Fri Jul 3 15:07:00 2009 -0500
+Last modified on Wed Jul 8 10:19:00 2009 -0500
 Document version 1.2
 
 Copyright (c) 2005  Gene Collins
@@ -577,7 +577,18 @@ The above command assumes you were running a DecTalk Express.  If you
 were using a different synth, then you would substitute its keyword in
 place of dectlk.
 
-But now, suppose we have a situation where the main Speakup component
+If you have multiple drivers loaded, you need to unload all of them, in
+order to completely unload Speakup.
+For example, if you have loaded both the dectlk and ltlk drivers, use the
+command:
+modprobe -r speakup_dectlk speakup_ltlk
+
+You cannot unload the driver for software synthesizers when a user-space
+daemon is using /dev/softsynth.  First, kill the daemon.  Next, remove
+the driver with the command:
+modprobe -r speakup_soft
+
+Now, suppose we have a situation where the main Speakup component
 is built into the kernel, and some or all of the drivers are built as
 modules.  Since the main part of Speakup is compiled into the kernel, a
 partial Speakup sys system has been created which we can take advantage
