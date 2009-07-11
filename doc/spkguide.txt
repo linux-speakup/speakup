@@ -1,8 +1,9 @@
 
 The Speakup User's Guide
-For Speakup 3.0 and Later
+For Speakup 3.1.0 and Later
 By Gene Collins
-Last modified on Wed Jul 8 10:19:00 2009 -0500
+Updated by others
+Last modified on Sat Jul 11 13:06:00 2009 -0500
 Document version 1.2
 
 Copyright (c) 2005  Gene Collins
@@ -593,13 +594,13 @@ is built into the kernel, and some or all of the drivers are built as
 modules.  Since the main part of Speakup is compiled into the kernel, a
 partial Speakup sys system has been created which we can take advantage
 of by simply echoing the synthesizer keyword into the
-/speakup/synth_name sys entry.  This will cause the kernel to
+/speakup/synth sys entry.  This will cause the kernel to
 automatically load the appropriate driver module, and start Speakup
 talking.  To switch to another synth, just echo a new keyword to the
-synth_name sys entry.  For example, to load the DoubleTalk LT driver,
+synth sys entry.  For example, to load the DoubleTalk LT driver,
 you would type:
 
-echo ltlk >/speakup/synth_name
+echo ltlk >/speakup/synth
 
 You can use the modprobe -r command to unload driver modules, regardless
 of whether the main part of Speakup has been built into the kernel or
@@ -611,8 +612,71 @@ Using a software synthesizer requires that some other software be
 installed and running on your system.  For this reason, software
 synthesizers are not available for use at bootup, or during a system
 installation process.
+There are two freely-available solutions for software speech: Espeakup and
+Speech Dispatcher.
+These are described in subsections 8.1 and 8.2, respectively.
 
-In order to use a software synthesizer, you must have a package called
+During the rest of this section, we assume that speakup_soft is either
+built in to your kernel, or loaded as a module.
+
+If your system does not have udev installed , before you can use a
+software synthesizer, you must have created the /dev/softsynth device.
+If you have not already done so, issue the following commands as root:
+
+cd /dev
+mknod softsynth c 10 26
+
+While we are at it, we might just as well create the /dev/synth device,
+which can be used to let user space programs send information to your
+synthesizer.  To create /dev/synth, change to the /dev directory, and
+issue the following command as root:
+
+mknod synth c 10 25
+
+of both.
+
+8.1. Espeakup
+
+Espeakup is a connector between Speakup and the eSpeak software synthesizer.
+Espeakup may already be available as a package for your distribution
+of Linux.  If it is not packaged, you need to install it manually.
+You can find it in the contrib/ subdirectory of the Speakup sources.
+The filename is espeakup-$VERSION.tar.bz2, where $VERSION 
+depends on the current release of Espeakup.  The Speakup 3.1.1 source
+ships with version 0.71 of Espeakup.
+The README file included with the Espeakup sources describes the process
+of manual installation.
+
+Assuming that Espeakup is installed, either by the user or by the distributor,
+follow these steps to use it.
+
+Tell Speakup to use the "soft driver:
+echo soft > /speakup/synth
+
+Finally, start the espeakup program.  There are two ways to do it.
+Both require root privileges.
+
+If Espeakup was installed as a package for your Linux distribution,
+you probably have a distribution-specific script that controls the operation
+of the daemon.  Look for a file named espeakup under /etc/init.d or
+/etc/rc.d.  Execute the following command with root privileges:
+/etc/init.d/espeakup start
+Replace init.d with rc.d, if your distribution uses scripts located under
+/etc/rc.d.
+Your distribution will also have a procedure for starting daemons at
+boot-time, so it is possible to have software speech as soon as user-space
+daemons are started by the bootup scripts.
+These procedures are not described in this document.
+
+If you built Espeakup manually, the "make install" step placed the binary
+under /usr/bin.  
+Run the following command as root:
+/usr/bin/espeakup
+Espeakup should start speaking.
+
+8.2. Speech Dispatcher
+
+For this option, you must have a package called
 Speech Dispatcher running on your system, and it must be configured to
 work with one of its supported software synthesizers.
 
@@ -634,24 +698,10 @@ You get it from the free(b)soft web site mentioned above.  After you've
 compiled and installed speechd-up, you are almost ready to begin using
 your software synthesizer.
 
-If your system does not have udev installed , before you can use a
-software synthesizer, you must have created the /dev/softsynth device.
-If you have not already done so, issue the following commands as root:
-
-cd /dev
-mknod softsynth c 10 26
-
-While we are at it, we might just as well create the /dev/synth device,
-which can be used to let user space programs send information to your
-synthesizer.  To create /dev/synth, change to the /dev directory, and
-issue the following command as root:
-
-mknod synth c 10 25
-
 Now you can begin using your software synthesizer.  In order to do so,
-echo the soft keyword to the synth_name sys entry like this:
+echo the soft keyword to the synth sys entry like this:
 
-echo soft >/speakup/synth_name
+echo soft >/speakup/synth
 
 Next run the speechd_up command like this:
 
@@ -659,10 +709,6 @@ speechd_up &
 
 Your synth should now start talking, and you should be able to adjust
 the pitch, rate, etc.
-
-In this section, we have assumed that your copy of Speakup was compiled
-with the speakup_soft component either built into the kernel, or
-compiled as a module.
 
 9.  Using The DecTalk PC Card
 
@@ -690,9 +736,9 @@ choice.
 
 You can now run the dtload command in order to load the DecTalk PC
 software onto the card.  After you have done this, echo the decpc
-keyword to the synth_name entry in the sys system like this:
+keyword to the synth entry in the sys system like this:
 
-echo decpc >/speakup/synth_name
+echo decpc >/speakup/synth
 
 Your DecTalk PC should start talking, and then you can adjust the pitch,
 rate, volume, voice, etc.  The voice entry in the Speakup sys system
