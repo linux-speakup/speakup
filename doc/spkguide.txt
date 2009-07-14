@@ -531,6 +531,60 @@ Vol for controlling volume, pitch for pitch, rate for controlling speaking
 rate, etc.  If you find one you aren't sure about, you can post a query
 on the Speakup list.
 
+5.1. Speakupconf and Talkwith
+
+In the tools/ subdirectory of the Speakup distribution, you will find two
+scripts: speakupconf and talkwith.
+These may already be installed as part of your Linux distribution.
+If they are not already installed, you can install them manually.
+You should place speakupconf in /usr/local/bin (or /usr/bin), and talkwith
+should reside in /usr/local/sbin (or /usr/sbin).
+The reason for this placement is that talkwith requires root privileges,
+whereas speakupconf may be executed by anyone.
+I will briefly describe the use of both scripts.
+
+speakupconf allows you to save and load your Speakup settings.  It works
+by reading and writing the /sys files described above.  This script may
+be executed by anyone.
+The directory that speakupconf uses to store your settings depends on
+whether it is run from the root account.  If you execute speakupconf as
+root, it uses the directory /etc/speakup.  Otherwise, it uses the directory
+~/.speakup, where ~ is your home directory.
+Anyone who needs to use Speakup from your console can load his own custom
+settings with this script.
+
+speakupconf takes one argument: load or save.
+Use the command
+speakupconf save
+to save your Speakup settings, and
+speakupconf load
+to load them into Speakup.
+
+talkwith allows you to switch synthesizers on the fly.  It takes a synthesizer
+name as an argument.  For instance,
+talkwith dectlk
+causes Speakup to use the DecTalk Express.  If you wish to switch to a
+software synthesizer, you must also indicate which daemon you wish to
+use.  There are two possible choices:
+spd and espeakup.  spd is an abbreviation for speechd-up.
+If you wish to use espeakup for software synthesis, give the command
+talkwith soft espeakup
+To use speechd-up, type:
+talkwith soft spd
+Any arguments that follow the name of the daemon are passed to the daemon
+when it is invoked.  For instance:
+talkwith espeakup --default-voice=fr
+causes espeakup to use the French voice.
+Note that talkwith must always be executed with root privileges.
+
+In its normal mode of operation, talkwith calls speakupconf to load your
+settings after the new synthesizer is activated.
+If you do not want this behavior, you
+can supply -n as the first argument to talkwith.  For example:
+talkwith -n dectlk
+switches to the DecTalk Express synthesizer, and settings are not loaded
+using speakupconf.
+
 6.  Changing Synthesizers
 
 It is possible to change to a different synthesizer while speakup is
