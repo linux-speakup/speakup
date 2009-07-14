@@ -577,13 +577,9 @@ talkwith espeakup --default-voice=fr
 causes espeakup to use the French voice.
 Note that talkwith must always be executed with root privileges.
 
-In its normal mode of operation, talkwith calls speakupconf to load your
-settings after the new synthesizer is activated.
-If you do not want this behavior, you
-can supply -n as the first argument to talkwith.  For example:
-talkwith -n dectlk
-switches to the DecTalk Express synthesizer, and settings are not loaded
-using speakupconf.
+Talkwith does not attempt to load your settings after the new
+synthesizer is activated.  You can use speakupconf to load your settings
+if desired.
 
 6.  Changing Synthesizers
 

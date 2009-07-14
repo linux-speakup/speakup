@@ -1,7 +1,6 @@
 #!/bin/sh
 # 
 # talkwith -- switches speakup synthesizers on the fly
-# and saves or loads speakup parameters
 # 
 # Copyright (c) 2009 by  the Speakup Team
 # Copyright (c) 2008, 2009 by  Charles Hallenbeck
@@ -33,7 +32,6 @@ fi
 
 # Define some variables
 SPEAKUPDIR="/sys/accessibility/speakup"
-CONFDIR="/etc/speakup"
 
 # make sure speakup is loaded
 if [ ! -d $SPEAKUPDIR ]; then
@@ -42,16 +40,10 @@ if [ ! -d $SPEAKUPDIR ]; then
 fi
 
 # Check the command line for options
-if [ "$1" = "-n" ]; then
-	NOCONF="y"
-	shift
-fi
 
 if [ "$1" = "" ]; then
 	echo
-	echo "Usage: `basename $0` [-n] <synth> <daemon> [options]"
-	echo
-	echo "-n - do not call speakupconf to load parameters"
+	echo "Usage: `basename $0` <synth> <daemon> [options]"
 	echo
 	echo "synth - any synthesizer supported by speakup"
 	echo
@@ -144,9 +136,4 @@ elif [ "$NEWMOD" = "soft" ]; then
 	elif [ "$DAEMON" = "spd" ]; then
 		nice -n 5 speechd-up $*
 	fi
-fi
-
-# Load synth specific parameters
-if [ -z "$NOCONF"  -a -d $CONFDIR ]; then
-	speakupconf load
 fi
