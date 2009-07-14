@@ -581,6 +581,13 @@ Talkwith does not attempt to load your settings after the new
 synthesizer is activated.  You can use speakupconf to load your settings
 if desired.
 
+Both of these scripts began life as contributions from members of the
+Speakup community.  Charles Hallenbeck wrote the initial versions of
+talkwith, and Steve Holmes contributed initial versions of speakupconf.
+We thank both of them for their work.
+Today, these scripts are maintained by the Speakup team as part of the
+Speakup sources.
+
 6.  Changing Synthesizers
 
 It is possible to change to a different synthesizer while speakup is
