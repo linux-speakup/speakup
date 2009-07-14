@@ -1118,21 +1118,24 @@ to define the whole line as a window.
 
 16.  Tools for Controlling Speakup
 
-In the tools/ subdirectory of the Speakup distribution, you will find two
-scripts: speakupconf and talkwith.
-These may already be installed as part of your Linux distribution.
-If they are not already installed, you can install them manually.
-You should place speakupconf in /usr/local/bin (or /usr/bin), and talkwith
-should reside in /usr/local/sbin (or /usr/sbin).
-The reason for this placement is that talkwith requires root privileges,
-whereas speakupconf may be executed by anyone.
-I will briefly describe the use of both scripts.
+The speakup distribution includes extra tools (in the tools directory)
+which were written to make speakup easier to use.  This section will
+briefly describe the use of these tools.
 
 16.1.  Speakupconf
 
+speakupconf began life as a contribution from Steve Holmes, a member of
+the speakup community.  We would like to thank him for his work on the
+early versions of this project.
+
+This script may be installed as part of your linux distribution, but if
+it isn't, the recommended places to put it are /usr/local/bin or
+/usr/bin.  This script can be run by any user, so it does not require
+root privileges.
+
 Speakupconf allows you to save and load your Speakup settings.  It works
-by reading and writing the /sys files described above.  This script may
-be executed by anyone.
+by reading and writing the /sys files described above.
+
 The directory that speakupconf uses to store your settings depends on
 whether it is run from the root account.  If you execute speakupconf as
 root, it uses the directory /etc/speakup.  Otherwise, it uses the directory
@@ -1148,6 +1151,14 @@ speakupconf load
 to load them into Speakup.
 
 16.2.  Talkwith
+
+Charles Hallenbeck, another member of the speakup community, wrote the
+initial versions of this script, and we would also like to thank him for
+his work on it.
+
+This script needs root privileges to run, so if it is not installed as
+part of your linux distribution, the recommended places to install it
+are /usr/local/sbin or /usr/sbin.
 
 Talkwith allows you to switch synthesizers on the fly.  It takes a synthesizer
 name as an argument.  For instance,
@@ -1169,13 +1180,6 @@ Note that talkwith must always be executed with root privileges.
 Talkwith does not attempt to load your settings after the new
 synthesizer is activated.  You can use speakupconf to load your settings
 if desired.
-
-Both of these scripts began life as contributions from members of the
-Speakup community.  Charles Hallenbeck wrote the initial versions of
-talkwith, and Steve Holmes contributed initial versions of speakupconf.
-We thank both of them for their work.
-Today, these scripts are maintained by the Speakup team as part of the
-Speakup sources.
 
                 GNU Free Documentation License
                   Version 1.2, November 2002
