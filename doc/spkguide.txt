@@ -1,6 +1,6 @@
 
 The Speakup User's Guide
-For Speakup 3.1.0 and Later
+For Speakup 3.1.2 and Later
 By Gene Collins
 Updated by others
 Last modified on Sat Jul 11 13:06:00 2009 -0500
@@ -633,7 +633,7 @@ Espeakup may already be available as a package for your distribution
 of Linux.  If it is not packaged, you need to install it manually.
 You can find it in the contrib/ subdirectory of the Speakup sources.
 The filename is espeakup-$VERSION.tar.bz2, where $VERSION 
-depends on the current release of Espeakup.  The Speakup 3.1.1 source
+depends on the current release of Espeakup.  The Speakup 3.1.2 source
 ships with version 0.71 of Espeakup.
 The README file included with the Espeakup sources describes the process
 of manual installation.
