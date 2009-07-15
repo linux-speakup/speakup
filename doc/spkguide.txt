@@ -192,15 +192,6 @@ can still use the reading controls to review the screen however.
 
 3.  Using the Speakup Help System
 
-Speakup has a help system, which is compiled as a module.  It is loaded
-automatically whenever the Speakup help system is invoked for the first
-time, and remains loaded after that, until speakup is unloaded.  Note
-that if speakup was compiled into a monolithic kernel on your system,
-you will not be able to unload Speakup from your kernel.  If you try to
-use the help system, and find that it is unavailable, then your system
-administrator has not installed the Speakup help module, which is called
-speakup_help.  Complain to your system administrator about this.
-
 In order to enter the Speakup help system, press and hold the speakup
 key (remember that this is the keypad insert key), and press the f1 key.
 You will hear the message:
