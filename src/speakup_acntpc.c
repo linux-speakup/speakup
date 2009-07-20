@@ -34,7 +34,7 @@
 #include "speakup.h"
 #include "speakup_acnt.h" /* local header file for Accent values */
 
-#define DRV_VERSION "2.8"
+#define DRV_VERSION "2.9"
 #define synth_readable() (inb_p(synth_port_control) & SYNTH_READABLE)
 #define synth_writable() (inb_p(synth_port_control) & SYNTH_WRITABLE)
 #define synth_full() (inb_p(speakup_info.port_tts + UART_RX) == 'F')
@@ -164,11 +164,22 @@ static void do_catch_up(struct spk_synth *synth)
 	unsigned long flags;
 	unsigned long jiff_max;
 	int timeout;
+	int delay_time_val;
+	int jiffy_delta_val;
+	int full_time_val;
 	struct var_t *delay_time;
+	struct var_t *full_time;
 	struct var_t *jiffy_delta;
 
 	jiffy_delta = get_var(JIFFY);
-	jiff_max = jiffies+jiffy_delta->u.n.value;
+	delay_time = get_var(DELAY);
+	full_time = get_var(FULL);
+
+	spk_lock(flags);
+	jiffy_delta_val = jiffy_delta->u.n.value;
+	spk_unlock(flags);
+
+	jiff_max = jiffies + jiffy_delta_val;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -182,10 +193,10 @@ static void do_catch_up(struct spk_synth *synth)
 			break;
 		}
 		set_current_state(TASK_INTERRUPTIBLE);
+		full_time_val = full_time->u.n.value;
 		spk_unlock(flags);
 		if (synth_full()) {
-			delay_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(full_time_val));
 			continue;
 		}
 		set_current_state(TASK_RUNNING);
@@ -209,9 +220,12 @@ static void do_catch_up(struct spk_synth *synth)
 				udelay(1);
 			}
 			outb_p(PROCSPEECH, speakup_info.port_tts);
-			delay_time = get_var(DELAY);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
-			jiff_max = jiffies+jiffy_delta->u.n.value;
+			spk_lock(flags);
+			jiffy_delta_val = jiffy_delta->u.n.value;
+			delay_time_val = delay_time->u.n.value;
+			spk_unlock(flags);
+			schedule_timeout(msecs_to_jiffies(delay_time_val));
+			jiff_max = jiffies+jiffy_delta_val;
 		}
 	}
 	timeout = SPK_XMITR_TIMEOUT;

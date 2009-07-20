@@ -33,7 +33,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.12"
+#define DRV_VERSION "2.13"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static volatile int xoff;
@@ -198,9 +198,16 @@ static void do_catch_up(struct spk_synth *synth)
 	DEFINE_WAIT(wait);
 	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
+	int jiffy_delta_val;
+	int delay_time_val;
 
 	jiffy_delta = get_var(JIFFY);
-	jiff_max = jiffies+jiffy_delta->u.n.value;
+	delay_time = get_var(DELAY);
+	spk_lock(flags);
+	jiffy_delta_val = jiffy_delta->u.n.value;
+	spk_unlock(flags);
+	jiff_max = jiffies + jiffy_delta_val;
+
 	while (!kthread_should_stop()) {
 		/* if no ctl-a in 4, send data anyway */
 		spin_lock_irqsave(&flush_lock, flags);
@@ -227,12 +234,12 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		ch = synth_buffer_peek();
 		set_current_state(TASK_INTERRUPTIBLE);
+		delay_time_val = delay_time->u.n.value;
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = 0x0D;
 		if (synth_full() || !spk_serial_out(ch)) {
-			delay_time = get_var(DELAY);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(delay_time_val));
 			continue;
 		}
 		set_current_state(TASK_RUNNING);
@@ -249,9 +256,11 @@ static void do_catch_up(struct spk_synth *synth)
 			if (jiffies >= jiff_max) {
 				if ( ! in_escape )
 					spk_serial_out(PROCSPEECH);
-				delay_time = get_var(DELAY);
-				schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
-				jiff_max = jiffies+jiffy_delta->u.n.value;
+				spk_lock(flags);
+				jiffy_delta_val = jiffy_delta->u.n.value;
+				delay_time_val = delay_time->u.n.value;
+				schedule_timeout(msecs_to_jiffies(delay_time_val));
+				jiff_max = jiffies + jiffy_delta_val;
 			}
 		}
 		last = ch;

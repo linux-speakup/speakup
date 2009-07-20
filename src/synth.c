@@ -73,10 +73,21 @@ void spk_do_catch_up(struct spk_synth *synth)
 	unsigned long flags;
 	unsigned long jiff_max;
 	struct var_t *delay_time;
+	struct var_t *full_time;
 	struct var_t *jiffy_delta;
+	int jiffy_delta_val;
+	int delay_time_val;
+	int full_time_val;
 
 	jiffy_delta = get_var(JIFFY);
-	jiff_max = jiffies+jiffy_delta->u.n.value;
+	full_time = get_var(FULL);
+	delay_time = get_var(DELAY);
+
+	spk_lock(flags);
+	jiffy_delta_val = jiffy_delta->u.n.value;
+	spk_unlock(flags);
+
+	jiff_max = jiffies + jiffy_delta_val;
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
 		if (speakup_info.flushing) {
@@ -91,21 +102,25 @@ void spk_do_catch_up(struct spk_synth *synth)
 		}
 		ch = synth_buffer_peek();
 		set_current_state(TASK_INTERRUPTIBLE);
+		full_time_val = full_time->u.n.value;
 		spk_unlock(flags);
 		if (ch == '\n')
 			ch = synth->procspeech;
 		if (!spk_serial_out(ch)) {
-			delay_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(full_time_val));
 			continue;
 		}
 		if ((jiffies >= jiff_max) && (ch == SPACE)) {
+			spk_lock(flags);
+			jiffy_delta_val = jiffy_delta->u.n.value;
+			delay_time_val = delay_time->u.n.value;
+			full_time_val = full_time->u.n.value;
+			spk_unlock(flags);
 			if (spk_serial_out(synth->procspeech))
-				delay_time = get_var(DELAY);
+				schedule_timeout(msecs_to_jiffies(delay_time_val));
 			else
-				delay_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
-			jiff_max = jiffies+jiffy_delta->u.n.value;
+				schedule_timeout(msecs_to_jiffies(full_time_val));
+			jiff_max = jiffies + jiffy_delta_val;
 		}
 		set_current_state(TASK_RUNNING);
 		spk_lock(flags);

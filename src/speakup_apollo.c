@@ -31,7 +31,7 @@
 #include "serialio.h"
 #include "speakup.h"
 
-#define DRV_VERSION "2.10"
+#define DRV_VERSION "2.20"
 #define SYNTH_CLEAR 0x18
 #define PROCSPEECH '\r'
 
@@ -136,11 +136,24 @@ static void do_catch_up(struct spk_synth *synth)
 	unsigned long jiff_max;
 	struct var_t *jiffy_delta;
 	struct var_t *delay_time;
+	struct var_t *full_time;
+	int full_time_val = 0;
+	int delay_time_val = 0;
+	int jiffy_delta_val = 0;
 
 	jiffy_delta = get_var(JIFFY);
-	jiff_max = jiffies+jiffy_delta->u.n.value;
+	delay_time = get_var(DELAY);
+	full_time = get_var(FULL);
+	spk_lock(flags);
+	jiffy_delta_val = jiffy_delta->u.n.value;
+	spk_unlock(flags);
+	jiff_max = jiffies + jiffy_delta_val;
+
 	while (!kthread_should_stop()) {
 		spk_lock(flags);
+		jiffy_delta_val = jiffy_delta->u.n.value;
+		full_time_val = full_time->u.n.value;
+		delay_time_val = delay_time->u.n.value;
 		if (speakup_info.flushing) {
 			speakup_info.flushing = 0;
 			spk_unlock(flags);
@@ -153,22 +166,26 @@ static void do_catch_up(struct spk_synth *synth)
 		}
 		ch = synth_buffer_peek();
 		set_current_state(TASK_INTERRUPTIBLE);
+		full_time_val = full_time->u.n.value;
 		spk_unlock(flags);
 		if (!spk_serial_out(ch)) {
 			outb(UART_MCR_DTR, speakup_info.port_tts + UART_MCR);
 			outb(UART_MCR_DTR | UART_MCR_RTS,
 					speakup_info.port_tts + UART_MCR);
-			delay_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
+			schedule_timeout(msecs_to_jiffies(full_time_val));
 			continue;
 		}
 		if ((jiffies >= jiff_max) && (ch == SPACE)) {
+			spk_lock(flags);
+			jiffy_delta_val = jiffy_delta->u.n.value;
+			full_time_val = full_time->u.n.value;
+			delay_time_val = delay_time->u.n.value;
+			spk_unlock(flags);
 			if (spk_serial_out(synth->procspeech))
-				delay_time = get_var(DELAY);
+				schedule_timeout(msecs_to_jiffies(delay_time_val));
 			else
-				delay_time = get_var(FULL);
-			schedule_timeout(msecs_to_jiffies(delay_time->u.n.value));
-			jiff_max = jiffies+jiffy_delta->u.n.value;
+				schedule_timeout(msecs_to_jiffies(full_time_val));
+			jiff_max = jiffies + jiffy_delta_val;
 		}
 		set_current_state(TASK_RUNNING);
 		spk_lock(flags);
