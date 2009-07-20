@@ -29,7 +29,9 @@ static ssize_t chars_chartab_show(struct kobject *kobj,
 	int i;
 	int len = 0;
 	char *cp;
+	unsigned long flags;
 
+	spk_lock(flags);
 	for (i = 0; i < 256; i++) {
 		if (strcmp("characters", attr->attr.name) == 0) {
 			len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
@@ -57,6 +59,7 @@ static ssize_t chars_chartab_show(struct kobject *kobj,
 			cp = "0";
 		len += sprintf(buf + len, "%d\t%s\n", i, cp);
 	}
+	spk_unlock(flags);
 	return len;
 }
 
@@ -214,8 +217,11 @@ static ssize_t keymap_show(struct kobject *kobj, struct kobj_attribute *attr,
 	int n;
 	int num_keys;
 	int nstates;
-	u_char *cp1 = key_buf + SHIFT_TBL_SIZE;
+	u_char *cp1;
 	u_char ch;
+	unsigned long flags;
+	spk_lock(flags);
+	cp1 = key_buf + SHIFT_TBL_SIZE;
 	num_keys = (int)(*cp1);
 	nstates = (int)cp1[1];
 	cp += sprintf(cp, "%d, %d, %d,\n", KEY_MAP_VER, num_keys, nstates);
@@ -230,6 +236,7 @@ static ssize_t keymap_show(struct kobject *kobj, struct kobj_attribute *attr,
 		}
 	}
 	cp += sprintf(cp, "0, %d\n", KEY_MAP_VER);
+	spk_unlock(flags);
 	return (int)(cp-buf);
 }
 
@@ -436,6 +443,7 @@ static ssize_t punc_show(struct kobject *kobj, struct kobj_attribute *attr,
 	struct punc_var_t *var;
 	struct st_bits_data *pb;
 	short mask;
+	unsigned long flags;
 
 	p_header = var_header_by_name(attr->attr.name);
 	if (p_header == NULL) {
@@ -450,6 +458,7 @@ static ssize_t punc_show(struct kobject *kobj, struct kobj_attribute *attr,
 		return -EINVAL;
 	}
 
+	spk_lock(flags);
 	pb = (struct st_bits_data *) &punc_info[var->value];
 	mask = pb->mask;
 	for (i = 33; i < 128; i++) {
@@ -457,6 +466,7 @@ static ssize_t punc_show(struct kobject *kobj, struct kobj_attribute *attr,
 			continue;
 		*cp++ = (char)i;
 	}
+	spk_unlock(flags);
 	return cp-buf;
 }
 
@@ -518,11 +528,13 @@ ssize_t spk_var_show(struct kobject *kobj, struct kobj_attribute *attr,
 		char *cp1;
 	char *cp;
 	char ch;
+	unsigned long flags;
 
 	param = var_header_by_name(attr->attr.name);
 	if (param == NULL)
 		return -EINVAL;
 
+	spk_lock(flags);
 	var = (struct var_t *) param->data;
 	switch (param->var_type) {
 	case VAR_NUM:
@@ -555,6 +567,7 @@ ssize_t spk_var_show(struct kobject *kobj, struct kobj_attribute *attr,
 			param->name, param->var_type);
 		break;
 	}
+	spk_unlock(flags);
 	return rv;
 }
 EXPORT_SYMBOL_GPL(spk_var_show);
@@ -572,6 +585,7 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 	char *cp;
 	struct var_t *var_data;
 	int value;
+	unsigned long flags;
 
 	param = var_header_by_name(attr->attr.name);
 	if (param == NULL)
@@ -581,6 +595,7 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 	ret = 0;
 	cp = xlate((char *) buf);
 
+	spk_lock(flags);
 	switch (param->var_type) {
 	case VAR_NUM:
 	case VAR_TIME:
@@ -619,6 +634,8 @@ ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
 			param->name, (int)param->var_type);
 	break;
 	}
+	spk_unlock(flags);
+
 	if (ret == SET_DEFAULT)
 		pr_info("%s reset to default value\n", attr->attr.name);
 	return count;
@@ -762,9 +779,12 @@ static ssize_t message_show(struct kobject *kobj,
 {
 	ssize_t retval = 0;
 	struct msg_group_t *group = find_msg_group(attr->attr.name);
+	unsigned long flags;
 
 	BUG_ON(! group);
+	spk_lock(flags);
 	retval = message_show_helper(buf, group->start, group->end);
+	spk_unlock(flags);
 	return retval;
 }
 
