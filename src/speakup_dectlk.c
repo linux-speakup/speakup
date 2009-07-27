@@ -33,7 +33,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.13"
+#define DRV_VERSION "2.14"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static volatile int xoff;
@@ -259,6 +259,7 @@ static void do_catch_up(struct spk_synth *synth)
 				spk_lock(flags);
 				jiffy_delta_val = jiffy_delta->u.n.value;
 				delay_time_val = delay_time->u.n.value;
+				spk_unlock(flags);
 				schedule_timeout(msecs_to_jiffies(delay_time_val));
 				jiff_max = jiffies + jiffy_delta_val;
 			}
