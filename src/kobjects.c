@@ -29,38 +29,47 @@ static ssize_t chars_chartab_show(struct kobject *kobj,
 	int i;
 	int len = 0;
 	char *cp;
+	char *buf_pointer = buf;
+	size_t bufsize = PAGE_SIZE;
 	unsigned long flags;
 
 	spk_lock(flags);
+	*buf_pointer = '\0';
 	for (i = 0; i < 256; i++) {
+		if (bufsize <= 1)
+			break;
 		if (strcmp("characters", attr->attr.name) == 0) {
-			len += sprintf(buf + len, "%d\t%s\n", i, characters[i]);
-			continue;
+			len = scnprintf(buf_pointer, bufsize, "%d\t%s\n",
+					i, characters[i]);
+		} else {	/* show chartab entry */
+			if (IS_TYPE(i, B_CTL))
+				cp = "B_CTL";
+			else if (IS_TYPE(i, WDLM))
+				cp = "WDLM";
+			else if (IS_TYPE(i, A_PUNC))
+				cp = "A_PUNC";
+			else if (IS_TYPE(i, PUNC))
+				cp = "PUNC";
+			else if (IS_TYPE(i, NUM))
+				cp = "NUM";
+			else if (IS_TYPE(i, A_CAP))
+				cp = "A_CAP";
+			else if (IS_TYPE(i, ALPHA))
+				cp = "ALPHA";
+			else if (IS_TYPE(i, B_CAPSYM))
+				cp = "B_CAPSYM";
+			else if (IS_TYPE(i, B_SYM))
+				cp = "B_SYM";
+			else
+				cp = "0";
+			len =
+			    scnprintf(buf_pointer, bufsize, "%d\t%s\n", i, cp);
 		}
-		if (IS_TYPE(i, B_CTL))
-			cp = "B_CTL";
-		else if (IS_TYPE(i, WDLM))
-			cp = "WDLM";
-		else if (IS_TYPE(i, A_PUNC))
-			cp = "A_PUNC";
-		else if (IS_TYPE(i, PUNC))
-			cp = "PUNC";
-		else if (IS_TYPE(i, NUM))
-			cp = "NUM";
-		else if (IS_TYPE(i, A_CAP))
-			cp = "A_CAP";
-		else if (IS_TYPE(i, ALPHA))
-			cp = "ALPHA";
-		else if (IS_TYPE(i, B_CAPSYM))
-			cp = "B_CAPSYM";
-		else if (IS_TYPE(i, B_SYM))
-			cp = "B_SYM";
-		else
-			cp = "0";
-		len += sprintf(buf + len, "%d\t%s\n", i, cp);
+		bufsize -= len;
+		buf_pointer += len;
 	}
 	spk_unlock(flags);
-	return len;
+	return buf_pointer - buf;
 }
 
 /*
