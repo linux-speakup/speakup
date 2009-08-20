@@ -1,12 +1,28 @@
-.TH SPEAKWITH "1" "March 2009" "Speak with" "User Commands"
+.TH TALKWITH "1" "March 2009" "Speakup Tools" "User Commands"
 .SH NAME
 talkwith \- script to easily switch speakup speech synthesizer
 .SH SYNOPSIS
-\fBtalkwith\fR \fIsynth\fR [ -x ]
+\fBtalkwith\fR \fIsynth\fR \fIdaemon\fR [options ...]
 .SH DESCRIPTION
 .B talkwith
-permits to easily make speakup switch between various speech synthesizers,
-including the espeak software synthesizer (through espeakup).
+is a script which makes switching speech synthesizers in speakup very
+simple.
+
+The options are as follows:
+
+\fIsynth\fR \- any synthesizer supported by speakup
+
+\fIdaemon\fR \- for the 'soft' synthesizer, this should be either
+spd for speechd-up, or espeakup to run espeakup.
+For the other synthesizers, this is ignored.
+
+\fIoptions\fR \- for a software synthesizer, the rest of the command line
+is passed on to the daemon; otherwise it is ignored.
+
+Talkwith does not install or remove modules, so make sure any
+required driver modules are installed or built into the kernel
+before running talkwith.
+
 .SH AUTHOR
 Charles Hallenbeck, chuckh@.ftml.net
 
