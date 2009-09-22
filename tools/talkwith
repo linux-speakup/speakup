@@ -71,10 +71,10 @@ if [ "$NEWMOD" = "spd"  -o "$NEWMOD" = "espeakup" ]; then
 fi
 
 if [ "$NEWMOD" = "soft" ]; then
-	if which espeakup >& /dev/null; then
+	if which espeakup > /dev/null 2>&1 ; then
 		HAVE_ESPEAKUP=1
 	fi
-	if which speechd-up >& /dev/null; then
+	if which speechd-up > /dev/null 2>&1 ; then
 		HAVE_SPD=1
 	fi
 			
