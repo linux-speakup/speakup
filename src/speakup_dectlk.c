@@ -33,7 +33,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.15"
+#define DRV_VERSION "2.16"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static volatile int xoff;
@@ -51,11 +51,10 @@ static spinlock_t flush_lock;
 static DECLARE_WAIT_QUEUE_HEAD(flush);
 
 static struct var_t vars[] = {
-	{ CAPS_START, .u.s = {"[:dv ap 200]" }},
-	{ CAPS_STOP, .u.s = {"[:dv ap 100]" }},
-	{ RATE, .u.n = {"[:ra %d]", 9, 0, 18, 150, 25, NULL }},
-	{ PITCH, .u.n = {"[:dv ap %d]", 80, 0, 200, 20, 0, NULL }},
-	{ VOL, .u.n = {"[:dv gv %d]", 13, 0, 14, 0, 5, NULL }},
+	{ CAPS_START, .u.s = {"[:dv ap 160 ]" }},
+	{ CAPS_STOP, .u.s = {"[:dv ap 100 ]" }},
+	{ RATE, .u.n = {"[:ra %d ]", 9, 0, 18, 150, 25, NULL }},
+	{ PITCH, .u.n = {"[:dv ap %d ]", 100, 0, 200, 20, 0, NULL }},
 	{ PUNCT, .u.n = {"[:pu %c]", 0, 0, 2, 0, 0, "nsa" }},
 	{ VOICE, .u.n = {"[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" }},
 	V_LAST_VAR
@@ -111,7 +110,7 @@ static struct spk_synth synth_dectlk = {
 	.name = "dectlk",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk Express",
-	.init = "[:dv ap 100][:error sp]",
+	.init = "[:dv ap 100 ][:error sp]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,
@@ -131,7 +130,7 @@ static struct spk_synth synth_dectlk = {
 	.read_buff_add = read_buff_add,
 	.get_index = get_index,
 	.indexing = {
-		.command = "[:in re %d] ",
+		.command = "[:in re %d ] ",
 		.lowindex = 1,
 		.highindex = 8,
 		.currindex = 1,
