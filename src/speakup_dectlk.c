@@ -75,6 +75,8 @@ static struct kobj_attribute rate_attribute =
 	__ATTR(rate, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute voice_attribute =
 	__ATTR(voice, USER_RW, spk_var_show, spk_var_store);
+static struct kobj_attribute vol_attribute =
+	__ATTR(vol, USER_RW, spk_var_show, spk_var_store);
 
 static struct kobj_attribute delay_time_attribute =
 	__ATTR(delay_time, ROOT_W, spk_var_show, spk_var_store);
@@ -96,6 +98,7 @@ static struct attribute *synth_attrs[] = {
 	&punct_attribute.attr,
 	&rate_attribute.attr,
 	&voice_attribute.attr,
+	&vol_attribute.attr,
 	&delay_time_attribute.attr,
 	&full_time_attribute.attr,
 	&jiffy_delta_attribute.attr,
