@@ -33,7 +33,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.16"
+#define DRV_VERSION "2.17"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static volatile int xoff;
@@ -53,8 +53,9 @@ static DECLARE_WAIT_QUEUE_HEAD(flush);
 static struct var_t vars[] = {
 	{ CAPS_START, .u.s = {"[:dv ap 160 ]" }},
 	{ CAPS_STOP, .u.s = {"[:dv ap 100 ]" }},
-	{ RATE, .u.n = {"[:ra %d ]", 9, 0, 18, 150, 25, NULL }},
+	{ RATE, .u.n = {"[:ra %d ]", 180, 75, 650, 0, 0, NULL }},
 	{ PITCH, .u.n = {"[:dv ap %d ]", 100, 0, 200, 20, 0, NULL }},
+	{ VOL, .u.n = {"[:dv g5 %d]", 73, 60, 86, 0, 0, NULL }},
 	{ PUNCT, .u.n = {"[:pu %c]", 0, 0, 2, 0, 0, "nsa" }},
 	{ VOICE, .u.n = {"[:n%c]", 0, 0, 9, 0, 0, "phfdburwkv" }},
 	V_LAST_VAR
@@ -110,7 +111,7 @@ static struct spk_synth synth_dectlk = {
 	.name = "dectlk",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk Express",
-	.init = "[:dv ap 100 ][:error sp]",
+	.init = "[:dv ap 100][:dv g5 73][:error sp][:ra 180][:tsr off]",
 	.procspeech = PROCSPEECH,
 	.clear = SYNTH_CLEAR,
 	.delay = 500,
