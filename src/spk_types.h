@@ -162,6 +162,8 @@ struct spk_synth {
 	short startup;
 	const int checkval; /* for validating a proper synth module */
 	struct var_t *vars;
+	int *default_pitch;
+	int *default_vol;
 	int (*probe)(struct spk_synth *synth);
 	void (*release)(void);
 	const char *(*synth_immediate)(struct spk_synth *synth, const char *buff);
