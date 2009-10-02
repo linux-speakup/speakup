@@ -28,7 +28,8 @@ enum {
 	E_DEFAULT = 0,
 	E_SET,
 	E_INC,
-	E_DEC
+	E_DEC,
+	E_NEW_DEFAULT,
 };
 
 enum var_id_t {
