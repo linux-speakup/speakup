@@ -33,7 +33,7 @@
 #include "spk_priv.h"
 #include "serialio.h"
 
-#define DRV_VERSION "2.18"
+#define DRV_VERSION "2.19"
 #define SYNTH_CLEAR 0x03
 #define PROCSPEECH 0x0b
 static volatile int xoff;
@@ -107,6 +107,9 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
+static int ap_defaults[] = {122, 89, 155, 110, 208, 240, 200, 106, 306};
+static int g5_defaults[] = {86, 81, 86, 84, 81, 80, 83, 83, 73};
+
 static struct spk_synth synth_dectlk = {
 	.name = "dectlk",
 	.version = DRV_VERSION,
@@ -121,8 +124,8 @@ static struct spk_synth synth_dectlk = {
 	.startup = SYNTH_START,
 	.checkval = SYNTH_CHECK,
 	.vars = vars,
-	.default_pitch = {122, 89, 155, 110, 208, 240, 200, 106, 306},
-	.default_vol = {86, 81, 86, 84, 81, 80, 83, 83, 73},
+	.default_pitch = ap_defaults,
+	.default_vol = g5_defaults,
 	.probe = serial_synth_probe,
 	.release = spk_serial_release,
 	.synth_immediate = spk_synth_immediate,
