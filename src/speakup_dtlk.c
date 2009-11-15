@@ -334,6 +334,7 @@ static int synth_probe(struct spk_synth *synth)
 	port_val &= 0xfbff;
 	if (port_val != 0x107f) {
 		pr_info("DoubleTalk PC: not found\n");
+		synth_release_region(synth_lpc, SYNTH_IO_EXTENT);
 		return -ENODEV;
 	}
 	while (inw_p(synth_lpc) != 0x147f)

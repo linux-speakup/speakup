@@ -280,7 +280,7 @@ static int synth_probe(struct spk_synth *synth)
 	}
 	if (port_val != 0x80) {
 		pr_info("%s: not found\n", synth->long_name);
-		synth_release_region(synth_portlist[i], SYNTH_IO_EXTENT);
+		synth_release_region(synth_port, SYNTH_IO_EXTENT);
 		synth_port = 0;
 		return -ENODEV;
 	}
