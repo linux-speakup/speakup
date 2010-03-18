@@ -220,6 +220,7 @@ ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA /* 248-255 */
 };
 
 struct task_struct *speakup_task;
+struct bleep unprocessed_sound;
 static int spk_keydown;
 static u_char spk_lastkey, spk_close_press, keymap_flags;
 static u_char last_keycode, this_speakup_key;
@@ -267,7 +268,10 @@ static void bleep(u_short val)
 	freq = vals[val%12];
 	if (val > 11)
 		freq *= (1 << (val/12));
-	kd_mksound(freq, msecs_to_jiffies(time));
+	unprocessed_sound.freq = freq;
+	unprocessed_sound.jiffies = msecs_to_jiffies(time);
+	unprocessed_sound.active = 1;
+	/* We can only have 1 active sound at a time. */
 }
 
 static void speakup_shut_up(struct vc_data *vc)

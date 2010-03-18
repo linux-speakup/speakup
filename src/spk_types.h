@@ -185,4 +185,9 @@ struct speakup_info_t {
 	int flushing;
 };
 
+struct bleep {
+	short freq;
+	unsigned long jiffies;
+	int active;
+};
 #endif

@@ -120,5 +120,6 @@ extern short punc_mask;
 extern short pitch_shift, synth_flags;
 extern int quiet_boot;
 extern char *synth_name;
+extern struct bleep unprocessed_sound;
 
 #endif
