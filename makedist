@@ -6,7 +6,7 @@ PREFIX=speakup-${SPKVER}
 REL=${1:-v${SPKVER}}
 
 if [ "$REL" != "v${SPKVER}" ]; then
-	TIMESTAMP=$git show $REL --pretty=format:%ai | head -1)
+	TIMESTAMP=$(git show $REL --pretty=format:%ai | head -1)
 	PATCHLEVEL=$(date --utc -d "$TIMESTAMP" +_p%Y%m%d%H%M)
 fi
 
