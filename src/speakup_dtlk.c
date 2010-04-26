@@ -33,7 +33,7 @@
 #include "speakup_dtlk.h" /* local header file for DoubleTalk values */
 #include "speakup.h"
 
-#define DRV_VERSION "2.9"
+#define DRV_VERSION "2.10"
 #define PROCSPEECH 0x00
 #define synth_readable() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_READABLE)
 #define synth_writable() ((synth_status = inb_p(speakup_info.port_tts + UART_RX)) & TTS_WRITABLE)
@@ -61,6 +61,7 @@ static struct var_t vars[] = {
 	{ PUNCT, .u.n = {"\x01%db", 7, 0, 15, 0, 0, NULL }},
 	{ VOICE, .u.n = {"\x01%do", 0, 0, 7, 0, 0, NULL }},
 	{ FREQUENCY, .u.n = {"\x01%df", 5, 0, 9, 0, 0, NULL }},
+	{ DIRECT, .u.n = {NULL, 0, 0, 1, 0, 0, NULL }},
 	V_LAST_VAR
 };
 
@@ -88,6 +89,8 @@ static struct kobj_attribute vol_attribute =
 
 static struct kobj_attribute delay_time_attribute =
 	__ATTR(delay_time, ROOT_W, spk_var_show, spk_var_store);
+static struct kobj_attribute direct_attribute =
+	__ATTR(direct, USER_RW, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
 	__ATTR(full_time, ROOT_W, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
@@ -110,6 +113,7 @@ static struct attribute *synth_attrs[] = {
 	&voice_attribute.attr,
 	&vol_attribute.attr,
 	&delay_time_attribute.attr,
+	&direct_attribute.attr,
 	&full_time_attribute.attr,
 	&jiffy_delta_attribute.attr,
 	&trigger_time_attribute.attr,
