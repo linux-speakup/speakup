@@ -1,3 +1,4 @@
+#include <linux/slab.h> /* for kmalloc */
 #include <linux/consolemap.h>
 #include <linux/interrupt.h>
 #include <linux/sched.h>

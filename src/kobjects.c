@@ -11,6 +11,7 @@
  * Released under the GPL version 2 only.
  *
  */
+#include <linux/slab.h>		/* For kmalloc. */
 #include <linux/kernel.h>
 #include <linux/kobject.h>
 #include <linux/string.h>
