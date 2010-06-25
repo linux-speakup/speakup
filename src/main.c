@@ -1311,11 +1311,10 @@ enum {
 };
 
 static void
-kbd_fakekey2(struct vc_data *vc, int v, int command)
+kbd_fakekey2(struct vc_data *vc, int command)
 {
 	del_timer(&cursor_timer);
-	k_handler[KT_CUR](vc, v, 0);
-	k_handler[KT_CUR](vc, v, 1);
+	speakup_fake_down_arrow();
 	start_read_all_timer(vc, command);
 }
 
@@ -1331,7 +1330,7 @@ read_all_doc(struct vc_data *vc)
 	cursor_track = read_all_mode;
 	reset_index_count(0);
 	if (get_sentence_buf(vc, 0) == -1)
-		kbd_fakekey2(vc, 0, RA_DOWN_ARROW);
+		kbd_fakekey2(vc, RA_DOWN_ARROW);
 	else {
 		say_sentence_num(0, 0);
 		synth_insert_next_index(0);
@@ -1372,7 +1371,7 @@ handle_cursor_read_all(struct vc_data *vc, int command)
 		reset_index_count(sentcount+1);
 		if (indcount == 1) {
 			if (!say_sentence_num(sentcount+1, 0)) {
-				kbd_fakekey2(vc, 0, RA_FIND_NEXT_SENT);
+				kbd_fakekey2(vc, RA_FIND_NEXT_SENT);
 				return;
 			}
 			synth_insert_next_index(0);
@@ -1384,7 +1383,7 @@ handle_cursor_read_all(struct vc_data *vc, int command)
 			} else
 				synth_insert_next_index(0);
 			if (!say_sentence_num(sn, 0)) {
-				kbd_fakekey2(vc, 0, RA_FIND_NEXT_SENT);
+				kbd_fakekey2(vc, RA_FIND_NEXT_SENT);
 				return;
 			}
 			synth_insert_next_index(0);
@@ -1400,7 +1399,7 @@ handle_cursor_read_all(struct vc_data *vc, int command)
 		break;
 	case RA_DOWN_ARROW:
 		if (get_sentence_buf(vc, 0) == -1) {
-			kbd_fakekey2(vc, 0, RA_DOWN_ARROW);
+			kbd_fakekey2(vc, RA_DOWN_ARROW);
 		} else {
 			say_sentence_num(0, 0);
 			synth_insert_next_index(0);
@@ -1412,7 +1411,7 @@ handle_cursor_read_all(struct vc_data *vc, int command)
 		if (rv == -1)
 			read_all_doc(vc);
 		if (rv == 0)
-			kbd_fakekey2(vc, 0, RA_FIND_NEXT_SENT);
+			kbd_fakekey2(vc, RA_FIND_NEXT_SENT);
 		else {
 			say_sentence_num(1, 0);
 			synth_insert_next_index(0);
@@ -1424,7 +1423,7 @@ handle_cursor_read_all(struct vc_data *vc, int command)
 	case RA_TIMER:
 		get_index_count(&indcount, &sentcount);
 		if (indcount < 2)
-			kbd_fakekey2(vc, 0, RA_DOWN_ARROW);
+			kbd_fakekey2(vc, RA_DOWN_ARROW);
 		else
 			start_read_all_timer(vc, RA_TIMER);
 		break;
@@ -2127,6 +2126,19 @@ static int keyboard_notifier_call(struct notifier_block *nb,
 
 	if (vc->vc_mode == KD_GRAPHICS)
 		return ret;
+
+	/*
+	 * First, determine whether we are handling a fake keypress on
+	 * the current processor.  If we are, then return NOTIFY_OK,
+	 * to pass the keystroke up the chain.  This prevents us from
+	 * trying to take the Speakup lock while it is held by the
+	 * processor on which the simulated keystroke was generated.
+	 * Also, the simulated keystrokes should be ignored by Speakup.
+	 */
+
+	if (speakup_fake_key_pressed())
+		return ret;
+
 	switch (code) {
 	case KBD_KEYCODE:
 		/* speakup requires keycode and keysym currently */
@@ -2226,15 +2238,21 @@ static void __exit speakup_exit(void)
 	for (i = 0; speakup_console[i]; i++)
 		kfree(speakup_console[i]);
 	speakup_kobj_exit();
+	speakup_remove_virtual_keyboard();
 }
 
 /* call by: module_init() */
 static int __init speakup_init(void)
 {
 	int i;
+	int err;
 	struct st_spk_t *first_console;
 	struct vc_data *vc = vc_cons[fg_console].d;
 	struct var_t *var;
+
+	err = speakup_add_virtual_keyboard();
+	if (err)
+		return err;
 
 	initialize_msgs(); /* Initialize arrays for i18n. */
 	first_console = kzalloc(sizeof(*first_console), GFP_KERNEL);
@@ -2282,6 +2300,7 @@ static int __init speakup_init(void)
 		return -ENOMEM;
 	return 0;
 }
+
 
 module_init(speakup_init);
 module_exit(speakup_exit);

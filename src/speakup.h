@@ -122,4 +122,10 @@ extern int quiet_boot;
 extern char *synth_name;
 extern struct bleep unprocessed_sound;
 
+/* Prototypes from fakekey.c. */
+int speakup_add_virtual_keyboard(void);
+void speakup_remove_virtual_keyboard(void);
+void speakup_fake_down_arrow(void);
+bool speakup_fake_key_pressed(void);
+
 #endif
