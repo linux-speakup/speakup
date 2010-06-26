@@ -1,7 +1,9 @@
 /* fakekey.c
- * Functions for simulating key-presses.
+ * Functions for simulating keypresses.
  *
  * Copyright (C) 2010 the Speakup Team
+ *
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
@@ -22,6 +24,9 @@
 #include <linux/input.h>
 
 #include "speakup.h"
+
+#define PRESSED 1
+#define RELEASED 0
 
 DEFINE_PER_CPU(bool, reporting_keystroke);
 
@@ -62,13 +67,9 @@ void speakup_remove_virtual_keyboard(void)
 	}
 }
 
-#define PRESSED 1
-#define RELEASED 0
-
 /*
 	 * Send a simulated down-arrow to the application.
 	 */
-
 void speakup_fake_down_arrow(void)
 {
 	unsigned long flags;
@@ -93,7 +94,6 @@ void speakup_fake_down_arrow(void)
 	 * Are we handling a simulated keypress on the current CPU?
 	 * Returns a boolean.
 	 */
-
 bool speakup_fake_key_pressed(void)
 {
 	bool is_pressed;
