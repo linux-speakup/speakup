@@ -7,10 +7,9 @@ you don't have to install it yourself. But if they don't, here are
 some basic instructions which assume you understand the kernel
 compilation process:
 
-Speakup consists of a patch for the kernel as well as the source for the speakup
-modules.  It can be installed into the kernel for kernel versions 2.6.18 
-or later, and it can be built as external modules for kernel 
-versions 2.6.26 or later.
+Speakup consists of the speakup source and a small patch for the
+kernel's makefiles.  Speakup can either be installed into the kernel or
+built as external modules.
 
 Installing into the Kernel
 ==========================
@@ -21,13 +20,13 @@ Unpack your kernel source to a known location such as /usr/src/linux
 or ~/linux-version.  If you are installing from a standard linux tar
 archive you might unpack a tar archive file with a command such as:
 
-tar jxf linux-2.6.24.tar.bz2
+tar jxf linux-2.6.26.tar.bz2
 
 From the location where speakup is unpacked run:
 
-$ ./install ~/linux-2.6.24
+$ ./install ~/linux-2.6.26
 
-(~/linux-2.6.24 is the path where you have unpacked the kernel source)
+(~/linux-2.6.26 is the path where you have unpacked the kernel source)
 
 At this point, you will be presented with messages about patches being
 applied to your kernel, followed by a message stating whether or not the
@@ -46,8 +45,8 @@ Building Speakup as External Modules
 ====================================
 
 It is possible to build speakup as a set of modules outside the kernel 
-tree if you are using kernel version 2.6.26 or later.  The advantage of 
-doing this is that you can build speakup for any kernel without modifying
+tree.  The advantage of this approach is 
+is that you can build speakup for any kernel without modifying
 the kernel itself.
 
 In order to build the speakup modules, perform the following steps:
@@ -87,7 +86,7 @@ that is returned by  uname -r.
 Starting Speakup
 ================
 
-If speakup is built-in to your new kernel it may be started on the
+If speakup is built in to your new kernel it may be started on the
 kernel command line or from a boot loader such as grub or lilo by
 supplying the appropriate speakup parameters e.g. speakup.synth=xxxx
 where 'xxxx' indicates the unique code to represent your synthesizer.
@@ -102,8 +101,8 @@ you might use:
 modprobe speakup_ltlk
 
 You can load any speakup synthesizer with an additional start=0
-parameter to make not begin speaking upon a successful load.  To switch
-to that synth later then you would use speakup's sysfs pseudo file
+parameter to make it not begin speaking upon a successful load.  To
+switch to that synthesizer later then you would use speakup's sysfs pseudo file
 support to change to that synth such as:
 
 echo "txprt" >/sys/module/speakup/parameters/synth

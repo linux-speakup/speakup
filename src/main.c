@@ -446,7 +446,7 @@ static u16 get_char(struct vc_data *vc, u16 *pos, u_char *attribs)
 		if (w & vc->vc_hi_font_mask)
 			c |= 0x100;
 
-		ch = inverse_translate(vc, c);
+		ch = inverse_translate(vc, c, 0);
 		*attribs = (w & 0xff00) >> 8;
 	}
 	return ch;

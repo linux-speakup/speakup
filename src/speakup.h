@@ -41,10 +41,6 @@
 #define B_SYM 0x0800
 #define B_CAPSYM (B_CAP|B_SYM)
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,23)
-#define inverse_translate(vc, c) inverse_translate(vc, c, 0)
-#endif
-
 #define IS_WDLM(x) (spk_chartab[((u_char)x)]&B_WDLM)
 #define IS_CHAR(x, type) (spk_chartab[((u_char)x)]&type)
 #define IS_TYPE(x, type) ((spk_chartab[((u_char)x)]&type) == type)

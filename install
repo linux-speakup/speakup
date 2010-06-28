@@ -64,29 +64,12 @@ fi
 check_kdir "${KDIR}"
 get_kv "${KDIR}"
 
-if [ $VERSION -lt 2 -o $PATCHLEVEL -lt 6 -o $SUBLEVEL -lt 18 ]; then
-	die "Speakup does not support kernels before 2.6.18."
+if [ $VERSION -lt 2 -o $PATCHLEVEL -lt 6 -o $SUBLEVEL -lt 26 ]; then
+	die "Speakup does not support kernels before 2.6.26."
 fi
 
-if [ $SUBLEVEL -lt 26 ]; then
-	BLDPATCH="$SPKDIR/patches/build-integration-2.6.25-and-below.patch"
-	SRCDIR="${KDIR}/drivers/speakup"
-else
-	BLDPATCH="$SPKDIR/patches/build-integration-2.6.26.patch"
-	SRCDIR="${KDIR}/drivers/accessibility/speakup"
-fi
-
-if [ $SUBLEVEL -le 18 ]; then
-	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.18-and-below.patch"
-elif [ $SUBLEVEL -ge 19 -a $SUBLEVEL -le 21 ]; then
-	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.19-21.patch"
-elif [ $SUBLEVEL -ge 22 -a $SUBLEVEL -le 23 ]; then
-	NOTPATCH="$SPKDIR/patches/notifier-integration-2.6.22-23.patch"
-	fi
-
-if [ $SUBLEVEL -le 25 ]; then
-	SRCPATCH="$SPKDIR/patches/source-integration-2.6.25-and-below.patch"
-fi
+BLDPATCH="$SPKDIR/patches/build-integration.patch"
+SRCDIR="${KDIR}/drivers/accessibility/speakup"
 
 if [ -f ${KDIR}/drivers/char/speakup ]; then
 	log It appears that speakup is installed in drivers/char/speakup.
@@ -101,14 +84,6 @@ fi
 
 if [ -n "${BLDPATCH}" ]; then
 	apply "${BLDPATCH}" "${KDIR}"
-fi
-
-if [ -n "${NOTPATCH}" ]; then
-	apply "${NOTPATCH}" "${KDIR}"
-fi
-
-if [ -n "${SRCPATCH}" ]; then
-	apply "${SRCPATCH}" "${KDIR}"
 fi
 
 if [ -n "$COPY_INSTALL" ]; then
