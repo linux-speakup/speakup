@@ -115,9 +115,6 @@ enum {
 #define read_all_mode CT_Max
 
 static struct tty_struct *tty;
-typedef void (*k_handler_fn)(struct vc_data *vc, unsigned char value,
-			     char up_flag);
-extern k_handler_fn k_handler[16];
 
 static void spkup_write(const char *in_buf, int count);
 
