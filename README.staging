@@ -9,8 +9,9 @@ linux console by means of synthetic speech.
 Currently, speakup has two issues we know of.
 
 The first issue has to do with the way speakup communicates with serial
-ports.  Currently, we communicate directly with the hardware ports.  We
-are finding, however, that this is not working for some modern hardware
+ports.  Currently, we communicate directly with the hardware
+ports. This however conflicts with the standard serial port drivers,
+which poses various problems. This is also not working for modern hardware
 such as PCI-based serial ports.  Also, there is not a way we can
 communicate with USB devices.  The current serial port handling code is
 in serialio.c in this directory.
