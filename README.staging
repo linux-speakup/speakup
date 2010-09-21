@@ -1,0 +1,25 @@
+Speakup project home:  http://www.linux-speakup.org
+
+Mailing List:  speakup@speech.braille.uwo.ca
+
+Speakup is a kernel based screen review package for the linux operating
+system.  It allows blind users to interact with applications on the
+linux console by means of synthetic speech.
+
+Currently, speakup has two issues we know of.
+
+The first issue has to do with the way speakup communicates with serial
+ports.  Currently, we communicate directly with the hardware ports.  We
+are finding, however, that this is not working for some modern hardware
+such as PCI-based serial ports.  Also, there is not a way we can
+communicate with USB devices.  The current serial port handling code is
+in serialio.c in this directory.
+
+The other issue seems to only happen on quad core processors.  It seems
+that text in the output buffer gets garbled because a lock is not set.
+This bug happens regularly, but no one has been able to find a situation
+which produces it consistently.
+
+Patches, suggestions, corrections, etc, are definitely welcome.  Please
+send them to our mailing list.
+
