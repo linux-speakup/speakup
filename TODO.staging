@@ -31,7 +31,7 @@ discussion on lkml resulted to putting speech synthesizers in the
 /sys/class/vtconsole/vtcon0/speakup, the nasty path being handled by
 userland tools.
 
-Another issue seems to only happen on quad core processors.  It seems
+Another issue seems to only happen on SMP systems.  It seems
 that text in the output buffer gets garbled because a lock is not set.
 This bug happens regularly, but no one has been able to find a situation
 which produces it consistently.
