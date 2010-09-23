@@ -71,12 +71,6 @@ fi
 BLDPATCH="$SPKDIR/patches/build-integration.patch"
 SRCDIR="${KDIR}/drivers/accessibility/speakup"
 
-if [ -f ${KDIR}/drivers/char/speakup ]; then
-	log It appears that speakup is installed in drivers/char/speakup.
-	log This is no longer the correct location for speakup.
-	die Please start with a fresh kernel tree.
-fi
-
 if [ -f "${SRCDIR}" ]; then
 	log It appears that speakup is already installed into this kernel.
 	die Please start with a fresh kernel tree.
