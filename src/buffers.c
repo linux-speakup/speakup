@@ -16,7 +16,8 @@ static u_char *buffer_end = synth_buffer+synthBufferSize-1;
 
 /* These try to throttle applications by stopping the TTYs
  * Note: we need to make sure that we will restart them eventually, which is
- * usually not possible to do from the notifiers.
+ * usually not possible to do from the notifiers. TODO: it should be possible
+ * starting from linux 2.6.26.
  *
  * So we only stop when we know alive == 1 (else we discard the data anyway),
  * and the alive synth will eventually call start_ttys from the thread context.
@@ -25,15 +26,19 @@ void speakup_start_ttys(void)
 {
 	int i;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
 	BUG_ON(in_atomic());
 	lock_kernel();
+#endif
 	for (i = 0; i < MAX_NR_CONSOLES; i++) {
 		if (speakup_console[i] && speakup_console[i]->tty_stopped)
 			continue;
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			start_tty(vc_cons[i].d->vc_tty);
 	}
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
 	unlock_kernel();
+#endif
 }
 EXPORT_SYMBOL_GPL(speakup_start_ttys);
 
@@ -41,6 +46,7 @@ static void speakup_stop_ttys(void)
 {
 	int i;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
 	if (!in_atomic())
 		lock_kernel();
 	else if (!kernel_locked()) {
@@ -52,11 +58,14 @@ static void speakup_stop_ttys(void)
 		 */
 		return;
 	}
+#endif
 	for (i = 0; i < MAX_NR_CONSOLES; i++)
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			stop_tty(vc_cons[i].d->vc_tty);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
 	if (!in_atomic())
 		unlock_kernel();
+#endif
 	return;
 }
 
