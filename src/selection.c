@@ -120,6 +120,8 @@ int speakup_set_selection(struct tty_struct *tty)
 	return 0;
 }
 
+/* TODO: move to some helper thread, probably.  That'd fix having to check for
+ * in_atomic().  */
 int speakup_paste_selection(struct tty_struct *tty)
 {
 	struct vc_data *vc = (struct vc_data *) tty->driver_data;
