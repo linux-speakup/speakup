@@ -2,8 +2,8 @@
 
 usage() {
 	echo "Usage:  $0 [-c] [-l logfile] [kerneldir]"
-	echo "c : copy (don't symlink) the source into the kernel tree."
-	echo "l logfile : create install log (the default is install.log)."
+	echo "-c : copy (don't symlink) the source into the kernel tree."
+	echo "-l logfile : create install log (the default is install.log)."
 	echo "[kerneldir] - the kernel tree to install to (default is /usr/src/linux)"
 	exit 1
 }
