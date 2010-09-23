@@ -1,9 +1,10 @@
 #!/bin/bash
 
 usage() {
-	echo "Usage:  $0 [-c] [-l logfile] [kerneldir]"
+	echo "Usage:  $0 [-c] [-l logfile] [-s] [kerneldir]"
 	echo "-c : copy (don't symlink) the source into the kernel tree."
 	echo "-l logfile : create install log (the default is install.log)."
+	echo "-s : install into kernel staging directory"
 	echo "[kerneldir] - the kernel tree to install to (default is /usr/src/linux)"
 	exit 1
 }
@@ -42,11 +43,14 @@ get_kv() {
 
 set -o pipefail
 
-while getopts ":cl:" opt; do
+while getopts ":cl:s" opt; do
 	case $opt in
 		c) COPY_INSTALL=1
 			;;
 		l) LOGFILE=$OPTARG
+			;;
+		s) STAGING_INSTALL=1
+			COPY_INSTALL=1
 			;;
 		*) usage
 			;;
@@ -68,26 +72,53 @@ if [ $VERSION -lt 2 -o $PATCHLEVEL -lt 6 -o $SUBLEVEL -lt 26 ]; then
 	die "Speakup does not support kernels before 2.6.26."
 fi
 
-BLDPATCH="$SPKDIR/patches/build-integration.patch"
-SRCDIR="${KDIR}/drivers/accessibility/speakup"
+if [ -z "$STAGING_INSTALL" ]; then
+	BLDPATCH="$SPKDIR/patches/build-integration.patch"
+	DOCDIR="${KDIR}/Documentation/speakup"
+	SRCDIR="${KDIR}/drivers/accessibility/speakup"
+else
+	BLDPATCH="$SPKDIR/patches/staging-integration.patch"
+	DOCDIR="${KDIR}/drivers/staging/speakup"
+	SRCDIR="${KDIR}/drivers/staging/speakup"
+fi
 
-if [ -f "${SRCDIR}" ]; then
+if [ -e "${SRCDIR}" ]; then
 	log It appears that speakup is already installed into this kernel.
 	die Please start with a fresh kernel tree.
+fi
+
+if [ -n "$STAGING_INSTALL" -a ! -d ${KDIR}/.git ]; then
+	die staging installs should be done with the kernel git tree.
 fi
 
 if [ -n "${BLDPATCH}" ]; then
 	apply "${BLDPATCH}" "${KDIR}"
 fi
 
-if [ -n "$COPY_INSTALL" ]; then
-	CMD="cp -a"
+log Installing user documentation.
+if [ -z "${COPY_INSTALL}" ]; then
+	ln -s "${SPKDIR}/doc" "${DOCDIR}"
 else
-	CMD="ln -s"
+	if [ ! -d "${DOCDIR}" ]; then
+		mkdir "${DOCDIR}"
+	fi
+	cp -a "${SPKDIR}"/doc/* "${DOCDIR}"
 fi
 
-log Installing user documentation.
-$CMD "${SPKDIR}/doc" "${KDIR}/Documentation/speakup"
 log Installing speakup source.
-$CMD "${SPKDIR}/src" "${SRCDIR}"
+if [ -z "$COPY_INSTALL" ]; then
+	ln -s "${SPKDIR}/src" "${SRCDIR}"
+else
+	if [ ! -d "${SRCDIR}" ]; then
+		mkdir "${SRCDIR}"
+	fi
+	cp -a "${SPKDIR}"/src/* "${SRCDIR}"
+fi
+
+if [ -n "${STAGING_INSTALL}" ]; then
+	mv "${SRCDIR}/Kbuild" "${SRCDIR}/Makefile"
+	rm "${SRCDIR}/allmodule.mk"
+	cp "${SPKDIR}"/TODO.staging ${DOCDIR}/TODO
+fi
+
 log Speakup has been installed to ${KDIR}
