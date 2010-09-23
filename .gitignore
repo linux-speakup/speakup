@@ -16,4 +16,5 @@ Module.symvers
 *.orig
 *~
 \#*#
+!.gitattributes
 !.gitignore
