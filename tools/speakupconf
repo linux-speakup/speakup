@@ -23,9 +23,9 @@ if [ ! -d $SPEAKUPDIR ]; then
 	echo "no directory $SPEAKUPDIR"
 	exit 0
 fi
-SYNTH=`cat $SPEAKUPDIR/synth`
+SYNTH=$(cat $SPEAKUPDIR/synth)
 
-if [ `id -u` -eq 0 ]; then
+if [ $(id -u) -eq 0 ]; then
 	SAVEDIR="/etc/speakup"
 else
 	SAVEDIR="$HOME/.speakup"
@@ -38,13 +38,13 @@ case "$1" in
 		mkdir $SAVEDIR
 	fi
 	cd $SPEAKUPDIR
-	DIRLIST=`find . -type d |sed -e 's/..//' -e '/\./d'`
+	DIRLIST=$(find . -type d |sed -e 's/..//' -e '/\./d')
 	for d in $DIRLIST; do
 		if [ ! -d $SAVEDIR/$d ]; then
 			mkdir $SAVEDIR/$d
 		fi
 	done
-	SAVELIST=`find . -type f |sed 's/..//'`
+	SAVELIST=$(find . -type f |sed 's/..//')
 	for f in $SAVELIST; do
 		case $f in
 			silent|synth*|version)
