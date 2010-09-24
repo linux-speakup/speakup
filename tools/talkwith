@@ -26,7 +26,7 @@
 
 # be sure we are root
 if [ $(id -ru) -gt "0" ]; then
-	echo "`basename $0` must be run as root."
+	echo "$(basename $0) must be run as root."
 	exit
 fi
 
@@ -43,7 +43,7 @@ fi
 
 if [ "$1" = "" ]; then
 	echo
-	echo "Usage: `basename $0` <synth> <daemon> [options]"
+	echo "Usage: $(basename $0) <synth> <daemon> [options]"
 	echo
 	echo "synth - any synthesizer supported by speakup"
 	echo
@@ -103,7 +103,7 @@ if [ "$NEWMOD" = "soft" ]; then
 	fi
 fi
 
-OLDMOD="`cat $SPEAKUPDIR/synth`"
+OLDMOD="$(cat $SPEAKUPDIR/synth)"
 echo "$NEWMOD" > $SPEAKUPDIR/synth 2> /dev/null
 if [ $? != 0 ]; then
 	echo "Unable to switch to the $NEWMOD synthesizer."
@@ -114,13 +114,13 @@ fi
 
 if [ "$OLDMOD" = "soft" ]; then
 	if [ -f /var/run/espeakup.pid ]; then
-		kill `cat /var/run/espeakup.pid` 2> /dev/null
+		kill $(cat /var/run/espeakup.pid) 2> /dev/null
 		if [ -f /var/run/espeakup.pid ]; then
 			rm -f /var/run/espeakup.pid
 		fi
 	fi
 	if [ -f /var/run/speechd-up.pid ]; then
-		kill `cat /var/run/speechd-up.pid` 2> /dev/null
+		kill $(cat /var/run/speechd-up.pid) 2> /dev/null
 		if [ -f /var/run/speechd-up.pid ]; then
 			rm -f /var/run/speechd-up.pid
 		fi
