@@ -24,8 +24,18 @@ if [ ! -d $SPEAKUPDIR ]; then
 	exit 0
 fi
 SYNTH=$(cat $SPEAKUPDIR/synth)
+CURRENTDIR=$(pwd)
 
-if [ $(id -u) -eq 0 ]; then
+# After checking for existance of a second parameter, check to see if it
+# begins with a ~ or / character. If it does, treet it as an absolute
+# path; otherwise, prepend the current working directory onto it.
+if [ -n "$2" ]; then
+	if [[ "$2" =~ ^[~/].* ]]; then
+		SAVEDIR="$2"
+	else
+		SAVEDIR="$CURRENTDIR/$2"
+	fi
+elif [ $(id -u) -eq 0 ]; then
 	SAVEDIR="/etc/speakup"
 else
 	SAVEDIR="$HOME/.speakup"
@@ -88,7 +98,7 @@ case "$1" in
 	fi
 ;;
 *)
-	echo "usage: speakupconf load/save"
+	echo "usage: speakupconf load/save [optional directory]"
 	exit 1
 ;;
 esac
