@@ -1,6 +1,5 @@
 #include <linux/console.h>
 #include <linux/smp_lock.h>
-#include <linux/interrupt.h> /* for in_atomic */
 #include <linux/types.h>
 #include <linux/wait.h>
 
@@ -26,19 +25,12 @@ void speakup_start_ttys(void)
 {
 	int i;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
-	BUG_ON(in_atomic());
-	lock_kernel();
-#endif
 	for (i = 0; i < MAX_NR_CONSOLES; i++) {
 		if (speakup_console[i] && speakup_console[i]->tty_stopped)
 			continue;
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			start_tty(vc_cons[i].d->vc_tty);
 	}
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
-	unlock_kernel();
-#endif
 }
 EXPORT_SYMBOL_GPL(speakup_start_ttys);
 
@@ -46,26 +38,9 @@ static void speakup_stop_ttys(void)
 {
 	int i;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
-	if (!in_atomic())
-		lock_kernel();
-	else if (!kernel_locked()) {
-		/* BKL is not held and we are in a critical section, too bad,
-		 * let the buffer continue to fill up.
-		 *
-		 * This only happens with kernel messages and keyboard echo, so
-		 * that shouldn't be so much a concern.
-		 */
-		return;
-	}
-#endif
 	for (i = 0; i < MAX_NR_CONSOLES; i++)
 		if ((vc_cons[i].d != NULL) && (vc_cons[i].d->vc_tty != NULL))
 			stop_tty(vc_cons[i].d->vc_tty);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,26)
-	if (!in_atomic())
-		unlock_kernel();
-#endif
 	return;
 }
 
