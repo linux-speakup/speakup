@@ -1,0 +1,68 @@
+0	attribute bleep decrement
+1	attribute bleep increment
+2	bleeps decrement
+3	bleeps increment
+4	character, first
+5	character, last
+6	character, say current
+7	character, say hex and decimal
+8	character, say next
+9	character, say phonetic
+10	character, say previous
+11	cursor park
+12	cut
+13	edit delimiters
+14	edit exnum
+15	edit most
+16	edit repeats
+17	edit some
+18	go to
+19	go to bottom edge
+20	go to left edge
+21	go to right edge
+22	go to top edge
+23	help
+24	line, say current
+25	line, say next
+26	line, say previous
+27	line, say with indent
+28	paste
+29	pitch decrement
+30	pitch increment
+31	punctuation decrement
+32	punctuation increment
+33	punc level decrement
+34	punc level increment
+35	quiet
+36	rate decrement
+37	rate increment
+38	reading punctuation decrement
+39	reading punctuation increment
+40	say attributes
+41	say from left
+42	say from top
+43	say position
+44	say screen
+45	say to bottom
+46	say to right
+47	speakup
+48	speakup lock
+49	speakup off
+50	speech kill
+51	spell delay decrement
+52	spell delay increment
+53	spell word
+54	spell word phoneticly
+55	tone decrement
+56	tone increment
+57	voice decrement
+58	voice increment
+59	volume decrement
+60	volume increment
+61	window, clear
+62	window, say
+63	window, set
+64	window, silence
+65	word, say current
+66	word, say next
+67	word, say previous

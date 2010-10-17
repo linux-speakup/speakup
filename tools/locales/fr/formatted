@@ -1,0 +1,9 @@
+0	ligne %ld, col %ld, t t y %d
+1	hex %02x, décimal %d
+2	temps %d .
+3	répété %d .
+4	La fenêtre est la ligne %d
+5	%s sur la ligne %d, colonne %d
+6	éditez  %s, appuyez sur espace ensuite
+7	Aucune commande pour %c
+8	c'est %s
