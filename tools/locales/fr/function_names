@@ -1,0 +1,68 @@
+0	Diminuer l'alerte attributs
+1	Augmenter l'alerte attributs
+2	Diminuer les alertes
+3	Augmenter les alertes
+4	premier caractère
+5	Dernier caractère
+6	Dit le caractère actuel
+7	Dit le code hexa et décimal du caractère
+8	Dire le caractère suivant
+9	Dire le caractère phonétiquement
+10	Dire le caractère précédent
+11	Immobilisation du curseur
+12	copier
+13	édition les délimitateurs
+14	édition des exnum
+15	édition de la plupart
+16	édition des répétitions
+17	édition de quelques
+18	aller à
+19	aller tout en bas
+20	aller tout à gauche
+21	aller tout à droite
+22	aller tout en haut
+23	aide
+24	dire la ligne actuelle
+25	dire la ligne suivante
+26	dire la ligne précédente
+27	Dire la ligne et son indentation
+28	Coller
+29	Abaisser le ton
+30	Augmenter le ton
+31	Abaisser la ponctuation
+32	Augmenter la ponctuation
+33	Abaisser le niveau de ponctuation
+34	Augmenter le niveau de ponctuation
+35	Silence
+36	Réduire la vitesse
+37	Augmenter la vitesse
+38	Abaisser la lecture de la ponctuation
+39	Augmenter la lecture de la ponctuation
+40	Dire les attributs
+41	Dire à partir de la gauche
+42	Dire à partir du haut
+43	Dire la position
+44	Dire l'écran
+45	Dire jusqu'en bas
+46	Dire jusqu'à droite
+47	speakup
+48	Veroouiller speakup
+49	Désactiver speakup
+50	Tuer speech
+51	Réduire le délai d'épellation
+52	Augmenter le délai d'épellation
+53	épeler le mot
+54	épeler phonétiquement le mot
+55	Abaisser le son
+56	Augmenter le son
+57	Abaisser la voix
+58	Augmenter la voix
+59	Réduire le volume
+60	Augmenter le volume
+61	Vider la fenêtre
+62	Dire la fenêtre
+63	Paramétrer une fenêtre
+64	Faire taire une fenêtre
+65	Dire le mot actuel
+66	Dire le mot suivant
+67	Dire le mot précédent

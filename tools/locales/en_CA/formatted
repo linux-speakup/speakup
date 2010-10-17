@@ -1,0 +1,9 @@
+0	line %ld, col %ld, t t y %d
+1	hex %02x, decimal %d
+2	times %d .
+3	repeated %d .
+4	window is line %d
+5	%s at line %d, column %d
+6	edit  %s, press space when done
+7	no commands for %c
+8	is %s
