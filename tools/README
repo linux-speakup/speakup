@@ -18,9 +18,3 @@ This script was originally written by Chuck Hallenbeck <chuckh@ftml.net>.
 Its function is to make switching between supported synthesizers very
 simple.
 
-speakup_setlocale
-
-This script was originally written by Jean-Philippe MENGUAL
-<mengualjeanphi@free.fr> and is now being maintained as part of the speakup
-project.  Its function is to load translations of speakup.
-
