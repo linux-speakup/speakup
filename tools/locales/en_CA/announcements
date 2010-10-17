@@ -1,0 +1,43 @@
+0	blank
+1	I'm aLive!
+2	You killed speakup!
+3	hey. That's better!
+4	You turned me off!
+5	parked!
+6	unparked!
+7	mark
+8	cut
+9	mark, cleared
+10	paste
+11	bright
+12	on blinking
+13	off
+14	on
+15	no window
+16	cursoring off
+17	cursoring on
+18	highlight tracking
+19	read windo
+20	read all
+21	edit done
+22	window already set, clear then reset
+23	error end before start
+24	window cleared
+25	window silenced
+26	window silence disabled
+27	error
+28	goto canceled
+29	go to?
+30	leaving help
+31	is unassigned
+32	press space to leav help, cursor up or down to scroll, or a letter to go to commands in list
+33	top,
+34	bottom,
+35	left,
+36	right,
+37	number
+38	space
+39	start
+40	end
+41	control-
+42	or
