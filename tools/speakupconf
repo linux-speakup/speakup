@@ -18,59 +18,17 @@
 #  You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-SPEAKUPDIR=/sys/accessibility/speakup
-if [ ! -d $SPEAKUPDIR ]; then
-	echo "no directory $SPEAKUPDIR"
-	exit 0
-fi
-SYNTH=$(cat $SPEAKUPDIR/synth)
-CURRENTDIR=$(pwd)
 
-# After checking for existance of a second parameter, check to see if it
-# begins with a ~ or / character. If it does, treet it as an absolute
-# path; otherwise, prepend the current working directory onto it.
-if [ -n "$2" ]; then
-	if [[ "$2" =~ ^[~/].* ]]; then
-		SAVEDIR="$2"
-	else
-		SAVEDIR="$CURRENTDIR/$2"
-	fi
-elif [ $(id -u) -eq 0 ]; then
-	SAVEDIR="/etc/speakup"
-else
-	SAVEDIR="$HOME/.speakup"
-fi
+die()
+{
+	echo $*
+	exit 1
+}
 
-case "$1" in
-*save)
+load()
+{
 	if [ ! -d $SAVEDIR ] ; then
-		echo creating $SAVEDIR
-		mkdir $SAVEDIR
-	fi
-	cd $SPEAKUPDIR
-	DIRLIST=$(find . -type d |sed -e 's/..//' -e '/\./d')
-	for d in $DIRLIST; do
-		if [ ! -d $SAVEDIR/$d ]; then
-			mkdir $SAVEDIR/$d
-		fi
-	done
-	SAVELIST=$(find . -type f |sed 's/..//')
-	for f in $SAVELIST; do
-		case $f in
-			silent|synth*|version)
-			;;
-			*)
-				if [ -r $f -a -w $f ]; then
-					cp $f $SAVEDIR/$f
-				fi
-			;;
-		esac
-	done
-;;
-*load)
-	if [ ! -d $SAVEDIR ] ; then
-		echo no directory $SAVEDIR
-		exit 1
+		die no directory $SAVEDIR
 	fi
 	cd $SAVEDIR
 	if [ -d i18n -a -d $SPEAKUPDIR/i18n ]; then
@@ -96,9 +54,71 @@ case "$1" in
 		done
 		cd ..
 	fi
+}
+
+save()
+{
+	if [ ! -d $SAVEDIR ] ; then
+		echo creating $SAVEDIR
+		mkdir $SAVEDIR
+	fi
+	cd $SPEAKUPDIR
+	DIRLIST=$(find . -type d |sed -e 's/..//' -e '/\./d')
+	for d in $DIRLIST; do
+		if [ ! -d $SAVEDIR/$d ]; then
+			mkdir $SAVEDIR/$d
+		fi
+	done
+	SAVELIST=$(find . -type f |sed 's/..//')
+	for f in $SAVELIST; do
+		case $f in
+			silent|synth*|version)
+			;;
+			*)
+				if [ -r $f -a -w $f ]; then
+					cp $f $SAVEDIR/$f
+				fi
+			;;
+		esac
+	done
+}
+
+usage()
+{
+	echo "usage: speakupconf load/save [optional directory]"
+}
+
+SPEAKUPDIR=/sys/accessibility/speakup
+if [ ! -d $SPEAKUPDIR ]; then
+	die no directory $SPEAKUPDIR
+fi
+SYNTH=$(cat $SPEAKUPDIR/synth)
+CURRENTDIR=$(pwd)
+
+# After checking for existance of a second parameter, check to see if it
+# begins with a ~ or / character. If it does, treet it as an absolute
+# path; otherwise, prepend the current working directory onto it.
+if [ -n "$2" ]; then
+	if [[ "$2" =~ ^[~/].* ]]; then
+		SAVEDIR="$2"
+	else
+		SAVEDIR="$CURRENTDIR/$2"
+	fi
+elif [ $(id -u) -eq 0 ]; then
+	SAVEDIR="/etc/speakup"
+else
+	SAVEDIR="$HOME/.speakup"
+fi
+
+case "$1" in
+*load)
+	load
+;;
+*save)
+	save
 ;;
 *)
-	echo "usage: speakupconf load/save [optional directory]"
+	usage
 	exit 1
 ;;
 esac
