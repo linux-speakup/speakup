@@ -258,7 +258,7 @@ Dans cette section, nous parcourrons la liste de toutes les touches et les de
 commandes de speakup. Vous pouvez obtenir aussi une liste des commandes et
 des touches associées à partir du système d'aide.
 
-La liste suivante est issue du fichier speakupmap.map. Les touches affectées
+La liste suivante s'appuie sur le fichier speakupmap.map. Les touches affectées
 sont à gauche du signe égal et les commandes speakup associées sont à droite.
 Le terme « spk » signifie d'appuyer et de maintenir la touche speakup, donc soit
 Insertion du pavé soit Verrouillage majuscule, tout en appuyant sur l'autre touche
