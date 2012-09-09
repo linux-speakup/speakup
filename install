@@ -68,7 +68,7 @@ fi
 check_kdir "${KDIR}"
 get_kv "${KDIR}"
 
-if [ $VERSION -lt 2 -o $PATCHLEVEL -lt 6 -o $SUBLEVEL -lt 26 ]; then
+if [ $VERSION -lt 2 -o \( $VERSION -eq 2 -a $PATCHLEVEL -lt 6 \) -o \( $VERSION -eq 2 -a $PATCHLEVEL -eq 6 -a $SUBLEVEL -lt 26 \) ]; then
 	die "Speakup does not support kernels before 2.6.26."
 fi
 
