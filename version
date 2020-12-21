@@ -1,7 +1,7 @@
 #!/bin/bash
 # Prints the version of speakup
 
-ver=$(grep "#define SPEAKUP_VERSION" drivers/staging/speakup/speakup.h)
+ver=$(grep "#define SPEAKUP_VERSION" drivers/accessibility/speakup/speakup.h)
 ver=${ver%\"*}
 ver=${ver#*\"}
 echo ${ver}
