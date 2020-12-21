@@ -7,7 +7,7 @@ Last modified on Mon Sep 27 14:26:31 2010
 Document version 1.3
 
 Copyright (c) 2005  Gene Collins
-Copyright (c) 2008  Samuel Thibault
+Copyright (c) 2008, 2020  Samuel Thibault
 Copyright (c) 2009, 2010  the Speakup Team
 
 Permission is granted to copy, distribute and/or modify this document
@@ -406,6 +406,7 @@ freq
 full_time
 jiffy_delta
 pitch
+inflection
 punct
 rate
 tone
@@ -518,9 +519,9 @@ All the entries in the Speakup sys system are readable, some are
 writable by root only, and some are writable by everyone.  Unless you
 know what you are doing, you should probably leave the ones that are
 writable by root only alone.  Most of the names are self explanatory. 
-Vol for controlling volume, pitch for pitch, rate for controlling speaking
-rate, etc.  If you find one you aren't sure about, you can post a query
-on the Speakup list.
+Vol for controlling volume, pitch for pitch, inflection for pitch range, rate
+for controlling speaking rate, etc.  If you find one you aren't sure about, you
+can post a query on the Speakup list.
 
 6.  Changing Synthesizers
 
@@ -1223,7 +1224,6 @@ if desired.
 
 
  Copyright (C) 2000,2001,2002  Free Software Foundation, Inc.
-     59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
@@ -1575,7 +1575,7 @@ The Free Software Foundation may publish new, revised versions
 of the GNU Free Documentation License from time to time.  Such new
 versions will be similar in spirit to the present version, but may
 differ in detail to address new problems or concerns.  See
-http://www.gnu.org/copyleft/.
+https://www.gnu.org/copyleft/.
 
 Each version of the License is given a distinguishing version number.
 If the Document specifies that a particular numbered version of this
