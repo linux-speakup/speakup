@@ -251,7 +251,7 @@ static int spk_serial_wait_for_xmitr(struct spk_synth *in_synth)
 	return 1;
 }
 
-static unsigned char spk_serial_in(void)
+static unsigned char spk_serial_in(struct spk_synth *in_synth)
 {
 	int tmout = SPK_SERIAL_TIMEOUT;
 
@@ -265,7 +265,7 @@ static unsigned char spk_serial_in(void)
 	return inb_p(speakup_info.port_tts + UART_RX);
 }
 
-static unsigned char spk_serial_in_nowait(void)
+static unsigned char spk_serial_in_nowait(struct spk_synth *in_synth)
 {
 	unsigned char lsr;
 
@@ -307,7 +307,7 @@ const char *spk_serial_synth_immediate(struct spk_synth *synth,
 }
 EXPORT_SYMBOL_GPL(spk_serial_synth_immediate);
 
-void spk_serial_release(void)
+void spk_serial_release(struct spk_synth *synth)
 {
 	spk_stop_serial_interrupt();
 	if (speakup_info.port_tts == 0)
