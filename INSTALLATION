@@ -8,8 +8,56 @@ some basic instructions which assume you understand the kernel
 compilation process:
 
 Speakup consists of the speakup source and a small patch for the
-kernel's makefiles.  Speakup can either be installed into the kernel or
-built as external modules.
+kernel's makefiles.  Speakup can either be built as external modules
+or installed into the kernel.
+
+The latest source for speakup is available on github with 
+
+git clone https://github.com/linux-speakup/speakup.git speakupdir
+
+
+Building Speakup as External Modules
+====================================
+
+It is possible to build speakup as a set of modules outside the kernel 
+tree.  The advantage of this approach is 
+is that you can build speakup for any kernel without modifying
+the kernel itself.
+
+In order to build the speakup modules, perform the following steps:
+
+Make sure that /lib/modules/kernelversion/build points to the location 
+of a full build of the kernel.  This can be for the current running 
+kernel or for any other kernel that supports building external modules.
+
+Change to the modules directory where speakup is unpacked as follows:
+
+$ cd speakupdir/modules
+
+To compile speakup as external modules for the currently running kernel,
+execute the following commands:
+
+make clean
+make
+
+Then, as root, execute the following:
+
+make modules_install
+
+To compile speakup modules for a kernel other than the running kernel,
+specify the path to the kernel directory as follows:
+
+make KERNELDIR=/lib/modules/kernelversion/build clean
+make KERNELDIR=/lib/modules/kernelversion/build
+
+To install the modules execute the following as root:
+
+make KERNELDIR=/lib/modules/kernelversion/build modules_install
+
+For these commands, please note that KERNELDIR is in upper case and
+kernelversion should be replaced with a full kernel version such as one
+that is returned by  uname -r.
+
 
 Installing into the Kernel
 ==========================
@@ -40,48 +88,6 @@ Upon completion of your new kernel compile follow the normal steps for
 it's installation.
 
 You can now boot into your new kernel.
-
-Building Speakup as External Modules
-====================================
-
-It is possible to build speakup as a set of modules outside the kernel 
-tree.  The advantage of this approach is 
-is that you can build speakup for any kernel without modifying
-the kernel itself.
-
-In order to build the speakup modules, perform the following steps:
-
-Make sure that /lib/modules/kernelversion/build points to the location 
-of a full build of the kernel.  This can be for the current running 
-kernel or for any other kernel that supports building external modules.
-
-Change to the src directory where speakup is unpacked as follows:
-
-$ cd speakupdir/src
-
-To compile speakup as external modules for the currently running kernel,
-execute the following commands:
-
-make clean
-make
-
-Then, as root, execute the following:
-
-make modules_install
-
-To compile speakup modules for a kernel other than the running kernel,
-specify the path to the kernel directory as follows:
-
-make KERNELDIR=/lib/modules/kernelversion/build clean
-make KERNELDIR=/lib/modules/kernelversion/build
-
-To install the modules execute the following as root:
-
-make KERNELDIR=/lib/modules/kernelversion/build modules_install
-
-For these commands, please note that KERNELDIR is in upper case and
-kernelversion should be replaced with a full kernel version such as one
-that is returned by  uname -r.
 
 Starting Speakup
 ================
