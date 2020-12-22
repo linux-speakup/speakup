@@ -2,8 +2,8 @@ speakup
 =======
 
 speakup is a kernel-based speech synthesizer driver suite for Linux. It drives
-various serial-based and ISA-based synthesizer hardware, as well as providing
-an interface for driving software-based synthesizers in userspace.
+various USB-based, serial-based and ISA-based synthesizer hardware, as well as
+providing an interface for driving software-based synthesizers in userspace.
 
 For installation instructions, see INSTALLATION.
 For usage documentation, see the files in the doc/ subdirectory.
