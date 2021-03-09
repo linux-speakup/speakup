@@ -3,6 +3,7 @@
 #include <linux/tty.h>
 #include <linux/tty_flip.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 
 #include "speakup.h"
 #include "spk_types.h"
