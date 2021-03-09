@@ -1076,7 +1076,7 @@ only French language is available beyond native Canadian English language.
 
 French is only available after you are logged in.
 
-Canadian English is the default language. To toogle another language,
+Canadian English is the default language. To toggle another language,
 download the source of Speakup and untar it in your home directory. The
 following command should let you do this:
 
