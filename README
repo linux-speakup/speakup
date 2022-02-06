@@ -44,3 +44,47 @@ Like the Linux kernel speakup is maintaned in a git repository which
 can be retrieved from http://linux-speakup.org with the command:
 
 git clone http://linux-speakup.org/speakup.git
+
+Updating the source
+===================
+
+This repository is following the Linux source. It should be kept up to date with
+the following procedure:
+
+- From a Linux clone:
+
+  git format-patch f96a15c7698ede0e60bf5b4b9b5d0c7d0a0b505f..HEAD drivers/accessibility/speakup  Documentation/admin-guide/spkguide.txt
+
+that produces the series of patches that were applied since last update.
+
+- From the speakup repository, in the linux branch:
+
+  git am 0001*
+
+If needed, fix the merge and commit. Repeat for each patch.
+
+Copy over the linux files and commit any difference. That can happen due to
+merge commit fixes.
+
+- From the speakup repository, in the next branch:
+
+  git pull --rebase . linux
+
+to merge the commits included in next, possibly just seeing that they were
+applied in the Linux tree.
+
+- From the speakup repository, in the submitted branch:
+
+  git pull --rebase . next
+
+to merge the commits submitted to next, possibly just seeing that they were
+applied in the next tree.
+
+- From the speakup repository, in the main branch:
+
+  git pull . submitted
+
+to eventually merge everything back into the main speakup tree.
+
+- Update the git ID in the git format-patch command above, to the id of the last
+  patch that was applied.
