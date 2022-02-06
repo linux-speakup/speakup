@@ -3,7 +3,6 @@
 #include <linux/tty.h>
 #include <linux/tty_flip.h>
 #include <linux/slab.h>
-#include <linux/version.h>
 
 #include "speakup.h"
 #include "spk_types.h"
@@ -153,11 +152,7 @@ static int spk_ttyio_initialise_ldisc(struct spk_synth *synth)
 	if (ret)
 		return ret;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,12,0)
 	tty = tty_kopen_exclusive(dev);
-#else
-	tty = tty_kopen(dev);
-#endif
 	if (IS_ERR(tty))
 		return PTR_ERR(tty);
 
