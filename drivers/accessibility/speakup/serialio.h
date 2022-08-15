@@ -5,6 +5,7 @@
 #include <linux/serial.h>	/* for rs_table, serial constants */
 #include <linux/serial_reg.h>	/* for more serial constants */
 #include <linux/serial_core.h>
+#include <linux/version.h>
 
 #include "spk_priv.h"
 
@@ -34,7 +35,13 @@ struct old_serial_port {
 /* buffer timeout in ms */
 #define SPK_TIMEOUT 100
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0)
 #define spk_serial_tx_busy() \
 	(!uart_lsr_tx_empty(inb(speakup_info.port_tts + UART_LSR)))
+#else
+#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+#define spk_serial_tx_busy() \
+       ((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY)
+#endif
 
 #endif
