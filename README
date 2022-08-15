@@ -54,7 +54,7 @@ the following procedure:
 - From a Linux clone:
 
   rm -f 00*
-  git format-patch ce522ba9ef7e2d9fb22a39eb3371c0c64e2a433e..HEAD drivers/accessibility/speakup  Documentation/admin-guide/spkguide.txt
+  git format-patch 568035b01cfb107af8d2e4bd2fb9aea22cf5b868..HEAD drivers/accessibility/speakup  Documentation/admin-guide/spkguide.txt
 
 that produces the series of patches that were applied since last update.
 
